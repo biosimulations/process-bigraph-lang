@@ -1,7 +1,7 @@
 grammar ProcessBigraphLanguage
 
 entry Model:
-    (types+=Type)* (definitions+=Definition)* (processes+=Process)*;
+    ((types+=Type) | (definitions+=Definition) | (processDefs+=ProcessDef) | (stores+=Store) | (compositeDefs+=CompositeDef))*;
 
 Type:
     'type' name=ID ('extends' superType=[Type])? ('default' Value)?;
@@ -12,13 +12,25 @@ Value:
 SchemaItem:
     name=ID ':' type=[Type] ('default' default=Value)?;
 
-Process:
+Store:
+    'store' name=ID ('parent' parent=[Store])?
+        ('state' item+=SchemaItem)*;
+
+ProcessDef:
     'process_def' name=ID  
         ('param' configs+=SchemaItem)*
         ('var' vars+=SchemaItem)*
-        ('inputs' inputs+=[SchemaItem]*) 
-        ('outputs' outputs+=[SchemaItem]*) 
-        ('updates' updates+=Update*);
+        ('inputs' inputs+=[SchemaItem]*)?
+        ('outputs' outputs+=[SchemaItem]*)?
+        ('updates' updates+=Update*)?;
+
+Process:
+    name=ID ':' process_def=[ProcessDef] ('stores' stores+=[Store]*);
+
+CompositeDef infers ProcessDef:
+    'composite_def' name=ID
+        ('stores' stores+=[Store]*)?
+        ('process' process+=Process)*;
 
 Update:
     (lhs=[SchemaItem]) ':=' (rhs=Expression) ';';
@@ -31,7 +43,7 @@ Evaluation:
 
 Definition:
     'def' name=ID ('(' args+=DeclaredParameter (',' args+=DeclaredParameter)* ')')?
-    ':' expr=Expression ';';
+    ':' ('builtin' | (expr=Expression ';'));
 
 DeclaredParameter:
     name=ID;

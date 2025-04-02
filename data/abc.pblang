@@ -1,20 +1,40 @@
-type float default 0.0 // from stdlib
+// imported definitions from standard library (or other files)
+type float default 0.0
+def exp(a): builtin
+
+// my model
 type concentration extends float default 1.0
+def my_update(substrate, rate, interval): substrate + rate * interval;
 
-def accumulate(a, b):
-    a + b;
-
-process IncreaseFloat
-    param rate: float default 0.1
+process_def MyProcess
+    param calcium_growth: float default 0.1
+    param glucose_growth: float default 0.1
     param dt: float default 0.1
 
-    var amount: float
-    var amount2: float
+    var glucose: float
+    var calcium: float
 
-    inputs amount amount2
-
-    outputs amount
+    inputs glucose calcium
+    outputs glucose calcium
     
     updates 
-        amount := accumulate(amount, rate);
-        amount2 := amount * rate * dt;
+        glucose := my_update(glucose, glucose_growth, dt);
+        calcium := calcium * (1-exp(dt));
+
+store medium
+    state glucose: float default 3.0
+    state calcium: float default 0.5
+
+store cell parent medium
+    state glucose: float default 0.0
+    state calcium: float default 0.0
+
+store nucleus parent cell
+    state glucose: float default 0.0
+    state calcium: float default 0.0
+
+composite_def CellComposite
+    stores cell nucleus
+    process p1: MyProcess stores cell
+    process p2: MyProcess stores nucleus
+    
