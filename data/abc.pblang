@@ -1,0 +1,9 @@
+type float default 0.0 // from stdlib
+type concentration extends float default 1.0
+
+process IncreaseFloat
+    param rate: float default 0.1
+    var amount: float
+    inputs amount
+    outputs amount
+    updates amount := amount + rate;

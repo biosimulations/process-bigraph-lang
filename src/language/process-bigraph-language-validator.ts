@@ -1,5 +1,5 @@
 import type { ValidationAcceptor, ValidationChecks } from 'langium';
-import type { ProcessBigraphLanguageAstType, Person } from './generated/ast.js';
+import type { ProcessBigraphLanguageAstType, Type } from './generated/ast.js';
 import type { ProcessBigraphLanguageServices } from './process-bigraph-language-module.js';
 
 /**
@@ -9,7 +9,7 @@ export function registerValidationChecks(services: ProcessBigraphLanguageService
     const registry = services.validation.ValidationRegistry;
     const validator = services.validation.ProcessBigraphLanguageValidator;
     const checks: ValidationChecks<ProcessBigraphLanguageAstType> = {
-        Person: validator.checkPersonStartsWithCapital
+        Type: validator.checkPersonStartsWithCapital
     };
     registry.register(checks, validator);
 }
@@ -19,13 +19,13 @@ export function registerValidationChecks(services: ProcessBigraphLanguageService
  */
 export class ProcessBigraphLanguageValidator {
 
-    checkPersonStartsWithCapital(person: Person, accept: ValidationAcceptor): void {
-        if (person.name) {
-            const firstChar = person.name.substring(0, 1);
-            if (firstChar.toUpperCase() !== firstChar) {
-                accept('warning', 'Person name should start with a capital.', { node: person, property: 'name' });
-            }
-        }
+    checkPersonStartsWithCapital(type: Type, accept: ValidationAcceptor): void {
+        // if (type.name) {
+        //     const firstChar = type.name.substring(0, 1);
+        //     if (firstChar.toUpperCase() !== firstChar) {
+        //         accept('hint', 'Type name should start with a capital.', { node: type, property: 'name' });
+        //     }
+        // }
     }
 
 }
