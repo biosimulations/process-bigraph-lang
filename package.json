@@ -33,7 +33,7 @@
         "@codingame/monaco-vscode-editor-service-override": "~3.2.3",
         "@codingame/monaco-vscode-keybindings-service-override": "~3.2.3",
         "monaco-editor": "npm:@codingame/monaco-vscode-editor-api@~3.2.3",
-        "monaco-editor-wrapper": "~4.0.2",
+        "monaco-editor-wrapper": "~6.6.0",
         "monaco-languageclient": "~8.1.1",
         "vscode": "npm:@codingame/monaco-vscode-api@~3.2.3"
     },
@@ -46,11 +46,11 @@
         "typescript": "~5.1.6",
         "@types/vscode": "~1.67.0",
         "concurrently": "~8.2.1",
-        "esbuild": "~0.20.2",
+        "esbuild": "~0.25.2",
         "@codingame/esbuild-import-meta-url-plugin": "~1.0.2",
-        "vite": "~5.2.7",
+        "vite": "~6.2.4",
         "http-server": "~14.1.1",
-        "vitest": "~1.4.0"
+        "vitest": "~3.1.1"
     },
     "volta": {
         "node": "18.19.1",
