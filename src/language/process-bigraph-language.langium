@@ -1,7 +1,7 @@
 grammar ProcessBigraphLanguage
 
 entry Model:
-    (types+=Type)* (processes+=Process)*;
+    (types+=Type)* (definitions+=Definition)* (processes+=Process)*;
 
 Type:
     'type' name=ID ('extends' superType=[Type])? ('default' Value)?;
@@ -13,12 +13,12 @@ SchemaItem:
     name=ID ':' type=[Type] ('default' default=Value)?;
 
 Process:
-    'process' name=ID  
-        ('param' configs+=SchemaItem) 
-        ('var' vars+=SchemaItem) 
-        ('inputs' inputs+=[SchemaItem]) 
-        ('outputs' outputs+=[SchemaItem]) 
-        ('updates' updates+=Update);
+    'process_def' name=ID  
+        ('param' configs+=SchemaItem)*
+        ('var' vars+=SchemaItem)*
+        ('inputs' inputs+=[SchemaItem]*) 
+        ('outputs' outputs+=[SchemaItem]*) 
+        ('updates' updates+=Update*);
 
 Update:
     (lhs=[SchemaItem]) ':=' (rhs=Expression) ';';

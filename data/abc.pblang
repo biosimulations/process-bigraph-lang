@@ -1,9 +1,20 @@
 type float default 0.0 // from stdlib
 type concentration extends float default 1.0
 
+def accumulate(a, b):
+    a + b;
+
 process IncreaseFloat
     param rate: float default 0.1
+    param dt: float default 0.1
+
     var amount: float
-    inputs amount
+    var amount2: float
+
+    inputs amount amount2
+
     outputs amount
-    updates amount := amount + rate;
+    
+    updates 
+        amount := accumulate(amount, rate);
+        amount2 := amount * rate * dt;
