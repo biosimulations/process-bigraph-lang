@@ -1,7 +1,7 @@
 grammar ProcessBigraphLanguage
 
 entry Model:
-    ((types+=Type) | (definitions+=Definition) | (processDefs+=ProcessDef) | (stores+=Store) | (compositeDefs+=CompositeDef))*;
+    ((types+=Type) | (definitions+=Definition) | (units+=Unit) | (processDefs+=ProcessDef) | (stores+=Store) | (compositeDefs+=CompositeDef))*;
 
 Type:
     'type' name=ID ('extends' superType=[Type])? ('default' Value)?;
@@ -10,11 +10,14 @@ Value:
     val=(STRING | INT | ID | FLOAT);
 
 SchemaItem:
-    name=ID ':' type=[Type] ('default' default=Value)?;
+    name=ID ':' type=[Type] ('default' default=Value)? ("[" unit_symbol=[Unit] "]")?;
 
 Store:
     'store' name=ID ('parent' parent=[Store])?
         ('state' item+=SchemaItem)*;
+
+Unit:
+    "unit" name=ID ":" (('[' symbol=STRING ']') | (unit_ref=[Unit]));
 
 ProcessDef:
     'process_def' name=ID  

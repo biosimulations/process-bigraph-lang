@@ -5,9 +5,11 @@ def exp(a): builtin
 // my model
 type concentration extends float default 1.0
 def my_update(substrate, rate, interval): substrate + rate * interval;
+unit uM_per_h: ["10e-6 mole/liter/h"]
+unit conc: uM_per_h
 
 process_def MyProcess
-    param calcium_growth: float default 0.1
+    param calcium_growth: float default 0.1 [conc]
     param glucose_growth: float default 0.1
     param dt: float default 0.1
 
