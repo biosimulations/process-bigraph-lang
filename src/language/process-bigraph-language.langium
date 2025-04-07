@@ -7,7 +7,7 @@ Type:
     'type' name=ID ('extends' superType=[Type])? ('default' Value)?;
 
 Value:
-    val=(STRING | INT | ID | FLOAT);
+    val=(INT | ID | FLOAT);
 
 SchemaItem:
     name=ID ':' type=[Type] ('default' default=Value)? ("[" unit_symbol=[Unit] "]")?;
