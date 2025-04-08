@@ -4,7 +4,7 @@ entry Model:
     ((types+=Type) | (definitions+=Definition) | (units+=Unit) | (processDefs+=ProcessDef) | (stores+=Store) | (compositeDefs+=CompositeDef))*;
 
 Type:
-    'type' name=ID ('extends' superType=[Type])? ('default' Value)?;
+    'type' name=ID (builtin='builtin')? ('extends' superType=[Type])? ('default' Value)? ('update' update=[Definition])?;
 
 Value:
     val=(INT | ID | FLOAT);
