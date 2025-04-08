@@ -3,7 +3,7 @@ import chalk from 'chalk';
 import { Command } from 'commander';
 import { ProcessBigraphLanguageLanguageMetaData } from '../language/generated/module.js';
 import { createProcessBigraphLanguageServices } from '../language/process-bigraph-language-module.js';
-import { extractAstNode } from './cli-util.js';
+import { extractAstNode, extractDocument } from './cli-util.js';
 import { generateJavaScript } from './generator.js';
 import { NodeFileSystem } from 'langium/node';
 import * as url from 'node:url';
@@ -19,6 +19,30 @@ export const generateAction = async (fileName: string, opts: GenerateOptions): P
     const model = await extractAstNode<Model>(fileName, services);
     const generatedFilePath = generateJavaScript(model, fileName, opts.destination);
     console.log(chalk.green(`JavaScript code generated successfully: ${generatedFilePath}`));
+};
+
+/**
+ * Parse and validate a program written in our language.
+ * Verifies that no lexer or parser errors occur.
+ * Implicitly also checks for validation errors while extracting the document
+ *
+ * @param fileName Program to validate
+ */
+export const parseAndValidate = async (fileName: string): Promise<void> => {
+    // retrieve the services for our language
+    const services = createProcessBigraphLanguageServices(NodeFileSystem).ProcessBigraphLanguage;
+    // extract a document for our program
+    const document = await extractDocument(fileName, services);
+    // extract the parse result details
+    const parseResult = document.parseResult;
+    // verify no lexer, parser, or general diagnostic errors show up
+    if (parseResult.lexerErrors.length === 0 && 
+        parseResult.parserErrors.length === 0
+    ) {
+        console.log(chalk.green(`Parsed and validated ${fileName} successfully!`));
+    } else {
+        console.log(chalk.red(`Failed to parse and validate ${fileName}!`));
+    }
 };
 
 export type GenerateOptions = {
@@ -37,6 +61,12 @@ export default function(): void {
         .option('-d, --destination <dir>', 'destination directory of generating')
         .description('generates JavaScript code that prints "Hello, {name}!" for each greeting in a source file')
         .action(generateAction);
+    program
+        .command('parseAndValidate')
+        .argument('<file>', `source file (possible file extensions: ${fileExtensions})`)
+        .option('-d, --destination <dir>', 'destination directory of generating')
+        .description('Indicates where a program parses & validates successfully, but produces no output code')
+        .action(parseAndValidate);
 
     program.parse(process.argv);
 }
