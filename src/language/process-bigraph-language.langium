@@ -4,7 +4,11 @@ entry Model:
     ((types+=Type) | (definitions+=Definition) | (units+=Unit) | (processDefs+=ProcessDef) | (stores+=Store) | (compositeDefs+=CompositeDef))*;
 
 Type:
-    'type' name=ID (builtin='builtin')? ('extends' superType=[Type])? ('default' Value)? ('update' update=[Definition])?;
+    'type' name=ID (builtin='builtin')? ('extends' superType=[Type])? ('default' Value)? ('update' update=[Definition])? (subtypes+=NamedType)*;
+
+NamedType:
+    name=ID ':' (('maybe' "[" optional_type=[Type] "]") | type=[Type]) 
+    ('default' default=Value)? ("[" unit_symbol=[Unit] "]")?;
 
 Value:
     val=(INT | ID | FLOAT);

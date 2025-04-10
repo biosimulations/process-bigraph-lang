@@ -1,6 +1,39 @@
 // imported definitions from standard library (or other files)
-type float default 0.0
 def exp(a): builtin
+def signum(a): builtin
+def ReLU(a): signum(a) * a;
+
+// def update_float(a, b): (a + b);
+// type float default 0.0 update update_float
+type float builtin
+type string builtin
+
+def update_float_unsigned(a, b): ReLU(a + b);
+type positive_float extends float update update_float_unsigned
+
+type bounds 
+    lower: maybe[float] 
+    upper: maybe[float]
+
+type particle 
+    id: string
+    // 'position': 'tuple[float,float]',
+    size: float
+    mass: float default 1.0
+    // 'local': 'map[float]',
+    // 'exchange': 'map[float]',    # {mol_id: delta_value}
+
+type boundary_side builtin // 'enum[left,right,top,bottom]'
+
+type substrate_role builtin // 'enum[reactant,product,enzyme]'
+
+type kinetics 
+    vmax: float
+    kcat: float
+    role: substrate_role
+    
+type reaction_type builtin // 'map[kinetics]'
+
 
 // my model
 type concentration extends float default 1.0
