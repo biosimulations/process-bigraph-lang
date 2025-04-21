@@ -157,7 +157,7 @@ dmypy.json
 cython_debug/
 
 # Vscode config files
-.vscode/
+#.vscode/
 
 
 # Covers JetBrains IDEs: IntelliJ, RubyMine, PhpStorm, AppCode, PyCharm, CLion, Android Studio, WebStorm and Rider
