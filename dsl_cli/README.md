@@ -12,21 +12,27 @@ npm run build
 ```
 
 run the script as a shell script (needs Node 23 and node_modules)
+
 ```shell
 ./bin/cli.mjs
 ```
 
 or, run the bundled script (needs Node 23 only)
+
 ```shell
 node ./out/cli-bundled.mjs
 ```
 
 ### [Optional] build the native CLI
-warning: first time takes 2.5 hours (until the source build of Node 23 is cached).  The output is in `dist/`.
+
+warning: first time takes 2.5 hours (until the source build of Node 23 is cached). The output is in `dist/`.
+
 ```shell
 node ./out/npm run build:native
 ```
+
 Run the CLI as a native executable
+
 ```shell
 ./dist/cli-native
 ```
