@@ -22,8 +22,8 @@ process_def MyProcess
 
     inputs glucose calcium
     outputs glucose calcium
-    
-    updates 
+
+    updates
         glucose := my_update(glucose, glucose_growth, dt);
         calcium := calcium * (1-exp(dt)) + alpha * calcium_growth * dt;
 
@@ -43,4 +43,3 @@ composite_def CellComposite
     stores cell nucleus
     process p1: MyProcess stores cell
     process p2: MyProcess stores nucleus
-    

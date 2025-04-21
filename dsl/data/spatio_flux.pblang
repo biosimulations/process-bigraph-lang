@@ -11,11 +11,11 @@ type string builtin
 def update_float_unsigned(a, b): ReLU(a + b);
 type positive_float extends float update update_float_unsigned
 
-type bounds 
-    lower: maybe[float] 
+type bounds
+    lower: maybe[float]
     upper: maybe[float]
 
-type particle 
+type particle
     id: string
     // 'position': 'tuple[float,float]',
     size: float
@@ -27,11 +27,11 @@ type boundary_side builtin // 'enum[left,right,top,bottom]'
 
 type substrate_role builtin // 'enum[reactant,product,enzyme]'
 
-type kinetics 
+type kinetics
     vmax: float
     kcat: float
     role: substrate_role
-    
+
 type reaction_type builtin // 'map[kinetics]'
 
 
@@ -55,8 +55,8 @@ process_def MyProcess
 
     inputs glucose calcium
     outputs glucose calcium
-    
-    updates 
+
+    updates
         glucose := my_update(glucose, glucose_growth, dt);
         calcium := calcium * (1-exp(dt)) + alpha * calcium_growth * dt;
 
@@ -76,4 +76,3 @@ composite_def CellComposite
     stores cell nucleus
     process p1: MyProcess stores cell
     process p2: MyProcess stores nucleus
-    

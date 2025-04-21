@@ -7,7 +7,7 @@ Type:
     'type' name=ID (builtin='builtin')? ('extends' superType=[Type])? ('default' Value)? ('update' update=[Definition])? (subtypes+=NamedType)*;
 
 NamedType:
-    name=ID ':' (('maybe' "[" optional_type=[Type] "]") | type=[Type]) 
+    name=ID ':' (('maybe' "[" optional_type=[Type] "]") | type=[Type])
     ('default' default=Value)? ("[" unit_symbol=[Unit] "]")?;
 
 Value:
@@ -24,7 +24,7 @@ Unit:
     "unit" name=ID ":" (('[' symbol=STRING ']') | (unit_ref=[Unit]));
 
 ProcessDef:
-    'process_def' name=ID  
+    'process_def' name=ID
         ('param' configs+=SchemaItem)*
         ('var' vars+=SchemaItem)*
         ('inputs' inputs+=[SchemaItem]*)?

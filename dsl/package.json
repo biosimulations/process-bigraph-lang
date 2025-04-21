@@ -73,7 +73,9 @@
                     "Process Bigraph Language",
                     "process-bigraph-language"
                 ],
-                "extensions": [".pblang"],
+                "extensions": [
+                    ".pblang"
+                ],
                 "configuration": "./language-configuration.json"
             }
         ],

@@ -1,15 +1,17 @@
 {
     "projectName": "ProcessBigraphLanguage",
-    "languages": [{
-        "id": "process-bigraph-language",
-        "grammar": "src/language/process-bigraph-language.langium",
-        "fileExtensions": [".pblang"],
-        "textMate": {
-            "out": "syntaxes/process-bigraph-language.tmLanguage.json"
-        },
-        "monarch": {
-            "out": "src/syntaxes/process-bigraph-language.monarch.ts"
+    "languages": [
+        {
+            "id": "process-bigraph-language",
+            "grammar": "src/language/process-bigraph-language.langium",
+            "fileExtensions": [".pblang"],
+            "textMate": {
+                "out": "syntaxes/process-bigraph-language.tmLanguage.json"
+            },
+            "monarch": {
+                "out": "src/syntaxes/process-bigraph-language.monarch.ts"
+            }
         }
-    }],
+    ],
     "out": "src/language/generated"
 }
