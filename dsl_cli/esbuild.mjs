@@ -3,7 +3,7 @@ import * as esbuild from 'esbuild';
 import path from "node:path";
 
 await esbuild.build({
-    entryPoints: ['./bin/cli.js'], // Your CLI entry point
+    entryPoints: ['./bin/cli.mjs'], // Your CLI entry point
     outfile: 'out/cli-bundled.mjs', // Output file
     bundle: true,
     target: 'node20',
