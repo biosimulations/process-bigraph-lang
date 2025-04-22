@@ -22,7 +22,6 @@ def main() -> None:
 
     # make sure Node version 23 is used
 
-
     # Build DSL CLI executable from dsl_cli/ node project
     run_command("npm install", cwd=dsl_cli_dir)
     run_command("npm run langium:generate", cwd=dsl_cli_dir)
@@ -34,6 +33,7 @@ def main() -> None:
         cli_native_executable = dist_dir / f"cli-native{ext}"
         if cli_native_executable.exists():
             shutil.copy(cli_native_executable, process_bigraph_lang_bin_dir / f"cli-native{ext}")
+
 
 if __name__ == "__main__":
     main()

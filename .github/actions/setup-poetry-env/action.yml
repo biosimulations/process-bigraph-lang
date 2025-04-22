@@ -40,3 +40,7 @@ runs:
       if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
       run: poetry install --no-interaction
       shell: bash
+
+    - name: build project to install DSL CLI executable - need to cache nexe
+      run: poetry build --no-interaction
+      shell: bash
