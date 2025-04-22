@@ -1,0 +1,54 @@
+name: "setup-poetry-env"
+description: "Composite action to setup the Python and poetry environment."
+
+inputs:
+  python-version:
+    required: false
+    description: "The python version to use"
+    default: "3.11"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Set up python
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ inputs.python-version }}
+
+    - uses: abatilo/actions-poetry@v3
+
+    - name: Configure Poetry virtual environment in project
+      run: poetry config virtualenvs.in-project true
+      shell: bash
+
+    - name: Setup Node.js v23
+      uses: actions/setup-node@v4
+      with:
+        node-version: 23
+
+    - name: Get Node version (for nexe cache)
+      id: node-version
+      run: echo "node_version=$(node --version)" >> $GITHUB_ENV
+      shell: bash
+
+    - name: Load cached nexe build
+      id: cached-nexe
+      uses: actions/cache@v4
+      with:
+        path: ${{ env.HOME }}/.nexe
+        key: nexe-${{ runner.os }}-${{ steps.node-version.outputs.node_version }}
+        restore-keys: |
+          nexe-${{ runner.os }}-
+
+    - name: Install NASM on Windows
+      if: runner.os == 'Windows'
+      run: choco install nasm -y
+      shell: bash
+
+    - name: Install python dependencies
+      run: poetry install --no-interaction
+      shell: bash
+
+    - name: build project and wheels to install the DSL CLI executable needed for pytest)
+      run: poetry build --no-interaction
+      shell: bash

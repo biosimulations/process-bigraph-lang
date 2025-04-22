@@ -1,0 +1,90 @@
+{
+    "name": "process-bigraph-lang",
+    "description": "Please enter a brief description here",
+    "version": "0.0.1",
+    "files": [
+        "bin",
+        "out",
+        "src"
+    ],
+    "type": "module",
+    "scripts": {
+        "build": "tsc -b tsconfig.src.json && node esbuild.mjs",
+        "build:native": "nexe --build --verbose -i ./out/cli-bundled.mjs -o ./dist/cli-native",
+        "watch": "concurrently -n tsc,esbuild -c blue,yellow \"tsc -b tsconfig.src.json --watch\" \"node esbuild.mjs --watch\"",
+        "lint": "eslint src --ext ts",
+        "langium:generate": "langium generate",
+        "langium:generate:production": "langium generate --mode=production",
+        "langium:watch": "langium generate --watch",
+        "vscode:prepublish": "npm run build && npm run lint",
+        "build:web": "npm run build",
+        "bundle": "vite build",
+        "bundle:serve": "http-server ./dist --port 5175",
+        "dev": "vite",
+        "dev:debug": "vite --debug --force",
+        "serve": "npm run dev",
+        "test": "vitest run"
+    },
+    "dependencies": {
+        "chalk": "~5.3.0",
+        "commander": "~13.1.0",
+        "langium": "~3.4.0",
+        "mathjs": "~12.4.2"
+    },
+    "devDependencies": {
+        "@codingame/esbuild-import-meta-url-plugin": "~1.0.2",
+        "@chialab/esbuild-plugin-commonjs": "^0.18.0",
+        "@types/node": "^22.14.1",
+        "@typescript-eslint/eslint-plugin": "~7.3.1",
+        "@typescript-eslint/parser": "~7.3.1",
+        "concurrently": "~8.2.1",
+        "esbuild": "~0.20.2",
+        "eslint": "~8.57.0",
+        "langium-cli": "~3.4.0",
+        "nexe": "^5.0.0-beta.4",
+        "typescript": "~5.1.6",
+        "vite": "~5.4.18",
+        "vitest": "~1.4.0"
+    },
+    "volta": {
+        "node": "18.19.1",
+        "npm": "10.2.4"
+    },
+    "displayName": "process-bigraph-lang",
+    "engines": {
+        "vscode": "^1.67.0",
+        "node": ">=18.0.0"
+    },
+    "categories": [
+        "Programming Languages"
+    ],
+    "contributes": {
+        "languages": [
+            {
+                "id": "process-bigraph-language",
+                "aliases": [
+                    "Process Bigraph Language",
+                    "process-bigraph-language"
+                ],
+                "extensions": [
+                    ".pblang"
+                ],
+                "configuration": "./language-configuration.json"
+            }
+        ],
+        "grammars": [
+            {
+                "language": "process-bigraph-language",
+                "scopeName": "source.process-bigraph-language",
+                "path": "syntaxes/process-bigraph-language.tmLanguage.json"
+            }
+        ]
+    },
+    "activationEvents": [
+        "onLanguage:process-bigraph-language"
+    ],
+    "main": "./out/extension/main.cjs",
+    "bin": {
+        "process-bigraph-language-cli": "bin/cli.mjs"
+    }
+}
