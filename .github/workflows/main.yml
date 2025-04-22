@@ -28,7 +28,8 @@ jobs:
   tests-and-type-check:
     strategy:
       matrix:
-        python-version: ["3.10", "3.11", "3.12", "3.13"]
+        #        python-version: ["3.10", "3.11", "3.12", "3.13"]
+        python-version: ["3.12"]
         os-version: ["ubuntu-latest", "macos-latest", "windows-latest"]
       fail-fast: false
     runs-on: ${{matrix.os-version}}
@@ -53,6 +54,17 @@ jobs:
       - name: Upload coverage reports to Codecov with GitHub Action on Ubuntu with Python 3.12
         uses: codecov/codecov-action@v4
         if: ${{ matrix.python-version == '3.12' && matrix.os-version == 'ubuntu-latest' }}
+
+      #      - name: Setup tmate upon failure
+      #        if: failure()
+      #        uses: mxschmitt/action-tmate@v3
+      #        with:
+      #          limit-access-to-actor: true
+
+      - name: Setup tmate to debug caching of Node build in nexe
+        uses: mxschmitt/action-tmate@v3
+        with:
+          limit-access-to-actor: true
 
   check-docs:
     runs-on: ubuntu-latest
