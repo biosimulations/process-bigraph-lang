@@ -15,28 +15,13 @@ runs:
       with:
         python-version: ${{ inputs.python-version }}
 
-    - name: Install Poetry
-      env:
-        POETRY_VERSION: "1.7.1"
-      run: curl -sSL https://install.python-poetry.org | python - -y
-      shell: bash
-
-    - name: Add Poetry to Path
-      run: echo "$HOME/.local/bin" >> $GITHUB_PATH
-      shell: bash
+    - uses: abatilo/actions-poetry@v3
 
     - name: Configure Poetry virtual environment in project
       run: poetry config virtualenvs.in-project true
       shell: bash
 
-    - name: Load cached venv
-      id: cached-poetry-dependencies
-      uses: actions/cache@v4
-      with:
-        path: .venv
-        key: venv-${{ runner.os }}-${{ inputs.python-version }}-${{ hashFiles('poetry.lock') }}
-
-    - name: Get Node version
+    - name: Get Node version (for nexe cache)
       id: node-version
       run: echo "node_version=$(node --version)" >> $GITHUB_ENV
       shell: bash
@@ -50,11 +35,10 @@ runs:
         restore-keys: |
           nexe-${{ runner.os }}-
 
-    - name: Install dependencies
-      if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+    - name: Install python dependencies
       run: poetry install --no-interaction
       shell: bash
 
-    - name: build project to install DSL CLI executable - need to cache nexe
+    - name: build project and wheels to install the DSL CLI executable needed for pytest)
       run: poetry build --no-interaction
       shell: bash

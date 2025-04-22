@@ -55,13 +55,8 @@ jobs:
         uses: codecov/codecov-action@v4
         if: ${{ matrix.python-version == '3.12' && matrix.os-version == 'ubuntu-latest' }}
 
-      #      - name: Setup tmate upon failure
-      #        if: failure()
-      #        uses: mxschmitt/action-tmate@v3
-      #        with:
-      #          limit-access-to-actor: true
-
-      - name: Setup tmate to debug caching of Node build in nexe
+      - name: Setup tmate upon failure
+        if: failure()
         uses: mxschmitt/action-tmate@v3
         with:
           limit-access-to-actor: true
