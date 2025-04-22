@@ -34,6 +34,9 @@ def main() -> None:
         if cli_native_executable.exists():
             shutil.copy(cli_native_executable, process_bigraph_lang_bin_dir / f"cli-native{ext}")
 
+    # Copy dsl_cli/package.json to process_bigraph_lang/package.json (not sure why this is needed)
+    shutil.copy(dsl_cli_dir / "package.json", root_dir / "process_bigraph_lang" / "package.json")
+
 
 if __name__ == "__main__":
     main()

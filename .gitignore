@@ -187,3 +187,5 @@ cython_debug/
 
 # File-based project format
 *.iws
+
+/process_bigraph_lang/package.json
