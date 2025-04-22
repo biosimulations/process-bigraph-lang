@@ -36,6 +36,20 @@ runs:
         path: .venv
         key: venv-${{ runner.os }}-${{ inputs.python-version }}-${{ hashFiles('poetry.lock') }}
 
+    - name: Get Node version
+      id: node-version
+      run: echo "node_version=$(node --version)" >> $GITHUB_ENV
+      shell: bash
+
+    - name: Load cached nexe build
+      id: cached-nexe
+      uses: actions/cache@v4
+      with:
+        path: ${{ env.HOME }}/.nexe
+        key: nexe-${{ runner.os }}-${{ steps.node-version.outputs.node_version }}
+        restore-keys: |
+          nexe-${{ runner.os }}-
+
     - name: Install dependencies
       if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
       run: poetry install --no-interaction
