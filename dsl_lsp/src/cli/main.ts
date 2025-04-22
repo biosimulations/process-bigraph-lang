@@ -85,7 +85,6 @@ export default function (): void {
       "<file>",
       `source file (possible file extensions: ${fileExtensions})`,
     )
-    .option("-d, --destination <dir>", "destination directory of generating")
     .description(
       "Indicates where a program parses & validates successfully, but produces no output code",
     )

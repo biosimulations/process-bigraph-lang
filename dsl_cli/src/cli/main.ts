@@ -82,7 +82,7 @@ function parseArgs(args: string[]): {
   return result;
 }
 
-const main = function (): void {
+const main = async function (): Promise<void> {
   const args = parseArgs(process.argv);
 
   if (!args.command) {
@@ -99,7 +99,14 @@ const main = function (): void {
       return;
     }
     console.log(chalk.green(`Generating for file: ${args.file}`));
-    // Call synchronous generate logic here
+    if (args.options.destination) {
+      const options: GenerateOptions = {
+        destination: args.options.destination,
+      };
+      await generateAction(args.file, options);
+    } else {
+      await generateAction(args.file, {});
+    }
   } else if (args.command === "parseAndValidate") {
     if (!args.file) {
       console.log(
@@ -108,7 +115,7 @@ const main = function (): void {
       return;
     }
     console.log(chalk.green(`Parsing and validating file: ${args.file}`));
-    // Call synchronous parse and validate logic here
+    await parseAndValidate(args.file);
   } else {
     console.log(chalk.red(`Unknown command: ${args.command}`));
     console.log(`Available commands: generate, parseAndValidate`);
