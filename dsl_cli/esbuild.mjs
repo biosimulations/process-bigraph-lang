@@ -1,7 +1,7 @@
 //@ts-check
 import * as esbuild from "esbuild";
 
-import commonjsPlugin from '@chialab/esbuild-plugin-commonjs';
+import commonjsPlugin from "@chialab/esbuild-plugin-commonjs";
 
 await esbuild.build({
   entryPoints: ["./bin/cli.mjs"], // Your CLI entry point

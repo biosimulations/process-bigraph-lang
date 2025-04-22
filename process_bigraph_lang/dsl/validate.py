@@ -25,4 +25,4 @@ def validate_file(filename: PathLike[str]) -> tuple[str, str]:
     result: subprocess.CompletedProcess[str] = subprocess.run(
         [executable_path, "parseAndValidate", str(filename)], capture_output=True, text=True
     )
-    return result.stdout, result.stderr
+    return result.stdout.strip(), result.stderr.strip()

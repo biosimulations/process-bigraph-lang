@@ -8,7 +8,7 @@ def model_path_abc() -> Path:
     """
     Fixture that provides the path to the ABC model file.
     """
-    return Path(__file__).parent / "models" / "abc_model.pblang"
+    return Path(__file__).parent / "data" / "abc.pblang"
 
 
 @pytest.fixture
@@ -16,7 +16,7 @@ def model_path_abc_error() -> Path:
     """
     Fixture that provides the path to the ABC model file.
     """
-    return Path(__file__).parent / "models" / "abc_model.pblang"
+    return Path(__file__).parent / "data" / "abc_with_error.pblang"
 
 
 @pytest.fixture
@@ -24,4 +24,4 @@ def model_path_spatio_flux() -> Path:
     """
     Fixture that provides the path to the Spatio-Flux model file.
     """
-    return Path(__file__).parent / "models" / "spatio_flux.pblang"
+    return Path(__file__).parent / "data" / "spatio_flux.pblang"
