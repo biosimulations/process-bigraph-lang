@@ -1,9 +1,18 @@
 import type { Model } from "../language/generated/ast.js";
 import chalk from "chalk";
+import { Command } from "commander";
+import { ProcessBigraphLanguageLanguageMetaData } from "../language/generated/module.js";
 import { createProcessBigraphLanguageServices } from "../language/process-bigraph-language-module.js";
 import { extractAstNode, extractDocument } from "./cli-util.js";
 import { generateJavaScript } from "./generator.js";
 import { NodeFileSystem } from "langium/node";
+import * as url from "node:url";
+import * as fs from "node:fs/promises";
+import * as path from "node:path";
+const __dirname = url.fileURLToPath(new URL(".", import.meta.url));
+
+const packagePath = path.resolve(__dirname, "..", "..", "package.json");
+const packageContent = await fs.readFile(packagePath, "utf-8");
 
 export const generateAction = async (
   fileName: string,
@@ -52,74 +61,34 @@ export type GenerateOptions = {
   destination?: string;
 };
 
-function parseArgs(args: string[]): {
-  command: string;
-  options: Record<string, string>;
-  file?: string;
-} {
-  const result: {
-    command: string;
-    options: Record<string, string>;
-    file?: string;
-  } = { command: "", options: {} };
-  const commands = ["generate", "parseAndValidate"];
-  const optionsRegex = /^--?(.+)/;
+export default function (): void {
+  const program = new Command();
 
-  for (let i = 2; i < args.length; i++) {
-    const arg = args[i];
-    if (commands.includes(arg)) {
-      result.command = arg;
-    } else if (optionsRegex.test(arg)) {
-      const [, key] = arg.match(optionsRegex) || [];
-      const value =
-        args[i + 1] && !args[i + 1].startsWith("-") ? args[++i] : "";
-      result.options[key] = value;
-    } else if (!result.file) {
-      result.file = arg;
-    }
-  }
+  program.version(JSON.parse(packageContent).version);
 
-  return result;
+  const fileExtensions =
+    ProcessBigraphLanguageLanguageMetaData.fileExtensions.join(", ");
+  program
+    .command("generate")
+    .argument(
+      "<file>",
+      `source file (possible file extensions: ${fileExtensions})`,
+    )
+    .option("-d, --destination <dir>", "destination directory of generating")
+    .description(
+      'generates JavaScript code that prints "Hello, {name}!" for each greeting in a source file',
+    )
+    .action(generateAction);
+  program
+    .command("parseAndValidate")
+    .argument(
+      "<file>",
+      `source file (possible file extensions: ${fileExtensions})`,
+    )
+    .description(
+      "Indicates where a program parses & validates successfully, but produces no output code",
+    )
+    .action(parseAndValidate);
+
+  program.parse(process.argv);
 }
-
-const main = async function (): Promise<void> {
-  const args = parseArgs(process.argv);
-
-  if (!args.command) {
-    console.log(chalk.red("No command provided."));
-    console.log(`Available commands: generate, parseAndValidate`);
-    return;
-  }
-
-  if (args.command === "generate") {
-    if (!args.file) {
-      console.log(
-        chalk.red("No source file provided for the generate command."),
-      );
-      return;
-    }
-    console.log(chalk.green(`Generating for file: ${args.file}`));
-    if (args.options.destination) {
-      const options: GenerateOptions = {
-        destination: args.options.destination,
-      };
-      await generateAction(args.file, options);
-    } else {
-      await generateAction(args.file, {});
-    }
-  } else if (args.command === "parseAndValidate") {
-    if (!args.file) {
-      console.log(
-        chalk.red("No source file provided for the parseAndValidate command."),
-      );
-      return;
-    }
-    console.log(chalk.green(`Parsing and validating file: ${args.file}`));
-    await parseAndValidate(args.file);
-  } else {
-    console.log(chalk.red(`Unknown command: ${args.command}`));
-    console.log(`Available commands: generate, parseAndValidate`);
-  }
-};
-
-export default main;
