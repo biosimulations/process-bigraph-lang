@@ -26,11 +26,12 @@ jobs:
         run: make check
 
   tests-and-type-check:
-    runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
+        os-version: ["ubuntu-latest", "macos-latest", "windows-latest"]
       fail-fast: false
+    runs-on: ${{os-version}}
     defaults:
       run:
         shell: bash
@@ -49,9 +50,9 @@ jobs:
       - name: Check typing
         run: poetry run mypy
 
-      - name: Upload coverage reports to Codecov with GitHub Action on Python 3.11
+      - name: Upload coverage reports to Codecov with GitHub Action on Ubuntu with Python 3.12
         uses: codecov/codecov-action@v4
-        if: ${{ matrix.python-version == '3.11' }}
+        if: ${{ matrix.python-version == '3.12' && matrix.os-version == 'ubuntu-latest' }}
 
   check-docs:
     runs-on: ubuntu-latest
