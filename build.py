@@ -26,11 +26,11 @@ def main() -> None:
     run_command("npm install", cwd=dsl_cli_dir)
     run_command("npm run langium:generate", cwd=dsl_cli_dir)
     run_command("npm run build", cwd=dsl_cli_dir)
-    run_command("npm run build:native", cwd=dsl_cli_dir)
+    run_command("deno compile --output ./dist/cli-deno --allow-all ./bin/cli.mjs", cwd=dsl_cli_dir)
 
     # Copy the cli-native executable from dsl_cli/cli-native* to process_bigraph_lang/bin
     for ext in ["", ".exe"]:
-        cli_native_executable = dist_dir / f"cli-native{ext}"
+        cli_native_executable = dist_dir / f"cli-deno{ext}"
         if cli_native_executable.exists():
             shutil.copy(cli_native_executable, process_bigraph_lang_bin_dir / f"cli-native{ext}")
 
