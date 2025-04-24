@@ -13,28 +13,26 @@ def run_command(command: str, cwd: Path, env: Mapping[str, str] | None = None) -
 
 def main() -> None:
     root_dir = Path(__file__).resolve().parent
-    dsl_cli_dir = root_dir / "dsl_cli"
-    dist_dir = root_dir / "dsl_cli" / "dist"
+    dsl_dir = root_dir / "dsl"
+    dist_dir = root_dir / "dsl" / "dist"
     process_bigraph_lang_bin_dir = root_dir / "process_bigraph_lang" / "bin"
 
     # Ensure the process_bigraph_lang/bin directory exists
     process_bigraph_lang_bin_dir.mkdir(parents=True, exist_ok=True)
 
-    # make sure Node version 23 is used
+    # Build DSL CLI executable from dsl/ node project
+    run_command("npm install", cwd=dsl_dir)
+    run_command("npm run langium:generate", cwd=dsl_dir)
+    run_command("npm run build:native", cwd=dsl_dir)
 
-    # Build DSL CLI executable from dsl_cli/ node project
-    run_command("npm install", cwd=dsl_cli_dir)
-    run_command("npm run langium:generate", cwd=dsl_cli_dir)
-    run_command("npm run build:native", cwd=dsl_cli_dir)
-
-    # Copy the cli-native executable from dsl_cli/cli-native* to process_bigraph_lang/bin
+    # Copy the cli-native executable from dsl/cli-native* to process_bigraph_lang/bin
     for ext in ["", ".exe"]:
         cli_native_executable = dist_dir / f"cli-deno{ext}"
         if cli_native_executable.exists():
             shutil.copy(cli_native_executable, process_bigraph_lang_bin_dir / f"cli-native{ext}")
 
-    # Copy dsl_cli/package.json to process_bigraph_lang/package.json (not sure why this is needed)
-    shutil.copy(dsl_cli_dir / "package.json", root_dir / "process_bigraph_lang" / "package.json")
+    # Copy dsl/package.json to process_bigraph_lang/package.json (not sure why this is needed)
+    shutil.copy(dsl_dir / "package.json", root_dir / "process_bigraph_lang" / "package.json")
 
 
 if __name__ == "__main__":
