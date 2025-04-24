@@ -25,8 +25,7 @@ def main() -> None:
     # Build DSL CLI executable from dsl_cli/ node project
     run_command("npm install", cwd=dsl_cli_dir)
     run_command("npm run langium:generate", cwd=dsl_cli_dir)
-    run_command("npm run build", cwd=dsl_cli_dir)
-    run_command("deno compile --output ./dist/cli-deno --allow-all ./bin/cli.mjs", cwd=dsl_cli_dir)
+    run_command("npm run build:native", cwd=dsl_cli_dir)
 
     # Copy the cli-native executable from dsl_cli/cli-native* to process_bigraph_lang/bin
     for ext in ["", ".exe"]:
