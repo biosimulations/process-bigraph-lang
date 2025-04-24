@@ -10,7 +10,7 @@
     "type": "module",
     "scripts": {
         "build": "tsc -b tsconfig.src.json && node esbuild.mjs",
-        "build:native": "nexe --build --verbose -i ./out/cli-bundled.mjs -o ./dist/cli-native",
+        "build:native": "tsc -b tsconfig.src.json && node esbuild.mjs && deno compile --output ./dist/cli-native --allow-all ./bin/cli.js",
         "watch": "concurrently -n tsc,esbuild -c blue,yellow \"tsc -b tsconfig.src.json --watch\" \"node esbuild.mjs --watch\"",
         "lint": "eslint src --ext ts",
         "langium:generate": "langium generate",
@@ -26,24 +26,32 @@
         "test": "vitest run"
     },
     "dependencies": {
-        "chalk": "~5.3.0",
-        "commander": "~13.1.0",
         "langium": "~3.4.0",
+        "vscode-languageclient": "~9.0.1",
+        "vscode-languageserver": "~9.0.1",
+        "chalk": "~5.3.0",
+        "commander": "~13.0.0",
+        "@codingame/monaco-vscode-editor-service-override": "~3.2.3",
+        "@codingame/monaco-vscode-keybindings-service-override": "~3.2.3",
+        "monaco-editor": "npm:@codingame/monaco-vscode-editor-api@~3.2.3",
+        "monaco-editor-wrapper": "~4.0.2",
+        "monaco-languageclient": "~8.1.1",
+        "vscode": "npm:@codingame/monaco-vscode-api@~3.2.3",
         "mathjs": "~12.4.2"
     },
     "devDependencies": {
-        "@codingame/esbuild-import-meta-url-plugin": "~1.0.2",
-        "@chialab/esbuild-plugin-commonjs": "^0.18.0",
-        "@types/node": "^22.14.1",
-        "@typescript-eslint/eslint-plugin": "~7.3.1",
+        "@types/node": "^18.0.0",
         "@typescript-eslint/parser": "~7.3.1",
-        "concurrently": "~8.2.1",
-        "esbuild": "~0.20.2",
+        "@typescript-eslint/eslint-plugin": "~7.3.1",
         "eslint": "~8.57.0",
         "langium-cli": "~3.4.0",
-        "nexe": "^5.0.0-beta.4",
         "typescript": "~5.1.6",
+        "@types/vscode": "~1.67.0",
+        "concurrently": "~8.2.1",
+        "esbuild": "~0.20.2",
+        "@codingame/esbuild-import-meta-url-plugin": "~1.0.2",
         "vite": "~5.4.18",
+        "http-server": "~14.1.1",
         "vitest": "~1.4.0"
     },
     "volta": {
@@ -85,6 +93,6 @@
     ],
     "main": "./out/extension/main.cjs",
     "bin": {
-        "process-bigraph-language-cli": "bin/cli.mjs"
+        "process-bigraph-language-cli": "./bin/cli.js"
     }
 }

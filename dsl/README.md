@@ -14,7 +14,7 @@ npm run build
 run the script as a shell script (needs Node 23 and node_modules)
 
 ```shell
-./bin/cli.mjs
+./bin/cli.js
 ```
 
 or, run the bundled script (needs Node 23 only)
