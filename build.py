@@ -27,7 +27,7 @@ def main() -> None:
 
     # Copy the cli-native executable from dsl/cli-native* to process_bigraph_lang/bin
     for ext in ["", ".exe"]:
-        cli_native_executable = dist_dir / f"cli-deno{ext}"
+        cli_native_executable = dist_dir / f"cli-native{ext}"
         if cli_native_executable.exists():
             shutil.copy(cli_native_executable, process_bigraph_lang_bin_dir / f"cli-native{ext}")
 

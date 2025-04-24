@@ -10,7 +10,7 @@
     "type": "module",
     "scripts": {
         "build": "tsc -b tsconfig.src.json && node esbuild.mjs",
-        "build:native": "tsc -b tsconfig.src.json && node esbuild.mjs && deno compile --output ./dist/cli-deno --allow-all ./bin/cli.js",
+        "build:native": "tsc -b tsconfig.src.json && node esbuild.mjs && deno compile --output ./dist/cli-native --allow-all ./bin/cli.js",
         "watch": "concurrently -n tsc,esbuild -c blue,yellow \"tsc -b tsconfig.src.json --watch\" \"node esbuild.mjs --watch\"",
         "lint": "eslint src --ext ts",
         "langium:generate": "langium generate",
