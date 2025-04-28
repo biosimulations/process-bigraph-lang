@@ -58,7 +58,7 @@ def generate_model(filename: PathLike[str]) -> str:
         with open(json_file) as file:
             json_content = file.read()
         return (
-            json_content.replace('"$type":', '"type":')
+            json_content.replace('"$type":', '"obj_type":')
             .replace('"$ref":', '"ref":')
             .replace('"$refText":', '"ref_text":')
         )

@@ -8,24 +8,24 @@ Type:
 
 NamedType:
     name=ID ':' (('maybe' "[" optional_type=[Type] "]") | type=[Type])
-    ('default' default=DefaultValue)? ("[" unit_symbol=[Unit] "]")?;
+    ('default' default=DefaultValue)? ("[" unit_ref=[Unit] "]")?;
 
 DefaultValue:
     val=(INT | FLOAT);
 
 SchemaItem:
-    name=ID ':' type=[Type] ('default' default=DefaultValue)? ("[" unit_symbol=[Unit] "]")?;
+    name=ID ':' type=[Type] ('default' default=DefaultValue)? ("[" unit_ref=[Unit] "]")?;
 
 Store:
     'store' name=ID ('parent' parent=[Store])?
-        ('state' item+=SchemaItem)*;
+        ('state' states+=SchemaItem)*;
 
 Unit:
     "unit" name=ID ":" (('[' symbol=STRING ']') | (unit_ref=[Unit]));
 
 ProcessDef:
     'process_def' name=ID
-        ('param' configs+=SchemaItem)*
+        ('param' params+=SchemaItem)*
         ('var' vars+=SchemaItem)*
         ('inputs' inputs+=[SchemaItem]*)?
         ('outputs' outputs+=[SchemaItem]*)?
@@ -49,7 +49,7 @@ Definition:
 DeclaredParameter:
     name=ID;
 
-type VariableDefinition = Definition | DeclaredParameter | SchemaItem;
+type VariableDefinition = DeclaredParameter | SchemaItem;
 
 
 Expression:
