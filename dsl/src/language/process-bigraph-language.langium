@@ -42,20 +42,14 @@ CompositeDef infers ProcessDef:
 Update:
     (lhs=[SchemaItem]) ':=' (rhs=Expression) ';';
 
-Statement:
-    Definition | Evaluation;
-
-Evaluation:
-    expression=Expression ';';
-
 Definition:
     'def' name=ID ('(' args+=DeclaredParameter (',' args+=DeclaredParameter)* ')')?
-    ':' ('builtin' | (expr=Expression ';'));
+    ':' (builtin='builtin' | (expr=Expression ';'));
 
 DeclaredParameter:
     name=ID;
 
-type AbstractDefinition = Definition | DeclaredParameter | SchemaItem;
+type VariableDefinition = Definition | DeclaredParameter | SchemaItem;
 
 
 Expression:
@@ -76,7 +70,8 @@ Modulo infers Expression:
 PrimaryExpression infers Expression:
     '(' Expression ')' |
     {infer NumberLiteral} value=FLOAT |
-    {infer FunctionCall} func=[AbstractDefinition] ('(' args+=Expression (',' args+=Expression)* ')')?;
+    {infer FunctionCall} func=[Definition] ('(' args+=Expression (',' args+=Expression)* ')') |
+    {infer VariableRef} variable=[VariableDefinition:ID];
 
 hidden terminal WS: /\s+/;
 terminal FLOAT returns number: /[0-9]+(\.[0-9]+)?/;
