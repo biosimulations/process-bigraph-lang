@@ -4,17 +4,17 @@ entry Model:
     ((types+=Type) | (definitions+=Definition) | (units+=Unit) | (processDefs+=ProcessDef) | (stores+=Store) | (compositeDefs+=CompositeDef))*;
 
 Type:
-    'type' name=ID (builtin='builtin')? ('extends' superType=[Type])? ('default' Value)? ('update' update=[Definition])? (subtypes+=NamedType)*;
+    'type' name=ID (builtin='builtin')? ('extends' superType=[Type])? ('default' default=DefaultValue)? ('update' update=[Definition])? (subtypes+=NamedType)*;
 
 NamedType:
     name=ID ':' (('maybe' "[" optional_type=[Type] "]") | type=[Type])
-    ('default' default=Value)? ("[" unit_symbol=[Unit] "]")?;
+    ('default' default=DefaultValue)? ("[" unit_symbol=[Unit] "]")?;
 
-Value:
-    val=(INT | ID | FLOAT);
+DefaultValue:
+    val=(INT | FLOAT);
 
 SchemaItem:
-    name=ID ':' type=[Type] ('default' default=Value)? ("[" unit_symbol=[Unit] "]")?;
+    name=ID ':' type=[Type] ('default' default=DefaultValue)? ("[" unit_symbol=[Unit] "]")?;
 
 Store:
     'store' name=ID ('parent' parent=[Store])?

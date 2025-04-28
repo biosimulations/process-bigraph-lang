@@ -54,5 +54,6 @@ export function generate(model: AstNode): string {
   return services.serializer.JsonSerializer.serialize(model, {
     space: 2,
     sourceText: true,
+    refText: true,
   });
 }

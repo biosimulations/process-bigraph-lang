@@ -57,4 +57,8 @@ def generate_model(filename: PathLike[str]) -> str:
             raise RuntimeError("No JSON file generated.")
         with open(json_file) as file:
             json_content = file.read()
-        return json_content.replace('"$type":', '"builtin_type":').replace('"$ref":', '"builtin_ref":')
+        return (
+            json_content.replace('"$type":', '"type":')
+            .replace('"$ref":', '"ref":')
+            .replace('"$refText":', '"ref_text":')
+        )
