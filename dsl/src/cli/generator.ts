@@ -51,5 +51,8 @@ export function generateJson(
 export function generate(model: AstNode): string {
   const services =
     createProcessBigraphLanguageServices(NodeFileSystem).ProcessBigraphLanguage;
-  return services.serializer.JsonSerializer.serialize(model, {space: 2, sourceText: true});
+  return services.serializer.JsonSerializer.serialize(model, {
+    space: 2,
+    sourceText: true,
+  });
 }

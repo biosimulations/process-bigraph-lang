@@ -9,7 +9,8 @@ from process_bigraph_lang.dsl.model import (
     BinaryExpression,
     VariableRef,
     NumberLiteral,
-    Reference, FunctionCall,
+    Reference,
+    FunctionCall,
 )
 
 
@@ -54,9 +55,13 @@ def test_square() -> None:
         args=[DeclaredParameter(name="a"), DeclaredParameter(name="b")],
         expr=expr1,
     )
-    expr2 = FunctionCall(func=Reference(builtin_ref="#/definitions@0"),
-                         args=[VariableRef(variable=Reference(builtin_ref="#/definitions@1/args@0")),
-                               VariableRef(variable=Reference(builtin_ref="#/definitions@1/args@0"))])
+    expr2 = FunctionCall(
+        func=Reference(builtin_ref="#/definitions@0"),
+        args=[
+            VariableRef(variable=Reference(builtin_ref="#/definitions@1/args@0")),
+            VariableRef(variable=Reference(builtin_ref="#/definitions@1/args@0")),
+        ],
+    )
     definition2 = Definition(
         name="square",
         args=[DeclaredParameter(name="a")],
