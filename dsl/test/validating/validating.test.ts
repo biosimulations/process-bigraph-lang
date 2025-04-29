@@ -22,7 +22,8 @@ beforeAll(async () => {
 describe("Validating", () => {
   test("check no errors", async () => {
     document = await parse(`
-            person Langium
+            def add(a, b) : a + b;
+            def double(a) : add(a, a);
         `);
 
     expect(
@@ -37,7 +38,8 @@ describe("Validating", () => {
 
   test("check capital letter validation", async () => {
     document = await parse(`
-            person langium
+            def add(a, b) : a + b;
+            def double(a) : add(a2, a);
         `);
 
     expect(
@@ -46,7 +48,7 @@ describe("Validating", () => {
     ).toEqual(
       // 'expect.stringContaining()' makes our test robust against future additions of further validation rules
       expect.stringContaining(s`
-                [1:19..1:26]: Person name should start with a capital.
+                [2:32..2:34]: Could not resolve reference to VariableDefinition named 'a2'.
             `),
     );
   });

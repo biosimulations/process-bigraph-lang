@@ -4,11 +4,12 @@ import { Command } from "commander";
 import { ProcessBigraphLanguageLanguageMetaData } from "../language/generated/module.js";
 import { createProcessBigraphLanguageServices } from "../language/process-bigraph-language-module.js";
 import { extractAstNode, extractDocument } from "./cli-util.js";
-import { generateJavaScript } from "./generator.js";
+import { generateJson } from "./generator.js";
 import { NodeFileSystem } from "langium/node";
 import * as url from "node:url";
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
+
 const __dirname = url.fileURLToPath(new URL(".", import.meta.url));
 
 const packagePath = path.resolve(__dirname, "..", "..", "package.json");
@@ -21,11 +22,7 @@ export const generateAction = async (
   const services =
     createProcessBigraphLanguageServices(NodeFileSystem).ProcessBigraphLanguage;
   const model = await extractAstNode<Model>(fileName, services);
-  const generatedFilePath = generateJavaScript(
-    model,
-    fileName,
-    opts.destination,
-  );
+  const generatedFilePath = generateJson(model, fileName, opts.destination);
   console.log(
     chalk.green(`JavaScript code generated successfully: ${generatedFilePath}`),
   );

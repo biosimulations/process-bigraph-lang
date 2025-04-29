@@ -14,7 +14,8 @@ include = [
 ]
 
 [tool.poetry.dependencies]
-python = ">=3.8,<4.0"
+python = ">=3.9,<4.0"
+pydantic = "^2.11.3"
 
 [tool.poetry.build]
 script = "build.py"
@@ -37,7 +38,7 @@ requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.mypy]
-files = ["process_bigraph_lang"]
+files = ["process_bigraph_lang", "tests"]
 disallow_untyped_defs = "True"
 disallow_any_unimported = "True"
 no_implicit_optional = "True"

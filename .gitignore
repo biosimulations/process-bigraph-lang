@@ -189,3 +189,7 @@ cython_debug/
 *.iws
 
 /process_bigraph_lang/package.json
+
+dsl/generated/
+
+generated/

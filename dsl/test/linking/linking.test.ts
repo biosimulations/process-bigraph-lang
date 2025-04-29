@@ -24,8 +24,8 @@ afterEach(async () => {
 describe("Linking tests", () => {
   test("linking of greetings", async () => {
     document = await parse(`
-            person Langium
-            Hello Langium!
+            def add(a, b) : a + b;
+            def double(a) : add(a, a);
         `);
 
     expect(
@@ -34,11 +34,10 @@ describe("Linking tests", () => {
       // and then evaluate the cross references we're interested in by checking
       //  the referenced AST element as well as for a potential error message;
       checkDocumentValid(document) ||
-        document.parseResult.value.greetings
-          .map((g) => g.person.ref?.name || g.person.error?.message)
-          .join("\n"),
+        document.parseResult.value.definitions.map((d) => d.name).join("\n"),
     ).toBe(s`
-            Langium
+        add
+        double
         `);
   });
 });

@@ -4,28 +4,28 @@ entry Model:
     ((types+=Type) | (definitions+=Definition) | (units+=Unit) | (processDefs+=ProcessDef) | (stores+=Store) | (compositeDefs+=CompositeDef))*;
 
 Type:
-    'type' name=ID (builtin='builtin')? ('extends' superType=[Type])? ('default' Value)? ('update' update=[Definition])? (subtypes+=NamedType)*;
+    'type' name=ID (builtin='builtin')? ('extends' superType=[Type])? ('default' default=DefaultValue)? ('update' update=[Definition])? (subtypes+=NamedType)*;
 
 NamedType:
     name=ID ':' (('maybe' "[" optional_type=[Type] "]") | type=[Type])
-    ('default' default=Value)? ("[" unit_symbol=[Unit] "]")?;
+    ('default' default=DefaultValue)? ("[" unit_ref=[Unit] "]")?;
 
-Value:
-    val=(INT | ID | FLOAT);
+DefaultValue:
+    val=(INT | FLOAT);
 
 SchemaItem:
-    name=ID ':' type=[Type] ('default' default=Value)? ("[" unit_symbol=[Unit] "]")?;
+    name=ID ':' type=[Type] ('default' default=DefaultValue)? ("[" unit_ref=[Unit] "]")?;
 
 Store:
     'store' name=ID ('parent' parent=[Store])?
-        ('state' item+=SchemaItem)*;
+        ('state' states+=SchemaItem)*;
 
 Unit:
     "unit" name=ID ":" (('[' symbol=STRING ']') | (unit_ref=[Unit]));
 
 ProcessDef:
     'process_def' name=ID
-        ('param' configs+=SchemaItem)*
+        ('param' params+=SchemaItem)*
         ('var' vars+=SchemaItem)*
         ('inputs' inputs+=[SchemaItem]*)?
         ('outputs' outputs+=[SchemaItem]*)?
@@ -42,20 +42,14 @@ CompositeDef infers ProcessDef:
 Update:
     (lhs=[SchemaItem]) ':=' (rhs=Expression) ';';
 
-Statement:
-    Definition | Evaluation;
-
-Evaluation:
-    expression=Expression ';';
-
 Definition:
     'def' name=ID ('(' args+=DeclaredParameter (',' args+=DeclaredParameter)* ')')?
-    ':' ('builtin' | (expr=Expression ';'));
+    ':' (builtin='builtin' | (expr=Expression ';'));
 
 DeclaredParameter:
     name=ID;
 
-type AbstractDefinition = Definition | DeclaredParameter | SchemaItem;
+type VariableDefinition = DeclaredParameter | SchemaItem;
 
 
 Expression:
@@ -76,7 +70,8 @@ Modulo infers Expression:
 PrimaryExpression infers Expression:
     '(' Expression ')' |
     {infer NumberLiteral} value=FLOAT |
-    {infer FunctionCall} func=[AbstractDefinition] ('(' args+=Expression (',' args+=Expression)* ')')?;
+    {infer FunctionCall} func=[Definition] ('(' args+=Expression (',' args+=Expression)* ')') |
+    {infer VariableRef} variable=[VariableDefinition:ID];
 
 hidden terminal WS: /\s+/;
 terminal FLOAT returns number: /[0-9]+(\.[0-9]+)?/;

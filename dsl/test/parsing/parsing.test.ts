@@ -20,8 +20,8 @@ beforeAll(async () => {
 describe("Parsing tests", () => {
   test("parse simple model", async () => {
     document = await parse(`
-            person Langium
-            Hello Langium!
+            def add(a, b) : a + b;
+            def double(a) : add(a, a);
         `);
 
     // check for absence of parser errors the classic way:
@@ -35,20 +35,15 @@ describe("Parsing tests", () => {
       //  by means of the reusable function 'checkDocumentValid()' to sort out (critical) typos first;
       checkDocumentValid(document) ||
         s`
-                Persons:
-                  ${document.parseResult.value?.persons
+                Definitions:
+                  ${document.parseResult.value?.definitions
                     ?.map((p) => p.name)
-                    ?.join("\n  ")}
-                Greetings to:
-                  ${document.parseResult.value?.greetings
-                    ?.map((g) => g.person.$refText)
-                    ?.join("\n  ")}
+                    ?.join("\n")}
             `,
     ).toBe(s`
-            Persons:
-              Langium
-            Greetings to:
-              Langium
+        Definitions:
+          add
+          double
         `);
   });
 });
