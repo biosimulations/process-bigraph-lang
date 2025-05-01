@@ -1,13 +1,14 @@
 import { XMLParser } from 'fast-xml-parser';
 
 // Define SBML types (simplified)
-type Species = { id: string; name?: string; compartment: string; initialAmount?: number; initialConcentration?: number };
-type Compartment = { id: string; name?: string; size?: number };
-type Reaction = { id: string; name?: string; reactants?: any; products?: any };
-type Parameter = { id: string; name?: string; value?: number; constant?: boolean };
+export type Species = { id: string; name?: string; compartment: string; initialAmount?: number; initialConcentration?: number };
+export type Compartment = { id: string; name?: string; size?: number };
+export type Reaction = { id: string; name?: string; reactants?: any; products?: any };
+export type Parameter = { id: string; name?: string; value?: number; constant?: boolean };
+export type SbmlContent = { compartments: Compartment[]; species: Species[]; reactions: Reaction[]; parameters: Parameter[] };
 
 // Extract core features from SBML XML string
-export function parseSBML(sbmlXml: string) {
+export function parseSBML(sbmlXml: string) : SbmlContent {
     const parser = new XMLParser({
         ignoreAttributes: false,
         attributeNamePrefix: '',
