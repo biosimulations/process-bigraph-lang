@@ -4,16 +4,16 @@ import * as fs from 'fs/promises';
 import * as path from 'path';
 import {generateStubPblang, parseSBML} from "./sbml.js";
 
-export function registerGenerateStubsCommand(connection: Connection) {
+export function registerGenerateStubCommand(connection: Connection) {
     connection.onExecuteCommand(async (params: ExecuteCommandParams) => {
-        if (params.command === 'pblang/generateStubs') {
-            const result = await handleGenerateStubsCommand(params.arguments);
+        if (params.command === 'pblang/generateStub') {
+            const result = await handleGenerateStubCommand(params.arguments);
             connection.window.showInformationMessage(result ? 'Stub generation succeeded!' : 'Stub generation failed.');
         }
     });
 }
 
-async function handleGenerateStubsCommand(args: any[] | undefined): Promise<boolean> {
+async function handleGenerateStubCommand(args: any[] | undefined): Promise<boolean> {
     try {
         const pblangFiles = args || [];
         for (const fileUri of pblangFiles) {
@@ -45,7 +45,7 @@ async function handleGenerateStubsCommand(args: any[] | undefined): Promise<bool
         }
         return true;
     } catch (error) {
-        console.error('Error generating stubs:', error);
+        console.error('Error generating stub:', error);
         return false;
     }
 }

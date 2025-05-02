@@ -12,9 +12,9 @@ export function registerCodeActionProvider(connection: Connection | undefined, s
         if (content.includes('sbml')) {
             return [
                 {
-                    title: 'Generate SBML stubs',
+                    title: 'Generate SBML stub',
                     kind: 'quickfix',
-                    command: Command.create('Generate SBML stubs', 'pblang/generateStubs', [params.textDocument.uri])
+                    command: Command.create('Generate SBML stub', 'pblang/generateStub', [params.textDocument.uri])
                 }
             ];
         }

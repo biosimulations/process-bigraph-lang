@@ -5,7 +5,7 @@ import {
   ProposedFeatures,
 } from "vscode-languageserver/node.js";
 import { createProcessBigraphLanguageServices } from "./process-bigraph-language-module.js";
-import { registerGenerateStubsCommand } from "./commands.js";
+import { registerGenerateStubCommand } from "./commands.js";
 import { registerCodeActionProvider } from "./services.js";
 
 // Create a connection to the client
@@ -19,7 +19,7 @@ const { shared, ProcessBigraphLanguage } = createProcessBigraphLanguageServices(
   },
 );
 
-registerGenerateStubsCommand(connection);
+registerGenerateStubCommand(connection);
 registerCodeActionProvider(connection, ProcessBigraphLanguage);
 
 // Start the language server with the shared services

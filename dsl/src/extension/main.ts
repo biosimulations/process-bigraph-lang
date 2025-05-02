@@ -12,15 +12,15 @@ let client: LanguageClient;
 export function activate(context: vscode.ExtensionContext): void {
   client = startLanguageClient(context);
 
-  // Register the `pblang/generateStubs` command in the VS Code extension
+  // Register the `pblang/generateStub` command in the VS Code extension
   context.subscriptions.push(
-    vscode.commands.registerCommand("pblang/generateStubs", async () => {
+    vscode.commands.registerCommand("pblang/generateStub", async () => {
       const editor = vscode.window.activeTextEditor;
       if (editor) {
         const uri = editor.document.uri.toString();
         // Send the command to the language server
         await client.sendRequest("workspace/executeCommand", {
-          command: "pblang/generateStubs",
+          command: "pblang/generateStub",
           arguments: [uri],
         });
       } else {

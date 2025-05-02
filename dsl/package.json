@@ -70,21 +70,21 @@
     "contributes": {
         "commands": [
             {
-                "command": "pblang/generateStubs",
-                "title": "Generate SBML Stubs"
+                "command": "pblang/generateStub",
+                "title": "Generate SBML Stub"
             }
         ],
         "menus": {
             "editor/context": [
                 {
-                    "command": "pblang/generateStubs",
+                    "command": "pblang/generateStub",
                     "when": "resourceExtname == .xml || resourceExtname == .sbml",
                     "group": "1_modification"
                 }
             ],
             "explorer/context": [
                 {
-                    "command": "pblang/generateStubs",
+                    "command": "pblang/generateStub",
                     "when": "resourceExtname == .xml || resourceExtname == .sbml",
                     "group": "7_modification"
                 }
