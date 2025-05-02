@@ -27,7 +27,7 @@ SbmlModel:
     'sbml' name=ID 'file' filepath=STRING
         ('param' params+=SchemaItem)*
         ('var' vars+=SchemaItem)*;
- 
+
 ProcessDef:
     'process_def' name=ID
         ('param' params+=SchemaItem)*

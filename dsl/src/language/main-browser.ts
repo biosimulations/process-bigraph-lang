@@ -6,6 +6,8 @@ import {
   createConnection,
 } from "vscode-languageserver/browser.js";
 import { createProcessBigraphLanguageServices } from "./process-bigraph-language-module.js";
+import { registerGenerateStubsCommand } from "./commands.js";
+import { registerCodeActionProvider } from "./services.js";
 
 declare const self: DedicatedWorkerGlobalScope;
 
@@ -14,9 +16,14 @@ const messageWriter = new BrowserMessageWriter(self);
 
 const connection = createConnection(messageReader, messageWriter);
 
-const { shared } = createProcessBigraphLanguageServices({
-  connection,
-  ...EmptyFileSystem,
-});
+const { shared, ProcessBigraphLanguage } = createProcessBigraphLanguageServices(
+  {
+    connection,
+    ...EmptyFileSystem,
+  },
+);
+
+registerGenerateStubsCommand(connection);
+registerCodeActionProvider(connection, ProcessBigraphLanguage);
 
 startLanguageServer(shared);

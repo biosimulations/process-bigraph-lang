@@ -2,7 +2,7 @@ import type {
   LanguageClientOptions,
   ServerOptions,
 } from "vscode-languageclient/node.js";
-import type * as vscode from "vscode";
+import * as vscode from "vscode";
 import * as path from "node:path";
 import { LanguageClient, TransportKind } from "vscode-languageclient/node.js";
 
@@ -11,6 +11,23 @@ let client: LanguageClient;
 // This function is called when the extension is activated.
 export function activate(context: vscode.ExtensionContext): void {
   client = startLanguageClient(context);
+
+  // Register the `pblang/generateStubs` command in the VS Code extension
+  context.subscriptions.push(
+    vscode.commands.registerCommand("pblang/generateStubs", async () => {
+      const editor = vscode.window.activeTextEditor;
+      if (editor) {
+        const uri = editor.document.uri.toString();
+        // Send the command to the language server
+        await client.sendRequest("workspace/executeCommand", {
+          command: "pblang/generateStubs",
+          arguments: [uri],
+        });
+      } else {
+        vscode.window.showErrorMessage("No active editor found.");
+      }
+    }),
+  );
 }
 
 // This function is called when the extension is deactivated.
