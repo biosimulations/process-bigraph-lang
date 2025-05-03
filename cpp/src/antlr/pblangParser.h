@@ -268,6 +268,7 @@ public:
 
   class  DefinitionContext : public antlr4::ParserRuleContext {
   public:
+    antlr4::Token *builtin = nullptr;
     DefinitionContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
     antlr4::tree::TerminalNode *ID();

@@ -1522,7 +1522,7 @@ pblangParser::DefinitionContext* pblangParser::definition() {
     switch (_input->LA(1)) {
       case pblangParser::T__1: {
         setState(243);
-        match(pblangParser::T__1);
+        antlrcpp::downCast<DefinitionContext *>(_localctx)->builtin = match(pblangParser::T__1);
         break;
       }
 

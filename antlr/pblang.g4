@@ -54,7 +54,7 @@ update
     ;
 
 definition
-    : 'def' ID ('(' declaredParameter (',' declaredParameter)* ')')? ':' ('builtin' | (expression ';'))
+    : 'def' ID ('(' declaredParameter (',' declaredParameter)* ')')? ':' (builtin='builtin' | (expression ';'))
     ;
 
 declaredParameter

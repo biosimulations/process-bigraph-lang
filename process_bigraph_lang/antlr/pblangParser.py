@@ -3897,6 +3897,7 @@ class pblangParser(Parser):
         def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
+            self.builtin = None  # Token
 
         def ID(self):
             return self.getToken(pblangParser.ID, 0)
@@ -3961,7 +3962,7 @@ class pblangParser(Parser):
             token = self._input.LA(1)
             if token in [2]:
                 self.state = 243
-                self.match(pblangParser.T__1)
+                localctx.builtin = self.match(pblangParser.T__1)
                 pass
             elif token in [28, 37, 38]:
                 self.state = 244
