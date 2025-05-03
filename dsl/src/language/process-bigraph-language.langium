@@ -1,7 +1,7 @@
 grammar ProcessBigraphLanguage
 
 entry Model:
-    ((types+=Type) | (definitions+=Definition) | (units+=Unit) | (processDefs+=ProcessDef) | (stores+=Store) | (compositeDefs+=CompositeDef))*;
+    ((types+=Type) | (definitions+=Definition) | (units+=Unit) | (processDefs+=ProcessDef) | (stores+=Store) | (compositeDefs+=CompositeDef) | (sbmlModels+=SbmlModel))*;
 
 Type:
     'type' name=ID (builtin='builtin')? ('extends' superType=[Type])? ('default' default=DefaultValue)? ('update' update=[Definition])? (subtypes+=NamedType)*;
@@ -22,6 +22,11 @@ Store:
 
 Unit:
     "unit" name=ID ":" (('[' symbol=STRING ']') | (unit_ref=[Unit]));
+
+SbmlModel:
+    'sbml' name=ID 'file' filepath=STRING
+        ('param' params+=SchemaItem)*
+        ('var' vars+=SchemaItem)*;
 
 ProcessDef:
     'process_def' name=ID
