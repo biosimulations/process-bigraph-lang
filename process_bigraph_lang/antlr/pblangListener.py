@@ -1,10 +1,7 @@
 # Generated from pblang.g4 by ANTLR 4.13.1
 from antlr4 import *
 
-if "." in __name__:
-    from .pblangParser import pblangParser
-else:
-    from pblangParser import pblangParser
+from process_bigraph_lang.antlr.pblangParser import pblangParser
 
 
 # This class defines a complete listener for a parse tree produced by pblangParser.
