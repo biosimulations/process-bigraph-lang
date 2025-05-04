@@ -56,6 +56,14 @@ class ProcessDef(BaseModel):
     updates: list[Update]
 
 
+class SbmlModel(BaseModel):
+    obj_type: Literal["SbmlModel"] = Field(default="SbmlModel")
+    name: str
+    filepath: str
+    params: list[SchemaItem]
+    vars: list[SchemaItem]
+
+
 class BinaryExpression(BaseModel):
     obj_type: Literal["BinaryExpression"] = Field(default="BinaryExpression")
     operator: BinaryOp

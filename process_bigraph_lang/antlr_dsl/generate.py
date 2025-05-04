@@ -10,8 +10,20 @@ from process_bigraph_lang.antlr.pblangLexer import pblangLexer
 from process_bigraph_lang.antlr.pblangParser import pblangParser
 from process_bigraph_lang.antlr_dsl.ast_builder_listener import ASTBuilderListener
 from process_bigraph_lang.dsl.model import (
-    Model, Reference, Unit, Type, Definition, Store, SchemaItem, Expression, DeclaredParameter, ProcessDef,
-    FunctionCall, BinaryExpression, VariableRef, NumberLiteral,
+    Model,
+    Reference,
+    Unit,
+    Type,
+    Definition,
+    Store,
+    SchemaItem,
+    Expression,
+    DeclaredParameter,
+    ProcessDef,
+    FunctionCall,
+    BinaryExpression,
+    VariableRef,
+    NumberLiteral,
 )
 
 
@@ -73,15 +85,17 @@ class RefType(Enum):
     """
     Enum for reference target types.
     """
-    UNIT = "unit"                                  # Unit
-    TYPE = "type"                                  # Type
-    DEFINITION = "definition"                      # Definition
-    DEFINITION_PARAMETER = "definitionParameter"   # DeclaredParameter
-    STORE = "store"                                # Store
-    STORE_STATE = "storeState"                     # SchemaItem
-    PROCESS_DEF = "processDef"                     # ProcessDef
-    PROCESS_DEF_VARIABLE = "processDefVariable"    # SchemaItem
+
+    UNIT = "unit"  # Unit
+    TYPE = "type"  # Type
+    DEFINITION = "definition"  # Definition
+    DEFINITION_PARAMETER = "definitionParameter"  # DeclaredParameter
+    STORE = "store"  # Store
+    STORE_STATE = "storeState"  # SchemaItem
+    PROCESS_DEF = "processDef"  # ProcessDef
+    PROCESS_DEF_VARIABLE = "processDefVariable"  # SchemaItem
     PROCESS_DEF_PARAMETER = "processDefParameter"  # SchemaItem
+
 
 @dataclasses.dataclass
 class SymbolTableEntry:
@@ -94,31 +108,71 @@ class SymbolTableEntry:
 def create_symbol_table(model: Model) -> list[SymbolTableEntry]:
     symbol_table: list[SymbolTableEntry] = []
     for i, unit in enumerate(model.units):
-        symbol_table.append(SymbolTableEntry(name=unit.name, path=f"#/units@{i}", ref_type=RefType.UNIT, target_obj=unit))
+        symbol_table.append(
+            SymbolTableEntry(name=unit.name, path=f"#/units@{i}", ref_type=RefType.UNIT, target_obj=unit)
+        )
 
     for i, type in enumerate(model.types):
-        symbol_table.append(SymbolTableEntry(name=type.name, path=f"#/types@{i}", ref_type=RefType.TYPE, target_obj=type))
+        symbol_table.append(
+            SymbolTableEntry(name=type.name, path=f"#/types@{i}", ref_type=RefType.TYPE, target_obj=type)
+        )
 
     for i, definition in enumerate(model.definitions):
-        symbol_table.append(SymbolTableEntry(name=definition.name, path=f"#/definitions@{i}", ref_type=RefType.DEFINITION, target_obj=definition))
+        symbol_table.append(
+            SymbolTableEntry(
+                name=definition.name, path=f"#/definitions@{i}", ref_type=RefType.DEFINITION, target_obj=definition
+            )
+        )
 
         for j, formal_arg in enumerate(definition.args):
-            symbol_table.append(SymbolTableEntry(name=formal_arg.name, path=f"#/definitions@{i}/args@{j}", ref_type=RefType.DEFINITION_PARAMETER, target_obj=formal_arg))
+            symbol_table.append(
+                SymbolTableEntry(
+                    name=formal_arg.name,
+                    path=f"#/definitions@{i}/args@{j}",
+                    ref_type=RefType.DEFINITION_PARAMETER,
+                    target_obj=formal_arg,
+                )
+            )
 
     for i, store in enumerate(model.stores):
-        symbol_table.append(SymbolTableEntry(name=store.name, path=f"#/stores@{i}", ref_type=RefType.STORE, target_obj=store))
+        symbol_table.append(
+            SymbolTableEntry(name=store.name, path=f"#/stores@{i}", ref_type=RefType.STORE, target_obj=store)
+        )
         if store.states:
             for j, state in enumerate(store.states):
-                symbol_table.append(SymbolTableEntry(name=state.name, path=f"#/stores@{i}/states@{j}", ref_type=RefType.STORE_STATE, target_obj=state))
+                symbol_table.append(
+                    SymbolTableEntry(
+                        name=state.name, path=f"#/stores@{i}/states@{j}", ref_type=RefType.STORE_STATE, target_obj=state
+                    )
+                )
 
     for i, process in enumerate(model.processDefs):
-        symbol_table.append(SymbolTableEntry(name=process.name, path=f"#/processDefs@{i}", ref_type=RefType.PROCESS_DEF, target_obj=process))
+        symbol_table.append(
+            SymbolTableEntry(
+                name=process.name, path=f"#/processDefs@{i}", ref_type=RefType.PROCESS_DEF, target_obj=process
+            )
+        )
         for j, var in enumerate(process.vars):
-            symbol_table.append(SymbolTableEntry(name=var.name, path=f"#/processDefs@{i}/vars@{j}", ref_type=RefType.PROCESS_DEF_VARIABLE, target_obj=var))
+            symbol_table.append(
+                SymbolTableEntry(
+                    name=var.name,
+                    path=f"#/processDefs@{i}/vars@{j}",
+                    ref_type=RefType.PROCESS_DEF_VARIABLE,
+                    target_obj=var,
+                )
+            )
         for j, param in enumerate(process.params):
-            symbol_table.append(SymbolTableEntry(name=param.name, path=f"#/processDefs@{i}/params@{j}", ref_type=RefType.PROCESS_DEF_PARAMETER, target_obj=param))
+            symbol_table.append(
+                SymbolTableEntry(
+                    name=param.name,
+                    path=f"#/processDefs@{i}/params@{j}",
+                    ref_type=RefType.PROCESS_DEF_PARAMETER,
+                    target_obj=param,
+                )
+            )
 
     return symbol_table
+
 
 def _bind_var_ref(var_ref: VariableRef, symbol_table: list[SymbolTableEntry]) -> None:
     for entry in symbol_table:
@@ -127,12 +181,14 @@ def _bind_var_ref(var_ref: VariableRef, symbol_table: list[SymbolTableEntry]) ->
             return
     raise ValueError(f"Reference '{var_ref.variable.ref_text}' not found in symbol table")
 
+
 def _bind_ref(ref: Reference, symbol_table: list[SymbolTableEntry]) -> None:
     for entry in symbol_table:
         if entry.name == ref.ref_text:
             ref.ref = entry.path
             return
     raise ValueError(f"Reference '{ref.ref_text}' not found in symbol table")
+
 
 def _bind_expr(expr: Expression, symbol_table: list[SymbolTableEntry]) -> None:
     if isinstance(expr, VariableRef):
@@ -148,14 +204,19 @@ def _bind_expr(expr: Expression, symbol_table: list[SymbolTableEntry]) -> None:
     elif isinstance(expr, NumberLiteral):
         pass  # No binding needed for literals
 
+
 def _bind_model(model: Model) -> None:
     # 1. generate symbol table with paths and objects
     symbol_table: list[SymbolTableEntry] = create_symbol_table(model)
 
     # 2. bind all references to objects in the symbol table
     for i, definition in enumerate(model.definitions):
-        symbols = [e for e in symbol_table
-                   if (e.ref_type == RefType.DEFINITION_PARAMETER and e.path.startswith(f"#/definitions@{i}/args@")) or (e.ref_type != RefType.DEFINITION_PARAMETER)]
+        symbols = [
+            e
+            for e in symbol_table
+            if (e.ref_type == RefType.DEFINITION_PARAMETER and e.path.startswith(f"#/definitions@{i}/args@"))
+            or (e.ref_type != RefType.DEFINITION_PARAMETER)
+        ]
         # symbols = symbol_table
         if definition.expr:
             _bind_expr(definition.expr, symbols)
