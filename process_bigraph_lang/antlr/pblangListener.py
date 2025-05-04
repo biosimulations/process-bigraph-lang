@@ -54,6 +54,14 @@ class pblangListener(ParseTreeListener):
     def exitStore(self, ctx: pblangParser.StoreContext):
         pass
 
+    # Enter a parse tree produced by pblangParser#storeState.
+    def enterStoreState(self, ctx: pblangParser.StoreStateContext):
+        pass
+
+    # Exit a parse tree produced by pblangParser#storeState.
+    def exitStoreState(self, ctx: pblangParser.StoreStateContext):
+        pass
+
     # Enter a parse tree produced by pblangParser#unit.
     def enterUnit(self, ctx: pblangParser.UnitContext):
         pass
@@ -70,12 +78,60 @@ class pblangListener(ParseTreeListener):
     def exitSbmlModel(self, ctx: pblangParser.SbmlModelContext):
         pass
 
+    # Enter a parse tree produced by pblangParser#sbmlParameter.
+    def enterSbmlParameter(self, ctx: pblangParser.SbmlParameterContext):
+        pass
+
+    # Exit a parse tree produced by pblangParser#sbmlParameter.
+    def exitSbmlParameter(self, ctx: pblangParser.SbmlParameterContext):
+        pass
+
+    # Enter a parse tree produced by pblangParser#sbmlVariable.
+    def enterSbmlVariable(self, ctx: pblangParser.SbmlVariableContext):
+        pass
+
+    # Exit a parse tree produced by pblangParser#sbmlVariable.
+    def exitSbmlVariable(self, ctx: pblangParser.SbmlVariableContext):
+        pass
+
     # Enter a parse tree produced by pblangParser#processDef.
     def enterProcessDef(self, ctx: pblangParser.ProcessDefContext):
         pass
 
     # Exit a parse tree produced by pblangParser#processDef.
     def exitProcessDef(self, ctx: pblangParser.ProcessDefContext):
+        pass
+
+    # Enter a parse tree produced by pblangParser#processParameter.
+    def enterProcessParameter(self, ctx: pblangParser.ProcessParameterContext):
+        pass
+
+    # Exit a parse tree produced by pblangParser#processParameter.
+    def exitProcessParameter(self, ctx: pblangParser.ProcessParameterContext):
+        pass
+
+    # Enter a parse tree produced by pblangParser#processVariable.
+    def enterProcessVariable(self, ctx: pblangParser.ProcessVariableContext):
+        pass
+
+    # Exit a parse tree produced by pblangParser#processVariable.
+    def exitProcessVariable(self, ctx: pblangParser.ProcessVariableContext):
+        pass
+
+    # Enter a parse tree produced by pblangParser#processInput.
+    def enterProcessInput(self, ctx: pblangParser.ProcessInputContext):
+        pass
+
+    # Exit a parse tree produced by pblangParser#processInput.
+    def exitProcessInput(self, ctx: pblangParser.ProcessInputContext):
+        pass
+
+    # Enter a parse tree produced by pblangParser#processOutput.
+    def enterProcessOutput(self, ctx: pblangParser.ProcessOutputContext):
+        pass
+
+    # Exit a parse tree produced by pblangParser#processOutput.
+    def exitProcessOutput(self, ctx: pblangParser.ProcessOutputContext):
         pass
 
     # Enter a parse tree produced by pblangParser#process.

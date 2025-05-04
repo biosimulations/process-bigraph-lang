@@ -34,14 +34,35 @@ public:
   virtual void enterStore(pblangParser::StoreContext * /*ctx*/) override { }
   virtual void exitStore(pblangParser::StoreContext * /*ctx*/) override { }
 
+  virtual void enterStoreState(pblangParser::StoreStateContext * /*ctx*/) override { }
+  virtual void exitStoreState(pblangParser::StoreStateContext * /*ctx*/) override { }
+
   virtual void enterUnit(pblangParser::UnitContext * /*ctx*/) override { }
   virtual void exitUnit(pblangParser::UnitContext * /*ctx*/) override { }
 
   virtual void enterSbmlModel(pblangParser::SbmlModelContext * /*ctx*/) override { }
   virtual void exitSbmlModel(pblangParser::SbmlModelContext * /*ctx*/) override { }
 
+  virtual void enterSbmlParameter(pblangParser::SbmlParameterContext * /*ctx*/) override { }
+  virtual void exitSbmlParameter(pblangParser::SbmlParameterContext * /*ctx*/) override { }
+
+  virtual void enterSbmlVariable(pblangParser::SbmlVariableContext * /*ctx*/) override { }
+  virtual void exitSbmlVariable(pblangParser::SbmlVariableContext * /*ctx*/) override { }
+
   virtual void enterProcessDef(pblangParser::ProcessDefContext * /*ctx*/) override { }
   virtual void exitProcessDef(pblangParser::ProcessDefContext * /*ctx*/) override { }
+
+  virtual void enterProcessParameter(pblangParser::ProcessParameterContext * /*ctx*/) override { }
+  virtual void exitProcessParameter(pblangParser::ProcessParameterContext * /*ctx*/) override { }
+
+  virtual void enterProcessVariable(pblangParser::ProcessVariableContext * /*ctx*/) override { }
+  virtual void exitProcessVariable(pblangParser::ProcessVariableContext * /*ctx*/) override { }
+
+  virtual void enterProcessInput(pblangParser::ProcessInputContext * /*ctx*/) override { }
+  virtual void exitProcessInput(pblangParser::ProcessInputContext * /*ctx*/) override { }
+
+  virtual void enterProcessOutput(pblangParser::ProcessOutputContext * /*ctx*/) override { }
+  virtual void exitProcessOutput(pblangParser::ProcessOutputContext * /*ctx*/) override { }
 
   virtual void enterProcess(pblangParser::ProcessContext * /*ctx*/) override { }
   virtual void exitProcess(pblangParser::ProcessContext * /*ctx*/) override { }

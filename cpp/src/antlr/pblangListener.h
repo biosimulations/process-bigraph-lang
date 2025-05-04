@@ -32,14 +32,35 @@ public:
   virtual void enterStore(pblangParser::StoreContext *ctx) = 0;
   virtual void exitStore(pblangParser::StoreContext *ctx) = 0;
 
+  virtual void enterStoreState(pblangParser::StoreStateContext *ctx) = 0;
+  virtual void exitStoreState(pblangParser::StoreStateContext *ctx) = 0;
+
   virtual void enterUnit(pblangParser::UnitContext *ctx) = 0;
   virtual void exitUnit(pblangParser::UnitContext *ctx) = 0;
 
   virtual void enterSbmlModel(pblangParser::SbmlModelContext *ctx) = 0;
   virtual void exitSbmlModel(pblangParser::SbmlModelContext *ctx) = 0;
 
+  virtual void enterSbmlParameter(pblangParser::SbmlParameterContext *ctx) = 0;
+  virtual void exitSbmlParameter(pblangParser::SbmlParameterContext *ctx) = 0;
+
+  virtual void enterSbmlVariable(pblangParser::SbmlVariableContext *ctx) = 0;
+  virtual void exitSbmlVariable(pblangParser::SbmlVariableContext *ctx) = 0;
+
   virtual void enterProcessDef(pblangParser::ProcessDefContext *ctx) = 0;
   virtual void exitProcessDef(pblangParser::ProcessDefContext *ctx) = 0;
+
+  virtual void enterProcessParameter(pblangParser::ProcessParameterContext *ctx) = 0;
+  virtual void exitProcessParameter(pblangParser::ProcessParameterContext *ctx) = 0;
+
+  virtual void enterProcessVariable(pblangParser::ProcessVariableContext *ctx) = 0;
+  virtual void exitProcessVariable(pblangParser::ProcessVariableContext *ctx) = 0;
+
+  virtual void enterProcessInput(pblangParser::ProcessInputContext *ctx) = 0;
+  virtual void exitProcessInput(pblangParser::ProcessInputContext *ctx) = 0;
+
+  virtual void enterProcessOutput(pblangParser::ProcessOutputContext *ctx) = 0;
+  virtual void exitProcessOutput(pblangParser::ProcessOutputContext *ctx) = 0;
 
   virtual void enterProcess(pblangParser::ProcessContext *ctx) = 0;
   virtual void exitProcess(pblangParser::ProcessContext *ctx) = 0;

@@ -21,7 +21,11 @@ schemaItem
     ;
 
 store
-    : 'store' ID ('parent' ID)? ('state' schemaItem)*
+    : 'store' ID ('parent' ID)? ('state' storeState)*
+    ;
+
+storeState
+    : schemaItem
     ;
 
 unit
@@ -29,16 +33,40 @@ unit
     ;
 
 sbmlModel
-    : 'sbml' ID 'file' STRING ('param' schemaItem)* ('var' schemaItem)*
+    : 'sbml' ID 'file' STRING sbmlParameter* sbmlVariable*
+    ;
+
+sbmlParameter
+    : 'param' schemaItem
+    ;
+
+sbmlVariable
+    : 'var' schemaItem
     ;
 
 processDef
     : 'process_def' ID
-        ('param' schemaItem)*
-        ('var' schemaItem)*
-        ('inputs' ID*)?
-        ('outputs' ID*)?
+        processParameter*
+        processVariable*
+        ('inputs' processInput*)?
+        ('outputs' processOutput*)?
         ('updates' update*)?
+    ;
+
+processParameter
+    : 'param' schemaItem
+    ;
+
+processVariable
+    : 'var' schemaItem
+    ;
+
+processInput
+    : ID
+    ;
+
+processOutput
+    : ID
     ;
 
 process

@@ -23,11 +23,13 @@ public:
 
   enum {
     RuleModel = 0, RuleType = 1, RuleNamedType = 2, RuleDefaultValue = 3,
-    RuleSchemaItem = 4, RuleStore = 5, RuleUnit = 6, RuleSbmlModel = 7,
-    RuleProcessDef = 8, RuleProcess = 9, RuleCompositeDef = 10, RuleUpdate = 11,
-    RuleDefinition = 12, RuleDeclaredParameter = 13, RuleExpression = 14,
-    RuleAddition = 15, RuleMultiplication = 16, RuleExponentiation = 17,
-    RuleModulo = 18, RulePrimaryExpression = 19
+    RuleSchemaItem = 4, RuleStore = 5, RuleStoreState = 6, RuleUnit = 7,
+    RuleSbmlModel = 8, RuleSbmlParameter = 9, RuleSbmlVariable = 10, RuleProcessDef = 11,
+    RuleProcessParameter = 12, RuleProcessVariable = 13, RuleProcessInput = 14,
+    RuleProcessOutput = 15, RuleProcess = 16, RuleCompositeDef = 17, RuleUpdate = 18,
+    RuleDefinition = 19, RuleDeclaredParameter = 20, RuleExpression = 21,
+    RuleAddition = 22, RuleMultiplication = 23, RuleExponentiation = 24,
+    RuleModulo = 25, RulePrimaryExpression = 26
   };
 
   explicit pblangParser(antlr4::TokenStream *input);
@@ -53,9 +55,16 @@ public:
   class DefaultValueContext;
   class SchemaItemContext;
   class StoreContext;
+  class StoreStateContext;
   class UnitContext;
   class SbmlModelContext;
+  class SbmlParameterContext;
+  class SbmlVariableContext;
   class ProcessDefContext;
+  class ProcessParameterContext;
+  class ProcessVariableContext;
+  class ProcessInputContext;
+  class ProcessOutputContext;
   class ProcessContext;
   class CompositeDefContext;
   class UpdateContext;
@@ -163,8 +172,8 @@ public:
     virtual size_t getRuleIndex() const override;
     std::vector<antlr4::tree::TerminalNode *> ID();
     antlr4::tree::TerminalNode* ID(size_t i);
-    std::vector<SchemaItemContext *> schemaItem();
-    SchemaItemContext* schemaItem(size_t i);
+    std::vector<StoreStateContext *> storeState();
+    StoreStateContext* storeState(size_t i);
 
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
@@ -172,6 +181,19 @@ public:
   };
 
   StoreContext* store();
+
+  class  StoreStateContext : public antlr4::ParserRuleContext {
+  public:
+    StoreStateContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
+    SchemaItemContext *schemaItem();
+
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+
+  };
+
+  StoreStateContext* storeState();
 
   class  UnitContext : public antlr4::ParserRuleContext {
   public:
@@ -194,8 +216,10 @@ public:
     virtual size_t getRuleIndex() const override;
     antlr4::tree::TerminalNode *ID();
     antlr4::tree::TerminalNode *STRING();
-    std::vector<SchemaItemContext *> schemaItem();
-    SchemaItemContext* schemaItem(size_t i);
+    std::vector<SbmlParameterContext *> sbmlParameter();
+    SbmlParameterContext* sbmlParameter(size_t i);
+    std::vector<SbmlVariableContext *> sbmlVariable();
+    SbmlVariableContext* sbmlVariable(size_t i);
 
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
@@ -204,14 +228,45 @@ public:
 
   SbmlModelContext* sbmlModel();
 
+  class  SbmlParameterContext : public antlr4::ParserRuleContext {
+  public:
+    SbmlParameterContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
+    SchemaItemContext *schemaItem();
+
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+
+  };
+
+  SbmlParameterContext* sbmlParameter();
+
+  class  SbmlVariableContext : public antlr4::ParserRuleContext {
+  public:
+    SbmlVariableContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
+    SchemaItemContext *schemaItem();
+
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+
+  };
+
+  SbmlVariableContext* sbmlVariable();
+
   class  ProcessDefContext : public antlr4::ParserRuleContext {
   public:
     ProcessDefContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
-    std::vector<antlr4::tree::TerminalNode *> ID();
-    antlr4::tree::TerminalNode* ID(size_t i);
-    std::vector<SchemaItemContext *> schemaItem();
-    SchemaItemContext* schemaItem(size_t i);
+    antlr4::tree::TerminalNode *ID();
+    std::vector<ProcessParameterContext *> processParameter();
+    ProcessParameterContext* processParameter(size_t i);
+    std::vector<ProcessVariableContext *> processVariable();
+    ProcessVariableContext* processVariable(size_t i);
+    std::vector<ProcessInputContext *> processInput();
+    ProcessInputContext* processInput(size_t i);
+    std::vector<ProcessOutputContext *> processOutput();
+    ProcessOutputContext* processOutput(size_t i);
     std::vector<UpdateContext *> update();
     UpdateContext* update(size_t i);
 
@@ -221,6 +276,58 @@ public:
   };
 
   ProcessDefContext* processDef();
+
+  class  ProcessParameterContext : public antlr4::ParserRuleContext {
+  public:
+    ProcessParameterContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
+    SchemaItemContext *schemaItem();
+
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+
+  };
+
+  ProcessParameterContext* processParameter();
+
+  class  ProcessVariableContext : public antlr4::ParserRuleContext {
+  public:
+    ProcessVariableContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
+    SchemaItemContext *schemaItem();
+
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+
+  };
+
+  ProcessVariableContext* processVariable();
+
+  class  ProcessInputContext : public antlr4::ParserRuleContext {
+  public:
+    ProcessInputContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
+    antlr4::tree::TerminalNode *ID();
+
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+
+  };
+
+  ProcessInputContext* processInput();
+
+  class  ProcessOutputContext : public antlr4::ParserRuleContext {
+  public:
+    ProcessOutputContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
+    antlr4::tree::TerminalNode *ID();
+
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+
+  };
+
+  ProcessOutputContext* processOutput();
 
   class  ProcessContext : public antlr4::ParserRuleContext {
   public:
