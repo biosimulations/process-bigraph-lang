@@ -14,6 +14,8 @@ UnitRef = Reference
 DefinitionRef = Reference
 StoreRef = Reference
 
+BinaryOp = Literal["+", "-", "*", "/", "^", "%"]
+
 
 class DefaultValue(BaseModel):
     val: int | float
@@ -56,7 +58,7 @@ class ProcessDef(BaseModel):
 
 class BinaryExpression(BaseModel):
     obj_type: Literal["BinaryExpression"] = Field(default="BinaryExpression")
-    operator: Literal["+", "-", "*", "/", "^", "%"]
+    operator: BinaryOp
     left: "Expression"
     right: "Expression"
 
