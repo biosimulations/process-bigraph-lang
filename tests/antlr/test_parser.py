@@ -20,10 +20,10 @@ def test_parse_abc(model_path_abc: Path) -> None:
         '(unit unit hour : [ "h" ])',
         '(unit unit dimensionless : [ "1" ])',
     ]
-    types_strs: list[str] = [pretty_print(typ.toStringTree(recog=parser)) for typ in model.type_()]
+    types_strs: list[str] = [pretty_print(typ.toStringTree(recog=parser)) for typ in model.typeDef()]
     assert types_strs == [
-        "(type type float default \n  (defaultValue 0.0))",
-        "(type type concentration extends float default \n  (defaultValue 1.0))",
+        "(typeDef type float default \n  (defaultValue 0.0))",
+        "(typeDef type concentration extends float default \n  (defaultValue 1.0))",
     ]
     definition_strs: list[str] = [pretty_print(def_.toStringTree(recog=parser)) for def_ in model.definition()]
     assert definition_strs == [
@@ -74,6 +74,7 @@ def test_parse_abc(model_path_abc: Path) -> None:
     processDef_strs: list[str] = [pretty_print(def_.toStringTree(recog=parser)) for def_ in model.processDef()]
     assert processDef_strs == [
         "(processDef process_def MyProcess \n"
+        "  (pythonRef path my_processes . Process1) \n"
         "  (processParameter param \n"
         "    (schemaItem calcium_growth : float default \n"
         "      (defaultValue 0.1) [ uM_per_h ])) \n"

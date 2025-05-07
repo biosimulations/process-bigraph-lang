@@ -11,7 +11,7 @@ unit conc: uM_per_h
 unit hour: ["h"]
 unit dimensionless: ["1"]
 
-process_def MyProcess
+process_def MyProcess path my_processes.Process1
     param calcium_growth: float default 0.1 [uM_per_h]
     param glucose_growth: float default 0.1 [uM_per_h]
     param dt: float default 0.1 [hour]

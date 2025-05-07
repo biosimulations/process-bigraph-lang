@@ -56,7 +56,7 @@ class ASTBuilderListener(pblangListener):
         self.current_store = None
         self.current_schema_item_parent_type = None
 
-    def enterType(self, ctx: pblangParser.TypeContext) -> None:
+    def enterTypeDef(self, ctx: pblangParser.TypeDefContext) -> None:
         type_name = ctx.ID(0).getText()
         default_value = DefaultValue(val=float_or_int(ctx.defaultValue().getText())) if ctx.defaultValue() else None
         super_type = Reference(ref="", ref_text=ctx.ID(1).getText()) if len(ctx.ID()) > 1 else None
@@ -100,6 +100,13 @@ class ASTBuilderListener(pblangListener):
             raise ValueError("unexpected listener error, current_process_def is None")
         self.model.processDefs.append(self.current_process_def)
         self.current_process_def = None
+
+    def enterPythonRef(self, ctx: pblangParser.PythonRefContext) -> None:
+        if not self.current_process_def:
+            raise ValueError("unexpected listener error, current_process_def is None")
+        self.current_process_def.python_path = []
+        for part in ctx.ID():
+            self.current_process_def.python_path.append(part.getText())
 
     def _enterSchemaItemParent(self, schema_item_parent_type: SchemaItemParentType) -> None:
         if self.current_schema_item_parent_type:

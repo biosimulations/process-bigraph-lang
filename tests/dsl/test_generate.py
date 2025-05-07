@@ -159,7 +159,7 @@ def test_processes() -> None:
 
     def my_update(substrate, rate, interval): substrate + rate * interval;
 
-    process_def MyProcess
+    process_def MyProcess path my_processes.Process1
         param glucose_growth: float default 0.1 [uM_per_h]
         param dt: float default 0.1 [hour]
 

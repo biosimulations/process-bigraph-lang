@@ -17,19 +17,20 @@ public:
     T__14 = 15, T__15 = 16, T__16 = 17, T__17 = 18, T__18 = 19, T__19 = 20,
     T__20 = 21, T__21 = 22, T__22 = 23, T__23 = 24, T__24 = 25, T__25 = 26,
     T__26 = 27, T__27 = 28, T__28 = 29, T__29 = 30, T__30 = 31, T__31 = 32,
-    T__32 = 33, T__33 = 34, T__34 = 35, T__35 = 36, ID = 37, FLOAT = 38,
-    INT = 39, STRING = 40, WS = 41, ML_COMMENT = 42, SL_COMMENT = 43
+    T__32 = 33, T__33 = 34, T__34 = 35, T__35 = 36, T__36 = 37, T__37 = 38,
+    ID = 39, FLOAT = 40, INT = 41, STRING = 42, WS = 43, ML_COMMENT = 44,
+    SL_COMMENT = 45
   };
 
   enum {
-    RuleModel = 0, RuleType = 1, RuleNamedType = 2, RuleDefaultValue = 3,
+    RuleModel = 0, RuleTypeDef = 1, RuleNamedType = 2, RuleDefaultValue = 3,
     RuleSchemaItem = 4, RuleStore = 5, RuleStoreState = 6, RuleUnit = 7,
     RuleSbmlModel = 8, RuleSbmlParameter = 9, RuleSbmlVariable = 10, RuleProcessDef = 11,
-    RuleProcessParameter = 12, RuleProcessVariable = 13, RuleProcessInput = 14,
-    RuleProcessOutput = 15, RuleProcess = 16, RuleCompositeDef = 17, RuleUpdate = 18,
-    RuleDefinition = 19, RuleDeclaredParameter = 20, RuleExpression = 21,
-    RuleAddition = 22, RuleMultiplication = 23, RuleExponentiation = 24,
-    RuleModulo = 25, RulePrimaryExpression = 26
+    RulePythonRef = 12, RuleProcessParameter = 13, RuleProcessVariable = 14,
+    RuleProcessInput = 15, RuleProcessOutput = 16, RuleProcess = 17, RuleCompositeDef = 18,
+    RuleUpdate = 19, RuleDefinition = 20, RuleDeclaredParameter = 21, RuleExpression = 22,
+    RuleAddition = 23, RuleMultiplication = 24, RuleExponentiation = 25,
+    RuleModulo = 26, RulePrimaryExpression = 27
   };
 
   explicit pblangParser(antlr4::TokenStream *input);
@@ -50,7 +51,7 @@ public:
 
 
   class ModelContext;
-  class TypeContext;
+  class TypeDefContext;
   class NamedTypeContext;
   class DefaultValueContext;
   class SchemaItemContext;
@@ -61,6 +62,7 @@ public:
   class SbmlParameterContext;
   class SbmlVariableContext;
   class ProcessDefContext;
+  class PythonRefContext;
   class ProcessParameterContext;
   class ProcessVariableContext;
   class ProcessInputContext;
@@ -82,8 +84,8 @@ public:
     ModelContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
     antlr4::tree::TerminalNode *EOF();
-    std::vector<TypeContext *> type();
-    TypeContext* type(size_t i);
+    std::vector<TypeDefContext *> typeDef();
+    TypeDefContext* typeDef(size_t i);
     std::vector<DefinitionContext *> definition();
     DefinitionContext* definition(size_t i);
     std::vector<UnitContext *> unit();
@@ -104,10 +106,11 @@ public:
 
   ModelContext* model();
 
-  class  TypeContext : public antlr4::ParserRuleContext {
+  class  TypeDefContext : public antlr4::ParserRuleContext {
   public:
+    antlr4::Token *name = nullptr;
     antlr4::Token *builtin = nullptr;
-    TypeContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    TypeDefContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
     std::vector<antlr4::tree::TerminalNode *> ID();
     antlr4::tree::TerminalNode* ID(size_t i);
@@ -120,10 +123,14 @@ public:
 
   };
 
-  TypeContext* type();
+  TypeDefContext* typeDef();
 
   class  NamedTypeContext : public antlr4::ParserRuleContext {
   public:
+    antlr4::Token *name = nullptr;
+    antlr4::Token *optional_type_ref = nullptr;
+    antlr4::Token *type_ref = nullptr;
+    antlr4::Token *unit_ref = nullptr;
     NamedTypeContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
     std::vector<antlr4::tree::TerminalNode *> ID();
@@ -153,6 +160,9 @@ public:
 
   class  SchemaItemContext : public antlr4::ParserRuleContext {
   public:
+    antlr4::Token *name = nullptr;
+    antlr4::Token *type_ref = nullptr;
+    antlr4::Token *unit_ref = nullptr;
     SchemaItemContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
     std::vector<antlr4::tree::TerminalNode *> ID();
@@ -259,6 +269,7 @@ public:
     ProcessDefContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
     antlr4::tree::TerminalNode *ID();
+    PythonRefContext *pythonRef();
     std::vector<ProcessParameterContext *> processParameter();
     ProcessParameterContext* processParameter(size_t i);
     std::vector<ProcessVariableContext *> processVariable();
@@ -276,6 +287,20 @@ public:
   };
 
   ProcessDefContext* processDef();
+
+  class  PythonRefContext : public antlr4::ParserRuleContext {
+  public:
+    PythonRefContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
+    std::vector<antlr4::tree::TerminalNode *> ID();
+    antlr4::tree::TerminalNode* ID(size_t i);
+
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+
+  };
+
+  PythonRefContext* pythonRef();
 
   class  ProcessParameterContext : public antlr4::ParserRuleContext {
   public:
@@ -331,6 +356,9 @@ public:
 
   class  ProcessContext : public antlr4::ParserRuleContext {
   public:
+    antlr4::Token *name = nullptr;
+    antlr4::Token *process_def_ref = nullptr;
+    antlr4::Token *store_def = nullptr;
     ProcessContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
     std::vector<antlr4::tree::TerminalNode *> ID();
@@ -361,10 +389,11 @@ public:
 
   class  UpdateContext : public antlr4::ParserRuleContext {
   public:
+    antlr4::Token *lhs = nullptr;
     UpdateContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
-    antlr4::tree::TerminalNode *ID();
     ExpressionContext *expression();
+    antlr4::tree::TerminalNode *ID();
 
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;

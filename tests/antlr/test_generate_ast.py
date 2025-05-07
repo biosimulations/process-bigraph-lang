@@ -139,7 +139,7 @@ def test_processes_parse_only() -> None:
 
     def my_update(substrate, rate, interval): substrate + rate * interval;
 
-    process_def MyProcess
+    process_def MyProcess path my_processes.Process1
         param glucose_growth: float default 0.1 [uM_per_h]
         param dt: float default 0.1 [hour]
 
@@ -190,6 +190,7 @@ def test_processes_parse_only() -> None:
 
     process_MyProcess = ProcessDef(
         name="MyProcess",
+        python_path=["my_processes", "Process1"],
         params=[
             SchemaItem(
                 name="glucose_growth",
@@ -267,4 +268,4 @@ def test_processes_parse_only() -> None:
         stores=[store_medium, store_cell, store_nucleus],
     )
     _model = parse_str(lang)
-    # assert _model.model_dump_json(indent=2) == _expected_model.model_dump_json(indent=2)
+    assert _model.model_dump_json(indent=2) == _expected_model.model_dump_json(indent=2)
