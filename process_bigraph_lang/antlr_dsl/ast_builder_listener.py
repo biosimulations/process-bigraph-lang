@@ -61,6 +61,8 @@ class ASTBuilderListener(pblangListener):
         default_value = DefaultValue(val=float_or_int(ctx.defaultValue().getText())) if ctx.defaultValue() else None
         super_type = Reference(ref="", ref_text=ctx.ID(1).getText()) if len(ctx.ID()) > 1 else None
         new_type = Type(name=type_name, default=default_value, superType=super_type)
+        if ctx.builtin:
+            new_type.builtin = "builtin"
         self.model.types.append(new_type)
 
     def enterDefinition(self, ctx: pblangParser.DefinitionContext) -> None:
