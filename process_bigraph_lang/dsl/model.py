@@ -54,6 +54,7 @@ class ProcessDef(BaseModel):
     inputs: list[SchemaItemRef]
     outputs: list[SchemaItemRef]
     updates: list[Update]
+    python_path: list[str] | None = None
 
 
 class SbmlModel(BaseModel):

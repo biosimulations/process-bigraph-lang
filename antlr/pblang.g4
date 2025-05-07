@@ -1,15 +1,15 @@
 grammar pblang;
 
 model
-    : (type | definition | unit | processDef | store | compositeDef | sbmlModel)* EOF
+    : (typeDef | definition | unit | processDef | store | compositeDef | sbmlModel)* EOF
     ;
 
-type
-    : 'type' ID (builtin='builtin')? ('extends' ID)? ('default' defaultValue)? ('update' ID)? namedType*
+typeDef
+    : 'type' name=ID (builtin='builtin')? ('extends' ID)? ('default' defaultValue)? ('update' ID)? namedType*
     ;
 
 namedType
-    : ID ':' ('maybe' '[' ID ']')? ID ('default' defaultValue)? ('[' ID ']')?
+    : name=ID ':' ('maybe' '[' optional_type_ref=ID ']')? type_ref=ID ('default' defaultValue)? ('[' unit_ref=ID ']')?
     ;
 
 defaultValue
@@ -17,7 +17,7 @@ defaultValue
     ;
 
 schemaItem
-    : ID ':' ID ('default' defaultValue)? ('[' ID ']')?
+    : name=ID ':' type_ref=ID ('default' defaultValue)? ('[' unit_ref=ID ']')?
     ;
 
 store
@@ -45,12 +45,16 @@ sbmlVariable
     ;
 
 processDef
-    : 'process_def' ID
+    : 'process_def' ID pythonRef?
         processParameter*
         processVariable*
         ('inputs' processInput*)?
         ('outputs' processOutput*)?
         ('updates' update*)?
+    ;
+
+pythonRef
+    : 'path' ID ('.' ID)*
     ;
 
 processParameter
@@ -70,7 +74,7 @@ processOutput
     ;
 
 process
-    : ID ':' ID ('stores' ID*)?
+    : name=ID ':' process_def_ref=ID ('stores' store_def=ID*)?
     ;
 
 compositeDef
@@ -78,7 +82,7 @@ compositeDef
     ;
 
 update
-    : ID ':=' expression ';'
+    : lhs=ID ':=' expression ';'
     ;
 
 definition

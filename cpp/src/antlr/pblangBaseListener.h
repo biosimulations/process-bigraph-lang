@@ -19,8 +19,8 @@ public:
   virtual void enterModel(pblangParser::ModelContext * /*ctx*/) override { }
   virtual void exitModel(pblangParser::ModelContext * /*ctx*/) override { }
 
-  virtual void enterType(pblangParser::TypeContext * /*ctx*/) override { }
-  virtual void exitType(pblangParser::TypeContext * /*ctx*/) override { }
+  virtual void enterTypeDef(pblangParser::TypeDefContext * /*ctx*/) override { }
+  virtual void exitTypeDef(pblangParser::TypeDefContext * /*ctx*/) override { }
 
   virtual void enterNamedType(pblangParser::NamedTypeContext * /*ctx*/) override { }
   virtual void exitNamedType(pblangParser::NamedTypeContext * /*ctx*/) override { }
@@ -51,6 +51,9 @@ public:
 
   virtual void enterProcessDef(pblangParser::ProcessDefContext * /*ctx*/) override { }
   virtual void exitProcessDef(pblangParser::ProcessDefContext * /*ctx*/) override { }
+
+  virtual void enterPythonRef(pblangParser::PythonRefContext * /*ctx*/) override { }
+  virtual void exitPythonRef(pblangParser::PythonRefContext * /*ctx*/) override { }
 
   virtual void enterProcessParameter(pblangParser::ProcessParameterContext * /*ctx*/) override { }
   virtual void exitProcessParameter(pblangParser::ProcessParameterContext * /*ctx*/) override { }

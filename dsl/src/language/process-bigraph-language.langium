@@ -28,8 +28,11 @@ SbmlModel:
         ('param' params+=SchemaItem)*
         ('var' vars+=SchemaItem)*;
 
+PythonRef:
+    'path' module_path+=ID ("." module_path+=ID)*;
+
 ProcessDef:
-    'process_def' name=ID
+    'process_def' name=ID pythonImpl=PythonRef?
         ('param' params+=SchemaItem)*
         ('var' vars+=SchemaItem)*
         ('inputs' inputs+=[SchemaItem]*)?

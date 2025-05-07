@@ -52,138 +52,145 @@ void pblangParserInitialize() {
 #endif
   auto staticData = std::make_unique<PblangParserStaticData>(
     std::vector<std::string>{
-      "model", "type", "namedType", "defaultValue", "schemaItem", "store",
+      "model", "typeDef", "namedType", "defaultValue", "schemaItem", "store",
       "storeState", "unit", "sbmlModel", "sbmlParameter", "sbmlVariable",
-      "processDef", "processParameter", "processVariable", "processInput",
-      "processOutput", "process", "compositeDef", "update", "definition",
-      "declaredParameter", "expression", "addition", "multiplication", "exponentiation",
-      "modulo", "primaryExpression"
+      "processDef", "pythonRef", "processParameter", "processVariable",
+      "processInput", "processOutput", "process", "compositeDef", "update",
+      "definition", "declaredParameter", "expression", "addition", "multiplication",
+      "exponentiation", "modulo", "primaryExpression"
     },
     std::vector<std::string>{
       "", "'type'", "'builtin'", "'extends'", "'default'", "'update'", "':'",
       "'maybe'", "'['", "']'", "'store'", "'parent'", "'state'", "'unit'",
       "'sbml'", "'file'", "'param'", "'var'", "'process_def'", "'inputs'",
-      "'outputs'", "'updates'", "'stores'", "'composite_def'", "'process'",
-      "':='", "';'", "'def'", "'('", "','", "')'", "'+'", "'-'", "'*'",
-      "'/'", "'^'", "'%'"
+      "'outputs'", "'updates'", "'path'", "'.'", "'stores'", "'composite_def'",
+      "'process'", "':='", "';'", "'def'", "'('", "','", "')'", "'+'", "'-'",
+      "'*'", "'/'", "'^'", "'%'"
     },
     std::vector<std::string>{
       "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "",
       "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "",
-      "", "", "", "ID", "FLOAT", "INT", "STRING", "WS", "ML_COMMENT", "SL_COMMENT"
+      "", "", "", "", "", "ID", "FLOAT", "INT", "STRING", "WS", "ML_COMMENT",
+      "SL_COMMENT"
     }
   );
   static const int32_t serializedATNSegment[] = {
-  	4,1,43,336,2,0,7,0,2,1,7,1,2,2,7,2,2,3,7,3,2,4,7,4,2,5,7,5,2,6,7,6,2,
+  	4,1,45,350,2,0,7,0,2,1,7,1,2,2,7,2,2,3,7,3,2,4,7,4,2,5,7,5,2,6,7,6,2,
   	7,7,7,2,8,7,8,2,9,7,9,2,10,7,10,2,11,7,11,2,12,7,12,2,13,7,13,2,14,7,
   	14,2,15,7,15,2,16,7,16,2,17,7,17,2,18,7,18,2,19,7,19,2,20,7,20,2,21,7,
-  	21,2,22,7,22,2,23,7,23,2,24,7,24,2,25,7,25,2,26,7,26,1,0,1,0,1,0,1,0,
-  	1,0,1,0,1,0,5,0,62,8,0,10,0,12,0,65,9,0,1,0,1,0,1,1,1,1,1,1,3,1,72,8,
-  	1,1,1,1,1,3,1,76,8,1,1,1,1,1,3,1,80,8,1,1,1,1,1,3,1,84,8,1,1,1,5,1,87,
-  	8,1,10,1,12,1,90,9,1,1,2,1,2,1,2,1,2,1,2,1,2,3,2,98,8,2,1,2,1,2,1,2,3,
-  	2,103,8,2,1,2,1,2,1,2,3,2,108,8,2,1,3,1,3,1,4,1,4,1,4,1,4,1,4,3,4,117,
-  	8,4,1,4,1,4,1,4,3,4,122,8,4,1,5,1,5,1,5,1,5,3,5,128,8,5,1,5,1,5,5,5,132,
-  	8,5,10,5,12,5,135,9,5,1,6,1,6,1,7,1,7,1,7,1,7,1,7,1,7,1,7,3,7,146,8,7,
-  	1,8,1,8,1,8,1,8,1,8,5,8,153,8,8,10,8,12,8,156,9,8,1,8,5,8,159,8,8,10,
-  	8,12,8,162,9,8,1,9,1,9,1,9,1,10,1,10,1,10,1,11,1,11,1,11,5,11,173,8,11,
-  	10,11,12,11,176,9,11,1,11,5,11,179,8,11,10,11,12,11,182,9,11,1,11,1,11,
-  	5,11,186,8,11,10,11,12,11,189,9,11,3,11,191,8,11,1,11,1,11,5,11,195,8,
-  	11,10,11,12,11,198,9,11,3,11,200,8,11,1,11,1,11,5,11,204,8,11,10,11,12,
-  	11,207,9,11,3,11,209,8,11,1,12,1,12,1,12,1,13,1,13,1,13,1,14,1,14,1,15,
-  	1,15,1,16,1,16,1,16,1,16,1,16,5,16,226,8,16,10,16,12,16,229,9,16,3,16,
-  	231,8,16,1,17,1,17,1,17,1,17,5,17,237,8,17,10,17,12,17,240,9,17,3,17,
-  	242,8,17,1,17,1,17,5,17,246,8,17,10,17,12,17,249,9,17,1,18,1,18,1,18,
-  	1,18,1,18,1,19,1,19,1,19,1,19,1,19,1,19,5,19,262,8,19,10,19,12,19,265,
-  	9,19,1,19,1,19,3,19,269,8,19,1,19,1,19,1,19,1,19,1,19,3,19,276,8,19,1,
-  	20,1,20,1,21,1,21,1,22,1,22,1,22,5,22,285,8,22,10,22,12,22,288,9,22,1,
-  	23,1,23,1,23,5,23,293,8,23,10,23,12,23,296,9,23,1,24,1,24,1,24,5,24,301,
-  	8,24,10,24,12,24,304,9,24,1,25,1,25,1,25,5,25,309,8,25,10,25,12,25,312,
-  	9,25,1,26,1,26,1,26,1,26,1,26,1,26,1,26,1,26,1,26,1,26,5,26,324,8,26,
-  	10,26,12,26,327,9,26,1,26,1,26,3,26,331,8,26,1,26,3,26,334,8,26,1,26,
-  	0,0,27,0,2,4,6,8,10,12,14,16,18,20,22,24,26,28,30,32,34,36,38,40,42,44,
-  	46,48,50,52,0,3,1,0,38,39,1,0,31,32,1,0,33,34,355,0,63,1,0,0,0,2,68,1,
-  	0,0,0,4,91,1,0,0,0,6,109,1,0,0,0,8,111,1,0,0,0,10,123,1,0,0,0,12,136,
-  	1,0,0,0,14,138,1,0,0,0,16,147,1,0,0,0,18,163,1,0,0,0,20,166,1,0,0,0,22,
-  	169,1,0,0,0,24,210,1,0,0,0,26,213,1,0,0,0,28,216,1,0,0,0,30,218,1,0,0,
-  	0,32,220,1,0,0,0,34,232,1,0,0,0,36,250,1,0,0,0,38,255,1,0,0,0,40,277,
-  	1,0,0,0,42,279,1,0,0,0,44,281,1,0,0,0,46,289,1,0,0,0,48,297,1,0,0,0,50,
-  	305,1,0,0,0,52,333,1,0,0,0,54,62,3,2,1,0,55,62,3,38,19,0,56,62,3,14,7,
-  	0,57,62,3,22,11,0,58,62,3,10,5,0,59,62,3,34,17,0,60,62,3,16,8,0,61,54,
-  	1,0,0,0,61,55,1,0,0,0,61,56,1,0,0,0,61,57,1,0,0,0,61,58,1,0,0,0,61,59,
-  	1,0,0,0,61,60,1,0,0,0,62,65,1,0,0,0,63,61,1,0,0,0,63,64,1,0,0,0,64,66,
-  	1,0,0,0,65,63,1,0,0,0,66,67,5,0,0,1,67,1,1,0,0,0,68,69,5,1,0,0,69,71,
-  	5,37,0,0,70,72,5,2,0,0,71,70,1,0,0,0,71,72,1,0,0,0,72,75,1,0,0,0,73,74,
-  	5,3,0,0,74,76,5,37,0,0,75,73,1,0,0,0,75,76,1,0,0,0,76,79,1,0,0,0,77,78,
-  	5,4,0,0,78,80,3,6,3,0,79,77,1,0,0,0,79,80,1,0,0,0,80,83,1,0,0,0,81,82,
-  	5,5,0,0,82,84,5,37,0,0,83,81,1,0,0,0,83,84,1,0,0,0,84,88,1,0,0,0,85,87,
-  	3,4,2,0,86,85,1,0,0,0,87,90,1,0,0,0,88,86,1,0,0,0,88,89,1,0,0,0,89,3,
-  	1,0,0,0,90,88,1,0,0,0,91,92,5,37,0,0,92,97,5,6,0,0,93,94,5,7,0,0,94,95,
-  	5,8,0,0,95,96,5,37,0,0,96,98,5,9,0,0,97,93,1,0,0,0,97,98,1,0,0,0,98,99,
-  	1,0,0,0,99,102,5,37,0,0,100,101,5,4,0,0,101,103,3,6,3,0,102,100,1,0,0,
-  	0,102,103,1,0,0,0,103,107,1,0,0,0,104,105,5,8,0,0,105,106,5,37,0,0,106,
-  	108,5,9,0,0,107,104,1,0,0,0,107,108,1,0,0,0,108,5,1,0,0,0,109,110,7,0,
-  	0,0,110,7,1,0,0,0,111,112,5,37,0,0,112,113,5,6,0,0,113,116,5,37,0,0,114,
-  	115,5,4,0,0,115,117,3,6,3,0,116,114,1,0,0,0,116,117,1,0,0,0,117,121,1,
-  	0,0,0,118,119,5,8,0,0,119,120,5,37,0,0,120,122,5,9,0,0,121,118,1,0,0,
-  	0,121,122,1,0,0,0,122,9,1,0,0,0,123,124,5,10,0,0,124,127,5,37,0,0,125,
-  	126,5,11,0,0,126,128,5,37,0,0,127,125,1,0,0,0,127,128,1,0,0,0,128,133,
-  	1,0,0,0,129,130,5,12,0,0,130,132,3,12,6,0,131,129,1,0,0,0,132,135,1,0,
-  	0,0,133,131,1,0,0,0,133,134,1,0,0,0,134,11,1,0,0,0,135,133,1,0,0,0,136,
-  	137,3,8,4,0,137,13,1,0,0,0,138,139,5,13,0,0,139,140,5,37,0,0,140,145,
-  	5,6,0,0,141,142,5,8,0,0,142,143,5,40,0,0,143,146,5,9,0,0,144,146,5,37,
-  	0,0,145,141,1,0,0,0,145,144,1,0,0,0,146,15,1,0,0,0,147,148,5,14,0,0,148,
-  	149,5,37,0,0,149,150,5,15,0,0,150,154,5,40,0,0,151,153,3,18,9,0,152,151,
-  	1,0,0,0,153,156,1,0,0,0,154,152,1,0,0,0,154,155,1,0,0,0,155,160,1,0,0,
-  	0,156,154,1,0,0,0,157,159,3,20,10,0,158,157,1,0,0,0,159,162,1,0,0,0,160,
-  	158,1,0,0,0,160,161,1,0,0,0,161,17,1,0,0,0,162,160,1,0,0,0,163,164,5,
-  	16,0,0,164,165,3,8,4,0,165,19,1,0,0,0,166,167,5,17,0,0,167,168,3,8,4,
-  	0,168,21,1,0,0,0,169,170,5,18,0,0,170,174,5,37,0,0,171,173,3,24,12,0,
-  	172,171,1,0,0,0,173,176,1,0,0,0,174,172,1,0,0,0,174,175,1,0,0,0,175,180,
-  	1,0,0,0,176,174,1,0,0,0,177,179,3,26,13,0,178,177,1,0,0,0,179,182,1,0,
-  	0,0,180,178,1,0,0,0,180,181,1,0,0,0,181,190,1,0,0,0,182,180,1,0,0,0,183,
-  	187,5,19,0,0,184,186,3,28,14,0,185,184,1,0,0,0,186,189,1,0,0,0,187,185,
-  	1,0,0,0,187,188,1,0,0,0,188,191,1,0,0,0,189,187,1,0,0,0,190,183,1,0,0,
-  	0,190,191,1,0,0,0,191,199,1,0,0,0,192,196,5,20,0,0,193,195,3,30,15,0,
-  	194,193,1,0,0,0,195,198,1,0,0,0,196,194,1,0,0,0,196,197,1,0,0,0,197,200,
-  	1,0,0,0,198,196,1,0,0,0,199,192,1,0,0,0,199,200,1,0,0,0,200,208,1,0,0,
-  	0,201,205,5,21,0,0,202,204,3,36,18,0,203,202,1,0,0,0,204,207,1,0,0,0,
-  	205,203,1,0,0,0,205,206,1,0,0,0,206,209,1,0,0,0,207,205,1,0,0,0,208,201,
-  	1,0,0,0,208,209,1,0,0,0,209,23,1,0,0,0,210,211,5,16,0,0,211,212,3,8,4,
-  	0,212,25,1,0,0,0,213,214,5,17,0,0,214,215,3,8,4,0,215,27,1,0,0,0,216,
-  	217,5,37,0,0,217,29,1,0,0,0,218,219,5,37,0,0,219,31,1,0,0,0,220,221,5,
-  	37,0,0,221,222,5,6,0,0,222,230,5,37,0,0,223,227,5,22,0,0,224,226,5,37,
-  	0,0,225,224,1,0,0,0,226,229,1,0,0,0,227,225,1,0,0,0,227,228,1,0,0,0,228,
-  	231,1,0,0,0,229,227,1,0,0,0,230,223,1,0,0,0,230,231,1,0,0,0,231,33,1,
-  	0,0,0,232,233,5,23,0,0,233,241,5,37,0,0,234,238,5,22,0,0,235,237,5,37,
-  	0,0,236,235,1,0,0,0,237,240,1,0,0,0,238,236,1,0,0,0,238,239,1,0,0,0,239,
-  	242,1,0,0,0,240,238,1,0,0,0,241,234,1,0,0,0,241,242,1,0,0,0,242,247,1,
-  	0,0,0,243,244,5,24,0,0,244,246,3,32,16,0,245,243,1,0,0,0,246,249,1,0,
-  	0,0,247,245,1,0,0,0,247,248,1,0,0,0,248,35,1,0,0,0,249,247,1,0,0,0,250,
-  	251,5,37,0,0,251,252,5,25,0,0,252,253,3,42,21,0,253,254,5,26,0,0,254,
-  	37,1,0,0,0,255,256,5,27,0,0,256,268,5,37,0,0,257,258,5,28,0,0,258,263,
-  	3,40,20,0,259,260,5,29,0,0,260,262,3,40,20,0,261,259,1,0,0,0,262,265,
-  	1,0,0,0,263,261,1,0,0,0,263,264,1,0,0,0,264,266,1,0,0,0,265,263,1,0,0,
-  	0,266,267,5,30,0,0,267,269,1,0,0,0,268,257,1,0,0,0,268,269,1,0,0,0,269,
-  	270,1,0,0,0,270,275,5,6,0,0,271,276,5,2,0,0,272,273,3,42,21,0,273,274,
-  	5,26,0,0,274,276,1,0,0,0,275,271,1,0,0,0,275,272,1,0,0,0,276,39,1,0,0,
-  	0,277,278,5,37,0,0,278,41,1,0,0,0,279,280,3,44,22,0,280,43,1,0,0,0,281,
-  	286,3,46,23,0,282,283,7,1,0,0,283,285,3,46,23,0,284,282,1,0,0,0,285,288,
-  	1,0,0,0,286,284,1,0,0,0,286,287,1,0,0,0,287,45,1,0,0,0,288,286,1,0,0,
-  	0,289,294,3,48,24,0,290,291,7,2,0,0,291,293,3,48,24,0,292,290,1,0,0,0,
-  	293,296,1,0,0,0,294,292,1,0,0,0,294,295,1,0,0,0,295,47,1,0,0,0,296,294,
-  	1,0,0,0,297,302,3,50,25,0,298,299,5,35,0,0,299,301,3,50,25,0,300,298,
-  	1,0,0,0,301,304,1,0,0,0,302,300,1,0,0,0,302,303,1,0,0,0,303,49,1,0,0,
-  	0,304,302,1,0,0,0,305,310,3,52,26,0,306,307,5,36,0,0,307,309,3,52,26,
-  	0,308,306,1,0,0,0,309,312,1,0,0,0,310,308,1,0,0,0,310,311,1,0,0,0,311,
-  	51,1,0,0,0,312,310,1,0,0,0,313,314,5,28,0,0,314,315,3,42,21,0,315,316,
-  	5,30,0,0,316,334,1,0,0,0,317,334,5,38,0,0,318,330,5,37,0,0,319,320,5,
-  	28,0,0,320,325,3,42,21,0,321,322,5,29,0,0,322,324,3,42,21,0,323,321,1,
-  	0,0,0,324,327,1,0,0,0,325,323,1,0,0,0,325,326,1,0,0,0,326,328,1,0,0,0,
-  	327,325,1,0,0,0,328,329,5,30,0,0,329,331,1,0,0,0,330,319,1,0,0,0,330,
-  	331,1,0,0,0,331,334,1,0,0,0,332,334,5,37,0,0,333,313,1,0,0,0,333,317,
-  	1,0,0,0,333,318,1,0,0,0,333,332,1,0,0,0,334,53,1,0,0,0,40,61,63,71,75,
-  	79,83,88,97,102,107,116,121,127,133,145,154,160,174,180,187,190,196,199,
-  	205,208,227,230,238,241,247,263,268,275,286,294,302,310,325,330,333
+  	21,2,22,7,22,2,23,7,23,2,24,7,24,2,25,7,25,2,26,7,26,2,27,7,27,1,0,1,
+  	0,1,0,1,0,1,0,1,0,1,0,5,0,64,8,0,10,0,12,0,67,9,0,1,0,1,0,1,1,1,1,1,1,
+  	3,1,74,8,1,1,1,1,1,3,1,78,8,1,1,1,1,1,3,1,82,8,1,1,1,1,1,3,1,86,8,1,1,
+  	1,5,1,89,8,1,10,1,12,1,92,9,1,1,2,1,2,1,2,1,2,1,2,1,2,3,2,100,8,2,1,2,
+  	1,2,1,2,3,2,105,8,2,1,2,1,2,1,2,3,2,110,8,2,1,3,1,3,1,4,1,4,1,4,1,4,1,
+  	4,3,4,119,8,4,1,4,1,4,1,4,3,4,124,8,4,1,5,1,5,1,5,1,5,3,5,130,8,5,1,5,
+  	1,5,5,5,134,8,5,10,5,12,5,137,9,5,1,6,1,6,1,7,1,7,1,7,1,7,1,7,1,7,1,7,
+  	3,7,148,8,7,1,8,1,8,1,8,1,8,1,8,5,8,155,8,8,10,8,12,8,158,9,8,1,8,5,8,
+  	161,8,8,10,8,12,8,164,9,8,1,9,1,9,1,9,1,10,1,10,1,10,1,11,1,11,1,11,3,
+  	11,175,8,11,1,11,5,11,178,8,11,10,11,12,11,181,9,11,1,11,5,11,184,8,11,
+  	10,11,12,11,187,9,11,1,11,1,11,5,11,191,8,11,10,11,12,11,194,9,11,3,11,
+  	196,8,11,1,11,1,11,5,11,200,8,11,10,11,12,11,203,9,11,3,11,205,8,11,1,
+  	11,1,11,5,11,209,8,11,10,11,12,11,212,9,11,3,11,214,8,11,1,12,1,12,1,
+  	12,1,12,5,12,220,8,12,10,12,12,12,223,9,12,1,13,1,13,1,13,1,14,1,14,1,
+  	14,1,15,1,15,1,16,1,16,1,17,1,17,1,17,1,17,1,17,5,17,240,8,17,10,17,12,
+  	17,243,9,17,3,17,245,8,17,1,18,1,18,1,18,1,18,5,18,251,8,18,10,18,12,
+  	18,254,9,18,3,18,256,8,18,1,18,1,18,5,18,260,8,18,10,18,12,18,263,9,18,
+  	1,19,1,19,1,19,1,19,1,19,1,20,1,20,1,20,1,20,1,20,1,20,5,20,276,8,20,
+  	10,20,12,20,279,9,20,1,20,1,20,3,20,283,8,20,1,20,1,20,1,20,1,20,1,20,
+  	3,20,290,8,20,1,21,1,21,1,22,1,22,1,23,1,23,1,23,5,23,299,8,23,10,23,
+  	12,23,302,9,23,1,24,1,24,1,24,5,24,307,8,24,10,24,12,24,310,9,24,1,25,
+  	1,25,1,25,5,25,315,8,25,10,25,12,25,318,9,25,1,26,1,26,1,26,5,26,323,
+  	8,26,10,26,12,26,326,9,26,1,27,1,27,1,27,1,27,1,27,1,27,1,27,1,27,1,27,
+  	1,27,5,27,338,8,27,10,27,12,27,341,9,27,1,27,1,27,3,27,345,8,27,1,27,
+  	3,27,348,8,27,1,27,0,0,28,0,2,4,6,8,10,12,14,16,18,20,22,24,26,28,30,
+  	32,34,36,38,40,42,44,46,48,50,52,54,0,3,1,0,40,41,1,0,33,34,1,0,35,36,
+  	370,0,65,1,0,0,0,2,70,1,0,0,0,4,93,1,0,0,0,6,111,1,0,0,0,8,113,1,0,0,
+  	0,10,125,1,0,0,0,12,138,1,0,0,0,14,140,1,0,0,0,16,149,1,0,0,0,18,165,
+  	1,0,0,0,20,168,1,0,0,0,22,171,1,0,0,0,24,215,1,0,0,0,26,224,1,0,0,0,28,
+  	227,1,0,0,0,30,230,1,0,0,0,32,232,1,0,0,0,34,234,1,0,0,0,36,246,1,0,0,
+  	0,38,264,1,0,0,0,40,269,1,0,0,0,42,291,1,0,0,0,44,293,1,0,0,0,46,295,
+  	1,0,0,0,48,303,1,0,0,0,50,311,1,0,0,0,52,319,1,0,0,0,54,347,1,0,0,0,56,
+  	64,3,2,1,0,57,64,3,40,20,0,58,64,3,14,7,0,59,64,3,22,11,0,60,64,3,10,
+  	5,0,61,64,3,36,18,0,62,64,3,16,8,0,63,56,1,0,0,0,63,57,1,0,0,0,63,58,
+  	1,0,0,0,63,59,1,0,0,0,63,60,1,0,0,0,63,61,1,0,0,0,63,62,1,0,0,0,64,67,
+  	1,0,0,0,65,63,1,0,0,0,65,66,1,0,0,0,66,68,1,0,0,0,67,65,1,0,0,0,68,69,
+  	5,0,0,1,69,1,1,0,0,0,70,71,5,1,0,0,71,73,5,39,0,0,72,74,5,2,0,0,73,72,
+  	1,0,0,0,73,74,1,0,0,0,74,77,1,0,0,0,75,76,5,3,0,0,76,78,5,39,0,0,77,75,
+  	1,0,0,0,77,78,1,0,0,0,78,81,1,0,0,0,79,80,5,4,0,0,80,82,3,6,3,0,81,79,
+  	1,0,0,0,81,82,1,0,0,0,82,85,1,0,0,0,83,84,5,5,0,0,84,86,5,39,0,0,85,83,
+  	1,0,0,0,85,86,1,0,0,0,86,90,1,0,0,0,87,89,3,4,2,0,88,87,1,0,0,0,89,92,
+  	1,0,0,0,90,88,1,0,0,0,90,91,1,0,0,0,91,3,1,0,0,0,92,90,1,0,0,0,93,94,
+  	5,39,0,0,94,99,5,6,0,0,95,96,5,7,0,0,96,97,5,8,0,0,97,98,5,39,0,0,98,
+  	100,5,9,0,0,99,95,1,0,0,0,99,100,1,0,0,0,100,101,1,0,0,0,101,104,5,39,
+  	0,0,102,103,5,4,0,0,103,105,3,6,3,0,104,102,1,0,0,0,104,105,1,0,0,0,105,
+  	109,1,0,0,0,106,107,5,8,0,0,107,108,5,39,0,0,108,110,5,9,0,0,109,106,
+  	1,0,0,0,109,110,1,0,0,0,110,5,1,0,0,0,111,112,7,0,0,0,112,7,1,0,0,0,113,
+  	114,5,39,0,0,114,115,5,6,0,0,115,118,5,39,0,0,116,117,5,4,0,0,117,119,
+  	3,6,3,0,118,116,1,0,0,0,118,119,1,0,0,0,119,123,1,0,0,0,120,121,5,8,0,
+  	0,121,122,5,39,0,0,122,124,5,9,0,0,123,120,1,0,0,0,123,124,1,0,0,0,124,
+  	9,1,0,0,0,125,126,5,10,0,0,126,129,5,39,0,0,127,128,5,11,0,0,128,130,
+  	5,39,0,0,129,127,1,0,0,0,129,130,1,0,0,0,130,135,1,0,0,0,131,132,5,12,
+  	0,0,132,134,3,12,6,0,133,131,1,0,0,0,134,137,1,0,0,0,135,133,1,0,0,0,
+  	135,136,1,0,0,0,136,11,1,0,0,0,137,135,1,0,0,0,138,139,3,8,4,0,139,13,
+  	1,0,0,0,140,141,5,13,0,0,141,142,5,39,0,0,142,147,5,6,0,0,143,144,5,8,
+  	0,0,144,145,5,42,0,0,145,148,5,9,0,0,146,148,5,39,0,0,147,143,1,0,0,0,
+  	147,146,1,0,0,0,148,15,1,0,0,0,149,150,5,14,0,0,150,151,5,39,0,0,151,
+  	152,5,15,0,0,152,156,5,42,0,0,153,155,3,18,9,0,154,153,1,0,0,0,155,158,
+  	1,0,0,0,156,154,1,0,0,0,156,157,1,0,0,0,157,162,1,0,0,0,158,156,1,0,0,
+  	0,159,161,3,20,10,0,160,159,1,0,0,0,161,164,1,0,0,0,162,160,1,0,0,0,162,
+  	163,1,0,0,0,163,17,1,0,0,0,164,162,1,0,0,0,165,166,5,16,0,0,166,167,3,
+  	8,4,0,167,19,1,0,0,0,168,169,5,17,0,0,169,170,3,8,4,0,170,21,1,0,0,0,
+  	171,172,5,18,0,0,172,174,5,39,0,0,173,175,3,24,12,0,174,173,1,0,0,0,174,
+  	175,1,0,0,0,175,179,1,0,0,0,176,178,3,26,13,0,177,176,1,0,0,0,178,181,
+  	1,0,0,0,179,177,1,0,0,0,179,180,1,0,0,0,180,185,1,0,0,0,181,179,1,0,0,
+  	0,182,184,3,28,14,0,183,182,1,0,0,0,184,187,1,0,0,0,185,183,1,0,0,0,185,
+  	186,1,0,0,0,186,195,1,0,0,0,187,185,1,0,0,0,188,192,5,19,0,0,189,191,
+  	3,30,15,0,190,189,1,0,0,0,191,194,1,0,0,0,192,190,1,0,0,0,192,193,1,0,
+  	0,0,193,196,1,0,0,0,194,192,1,0,0,0,195,188,1,0,0,0,195,196,1,0,0,0,196,
+  	204,1,0,0,0,197,201,5,20,0,0,198,200,3,32,16,0,199,198,1,0,0,0,200,203,
+  	1,0,0,0,201,199,1,0,0,0,201,202,1,0,0,0,202,205,1,0,0,0,203,201,1,0,0,
+  	0,204,197,1,0,0,0,204,205,1,0,0,0,205,213,1,0,0,0,206,210,5,21,0,0,207,
+  	209,3,38,19,0,208,207,1,0,0,0,209,212,1,0,0,0,210,208,1,0,0,0,210,211,
+  	1,0,0,0,211,214,1,0,0,0,212,210,1,0,0,0,213,206,1,0,0,0,213,214,1,0,0,
+  	0,214,23,1,0,0,0,215,216,5,22,0,0,216,221,5,39,0,0,217,218,5,23,0,0,218,
+  	220,5,39,0,0,219,217,1,0,0,0,220,223,1,0,0,0,221,219,1,0,0,0,221,222,
+  	1,0,0,0,222,25,1,0,0,0,223,221,1,0,0,0,224,225,5,16,0,0,225,226,3,8,4,
+  	0,226,27,1,0,0,0,227,228,5,17,0,0,228,229,3,8,4,0,229,29,1,0,0,0,230,
+  	231,5,39,0,0,231,31,1,0,0,0,232,233,5,39,0,0,233,33,1,0,0,0,234,235,5,
+  	39,0,0,235,236,5,6,0,0,236,244,5,39,0,0,237,241,5,24,0,0,238,240,5,39,
+  	0,0,239,238,1,0,0,0,240,243,1,0,0,0,241,239,1,0,0,0,241,242,1,0,0,0,242,
+  	245,1,0,0,0,243,241,1,0,0,0,244,237,1,0,0,0,244,245,1,0,0,0,245,35,1,
+  	0,0,0,246,247,5,25,0,0,247,255,5,39,0,0,248,252,5,24,0,0,249,251,5,39,
+  	0,0,250,249,1,0,0,0,251,254,1,0,0,0,252,250,1,0,0,0,252,253,1,0,0,0,253,
+  	256,1,0,0,0,254,252,1,0,0,0,255,248,1,0,0,0,255,256,1,0,0,0,256,261,1,
+  	0,0,0,257,258,5,26,0,0,258,260,3,34,17,0,259,257,1,0,0,0,260,263,1,0,
+  	0,0,261,259,1,0,0,0,261,262,1,0,0,0,262,37,1,0,0,0,263,261,1,0,0,0,264,
+  	265,5,39,0,0,265,266,5,27,0,0,266,267,3,44,22,0,267,268,5,28,0,0,268,
+  	39,1,0,0,0,269,270,5,29,0,0,270,282,5,39,0,0,271,272,5,30,0,0,272,277,
+  	3,42,21,0,273,274,5,31,0,0,274,276,3,42,21,0,275,273,1,0,0,0,276,279,
+  	1,0,0,0,277,275,1,0,0,0,277,278,1,0,0,0,278,280,1,0,0,0,279,277,1,0,0,
+  	0,280,281,5,32,0,0,281,283,1,0,0,0,282,271,1,0,0,0,282,283,1,0,0,0,283,
+  	284,1,0,0,0,284,289,5,6,0,0,285,290,5,2,0,0,286,287,3,44,22,0,287,288,
+  	5,28,0,0,288,290,1,0,0,0,289,285,1,0,0,0,289,286,1,0,0,0,290,41,1,0,0,
+  	0,291,292,5,39,0,0,292,43,1,0,0,0,293,294,3,46,23,0,294,45,1,0,0,0,295,
+  	300,3,48,24,0,296,297,7,1,0,0,297,299,3,48,24,0,298,296,1,0,0,0,299,302,
+  	1,0,0,0,300,298,1,0,0,0,300,301,1,0,0,0,301,47,1,0,0,0,302,300,1,0,0,
+  	0,303,308,3,50,25,0,304,305,7,2,0,0,305,307,3,50,25,0,306,304,1,0,0,0,
+  	307,310,1,0,0,0,308,306,1,0,0,0,308,309,1,0,0,0,309,49,1,0,0,0,310,308,
+  	1,0,0,0,311,316,3,52,26,0,312,313,5,37,0,0,313,315,3,52,26,0,314,312,
+  	1,0,0,0,315,318,1,0,0,0,316,314,1,0,0,0,316,317,1,0,0,0,317,51,1,0,0,
+  	0,318,316,1,0,0,0,319,324,3,54,27,0,320,321,5,38,0,0,321,323,3,54,27,
+  	0,322,320,1,0,0,0,323,326,1,0,0,0,324,322,1,0,0,0,324,325,1,0,0,0,325,
+  	53,1,0,0,0,326,324,1,0,0,0,327,328,5,30,0,0,328,329,3,44,22,0,329,330,
+  	5,32,0,0,330,348,1,0,0,0,331,348,5,40,0,0,332,344,5,39,0,0,333,334,5,
+  	30,0,0,334,339,3,44,22,0,335,336,5,31,0,0,336,338,3,44,22,0,337,335,1,
+  	0,0,0,338,341,1,0,0,0,339,337,1,0,0,0,339,340,1,0,0,0,340,342,1,0,0,0,
+  	341,339,1,0,0,0,342,343,5,32,0,0,343,345,1,0,0,0,344,333,1,0,0,0,344,
+  	345,1,0,0,0,345,348,1,0,0,0,346,348,5,39,0,0,347,327,1,0,0,0,347,331,
+  	1,0,0,0,347,332,1,0,0,0,347,346,1,0,0,0,348,55,1,0,0,0,42,63,65,73,77,
+  	81,85,90,99,104,109,118,123,129,135,147,156,162,174,179,185,192,195,201,
+  	204,210,213,221,241,244,252,255,261,277,282,289,300,308,316,324,339,344,
+  	347
   };
   staticData->serializedATN = antlr4::atn::SerializedATNView(serializedATNSegment, sizeof(serializedATNSegment) / sizeof(serializedATNSegment[0]));
 
@@ -242,12 +249,12 @@ tree::TerminalNode* pblangParser::ModelContext::EOF() {
   return getToken(pblangParser::EOF, 0);
 }
 
-std::vector<pblangParser::TypeContext *> pblangParser::ModelContext::type() {
-  return getRuleContexts<pblangParser::TypeContext>();
+std::vector<pblangParser::TypeDefContext *> pblangParser::ModelContext::typeDef() {
+  return getRuleContexts<pblangParser::TypeDefContext>();
 }
 
-pblangParser::TypeContext* pblangParser::ModelContext::type(size_t i) {
-  return getRuleContext<pblangParser::TypeContext>(i);
+pblangParser::TypeDefContext* pblangParser::ModelContext::typeDef(size_t i) {
+  return getRuleContext<pblangParser::TypeDefContext>(i);
 }
 
 std::vector<pblangParser::DefinitionContext *> pblangParser::ModelContext::definition() {
@@ -329,52 +336,52 @@ pblangParser::ModelContext* pblangParser::model() {
   });
   try {
     enterOuterAlt(_localctx, 1);
-    setState(63);
+    setState(65);
     _errHandler->sync(this);
     _la = _input->LA(1);
     while ((((_la & ~ 0x3fULL) == 0) &&
-      ((1ULL << _la) & 142894082) != 0)) {
-      setState(61);
+      ((1ULL << _la) & 570713090) != 0)) {
+      setState(63);
       _errHandler->sync(this);
       switch (_input->LA(1)) {
         case pblangParser::T__0: {
-          setState(54);
-          type();
+          setState(56);
+          typeDef();
           break;
         }
 
-        case pblangParser::T__26: {
-          setState(55);
+        case pblangParser::T__28: {
+          setState(57);
           definition();
           break;
         }
 
         case pblangParser::T__12: {
-          setState(56);
+          setState(58);
           unit();
           break;
         }
 
         case pblangParser::T__17: {
-          setState(57);
+          setState(59);
           processDef();
           break;
         }
 
         case pblangParser::T__9: {
-          setState(58);
+          setState(60);
           store();
           break;
         }
 
-        case pblangParser::T__22: {
-          setState(59);
+        case pblangParser::T__24: {
+          setState(61);
           compositeDef();
           break;
         }
 
         case pblangParser::T__13: {
-          setState(60);
+          setState(62);
           sbmlModel();
           break;
         }
@@ -382,11 +389,11 @@ pblangParser::ModelContext* pblangParser::model() {
       default:
         throw NoViableAltException(this);
       }
-      setState(65);
+      setState(67);
       _errHandler->sync(this);
       _la = _input->LA(1);
     }
-    setState(66);
+    setState(68);
     match(pblangParser::EOF);
 
   }
@@ -399,52 +406,52 @@ pblangParser::ModelContext* pblangParser::model() {
   return _localctx;
 }
 
-//----------------- TypeContext ------------------------------------------------------------------
+//----------------- TypeDefContext ------------------------------------------------------------------
 
-pblangParser::TypeContext::TypeContext(ParserRuleContext *parent, size_t invokingState)
+pblangParser::TypeDefContext::TypeDefContext(ParserRuleContext *parent, size_t invokingState)
   : ParserRuleContext(parent, invokingState) {
 }
 
-std::vector<tree::TerminalNode *> pblangParser::TypeContext::ID() {
+std::vector<tree::TerminalNode *> pblangParser::TypeDefContext::ID() {
   return getTokens(pblangParser::ID);
 }
 
-tree::TerminalNode* pblangParser::TypeContext::ID(size_t i) {
+tree::TerminalNode* pblangParser::TypeDefContext::ID(size_t i) {
   return getToken(pblangParser::ID, i);
 }
 
-pblangParser::DefaultValueContext* pblangParser::TypeContext::defaultValue() {
+pblangParser::DefaultValueContext* pblangParser::TypeDefContext::defaultValue() {
   return getRuleContext<pblangParser::DefaultValueContext>(0);
 }
 
-std::vector<pblangParser::NamedTypeContext *> pblangParser::TypeContext::namedType() {
+std::vector<pblangParser::NamedTypeContext *> pblangParser::TypeDefContext::namedType() {
   return getRuleContexts<pblangParser::NamedTypeContext>();
 }
 
-pblangParser::NamedTypeContext* pblangParser::TypeContext::namedType(size_t i) {
+pblangParser::NamedTypeContext* pblangParser::TypeDefContext::namedType(size_t i) {
   return getRuleContext<pblangParser::NamedTypeContext>(i);
 }
 
 
-size_t pblangParser::TypeContext::getRuleIndex() const {
-  return pblangParser::RuleType;
+size_t pblangParser::TypeDefContext::getRuleIndex() const {
+  return pblangParser::RuleTypeDef;
 }
 
-void pblangParser::TypeContext::enterRule(tree::ParseTreeListener *listener) {
+void pblangParser::TypeDefContext::enterRule(tree::ParseTreeListener *listener) {
   auto parserListener = dynamic_cast<pblangListener *>(listener);
   if (parserListener != nullptr)
-    parserListener->enterType(this);
+    parserListener->enterTypeDef(this);
 }
 
-void pblangParser::TypeContext::exitRule(tree::ParseTreeListener *listener) {
+void pblangParser::TypeDefContext::exitRule(tree::ParseTreeListener *listener) {
   auto parserListener = dynamic_cast<pblangListener *>(listener);
   if (parserListener != nullptr)
-    parserListener->exitType(this);
+    parserListener->exitTypeDef(this);
 }
 
-pblangParser::TypeContext* pblangParser::type() {
-  TypeContext *_localctx = _tracker.createInstance<TypeContext>(_ctx, getState());
-  enterRule(_localctx, 2, pblangParser::RuleType);
+pblangParser::TypeDefContext* pblangParser::typeDef() {
+  TypeDefContext *_localctx = _tracker.createInstance<TypeDefContext>(_ctx, getState());
+  enterRule(_localctx, 2, pblangParser::RuleTypeDef);
   size_t _la = 0;
 
 #if __cplusplus > 201703L
@@ -456,55 +463,55 @@ pblangParser::TypeContext* pblangParser::type() {
   });
   try {
     enterOuterAlt(_localctx, 1);
-    setState(68);
+    setState(70);
     match(pblangParser::T__0);
-    setState(69);
-    match(pblangParser::ID);
     setState(71);
+    antlrcpp::downCast<TypeDefContext *>(_localctx)->name = match(pblangParser::ID);
+    setState(73);
     _errHandler->sync(this);
 
     _la = _input->LA(1);
     if (_la == pblangParser::T__1) {
-      setState(70);
-      antlrcpp::downCast<TypeContext *>(_localctx)->builtin = match(pblangParser::T__1);
+      setState(72);
+      antlrcpp::downCast<TypeDefContext *>(_localctx)->builtin = match(pblangParser::T__1);
     }
-    setState(75);
+    setState(77);
     _errHandler->sync(this);
 
     _la = _input->LA(1);
     if (_la == pblangParser::T__2) {
-      setState(73);
+      setState(75);
       match(pblangParser::T__2);
-      setState(74);
+      setState(76);
       match(pblangParser::ID);
     }
-    setState(79);
+    setState(81);
     _errHandler->sync(this);
 
     _la = _input->LA(1);
     if (_la == pblangParser::T__3) {
-      setState(77);
+      setState(79);
       match(pblangParser::T__3);
-      setState(78);
+      setState(80);
       defaultValue();
     }
-    setState(83);
+    setState(85);
     _errHandler->sync(this);
 
     _la = _input->LA(1);
     if (_la == pblangParser::T__4) {
-      setState(81);
+      setState(83);
       match(pblangParser::T__4);
-      setState(82);
+      setState(84);
       match(pblangParser::ID);
     }
-    setState(88);
+    setState(90);
     _errHandler->sync(this);
     _la = _input->LA(1);
     while (_la == pblangParser::ID) {
-      setState(85);
+      setState(87);
       namedType();
-      setState(90);
+      setState(92);
       _errHandler->sync(this);
       _la = _input->LA(1);
     }
@@ -568,46 +575,46 @@ pblangParser::NamedTypeContext* pblangParser::namedType() {
   });
   try {
     enterOuterAlt(_localctx, 1);
-    setState(91);
-    match(pblangParser::ID);
-    setState(92);
+    setState(93);
+    antlrcpp::downCast<NamedTypeContext *>(_localctx)->name = match(pblangParser::ID);
+    setState(94);
     match(pblangParser::T__5);
-    setState(97);
+    setState(99);
     _errHandler->sync(this);
 
     _la = _input->LA(1);
     if (_la == pblangParser::T__6) {
-      setState(93);
-      match(pblangParser::T__6);
-      setState(94);
-      match(pblangParser::T__7);
       setState(95);
-      match(pblangParser::ID);
+      match(pblangParser::T__6);
       setState(96);
+      match(pblangParser::T__7);
+      setState(97);
+      antlrcpp::downCast<NamedTypeContext *>(_localctx)->optional_type_ref = match(pblangParser::ID);
+      setState(98);
       match(pblangParser::T__8);
     }
-    setState(99);
-    match(pblangParser::ID);
-    setState(102);
+    setState(101);
+    antlrcpp::downCast<NamedTypeContext *>(_localctx)->type_ref = match(pblangParser::ID);
+    setState(104);
     _errHandler->sync(this);
 
     _la = _input->LA(1);
     if (_la == pblangParser::T__3) {
-      setState(100);
+      setState(102);
       match(pblangParser::T__3);
-      setState(101);
+      setState(103);
       defaultValue();
     }
-    setState(107);
+    setState(109);
     _errHandler->sync(this);
 
     _la = _input->LA(1);
     if (_la == pblangParser::T__7) {
-      setState(104);
-      match(pblangParser::T__7);
-      setState(105);
-      match(pblangParser::ID);
       setState(106);
+      match(pblangParser::T__7);
+      setState(107);
+      antlrcpp::downCast<NamedTypeContext *>(_localctx)->unit_ref = match(pblangParser::ID);
+      setState(108);
       match(pblangParser::T__8);
     }
 
@@ -666,7 +673,7 @@ pblangParser::DefaultValueContext* pblangParser::defaultValue() {
   });
   try {
     enterOuterAlt(_localctx, 1);
-    setState(109);
+    setState(111);
     _la = _input->LA(1);
     if (!(_la == pblangParser::FLOAT
 
@@ -737,32 +744,32 @@ pblangParser::SchemaItemContext* pblangParser::schemaItem() {
   });
   try {
     enterOuterAlt(_localctx, 1);
-    setState(111);
-    match(pblangParser::ID);
-    setState(112);
-    match(pblangParser::T__5);
     setState(113);
-    match(pblangParser::ID);
-    setState(116);
+    antlrcpp::downCast<SchemaItemContext *>(_localctx)->name = match(pblangParser::ID);
+    setState(114);
+    match(pblangParser::T__5);
+    setState(115);
+    antlrcpp::downCast<SchemaItemContext *>(_localctx)->type_ref = match(pblangParser::ID);
+    setState(118);
     _errHandler->sync(this);
 
     _la = _input->LA(1);
     if (_la == pblangParser::T__3) {
-      setState(114);
+      setState(116);
       match(pblangParser::T__3);
-      setState(115);
+      setState(117);
       defaultValue();
     }
-    setState(121);
+    setState(123);
     _errHandler->sync(this);
 
     _la = _input->LA(1);
     if (_la == pblangParser::T__7) {
-      setState(118);
-      match(pblangParser::T__7);
-      setState(119);
-      match(pblangParser::ID);
       setState(120);
+      match(pblangParser::T__7);
+      setState(121);
+      antlrcpp::downCast<SchemaItemContext *>(_localctx)->unit_ref = match(pblangParser::ID);
+      setState(122);
       match(pblangParser::T__8);
     }
 
@@ -829,29 +836,29 @@ pblangParser::StoreContext* pblangParser::store() {
   });
   try {
     enterOuterAlt(_localctx, 1);
-    setState(123);
+    setState(125);
     match(pblangParser::T__9);
-    setState(124);
+    setState(126);
     match(pblangParser::ID);
-    setState(127);
+    setState(129);
     _errHandler->sync(this);
 
     _la = _input->LA(1);
     if (_la == pblangParser::T__10) {
-      setState(125);
+      setState(127);
       match(pblangParser::T__10);
-      setState(126);
+      setState(128);
       match(pblangParser::ID);
     }
-    setState(133);
+    setState(135);
     _errHandler->sync(this);
     _la = _input->LA(1);
     while (_la == pblangParser::T__11) {
-      setState(129);
+      setState(131);
       match(pblangParser::T__11);
-      setState(130);
+      setState(132);
       storeState();
-      setState(135);
+      setState(137);
       _errHandler->sync(this);
       _la = _input->LA(1);
     }
@@ -906,7 +913,7 @@ pblangParser::StoreStateContext* pblangParser::storeState() {
   });
   try {
     enterOuterAlt(_localctx, 1);
-    setState(136);
+    setState(138);
     schemaItem();
 
   }
@@ -967,27 +974,27 @@ pblangParser::UnitContext* pblangParser::unit() {
   });
   try {
     enterOuterAlt(_localctx, 1);
-    setState(138);
-    match(pblangParser::T__12);
-    setState(139);
-    match(pblangParser::ID);
     setState(140);
+    match(pblangParser::T__12);
+    setState(141);
+    match(pblangParser::ID);
+    setState(142);
     match(pblangParser::T__5);
-    setState(145);
+    setState(147);
     _errHandler->sync(this);
     switch (_input->LA(1)) {
       case pblangParser::T__7: {
-        setState(141);
-        match(pblangParser::T__7);
-        setState(142);
-        match(pblangParser::STRING);
         setState(143);
+        match(pblangParser::T__7);
+        setState(144);
+        match(pblangParser::STRING);
+        setState(145);
         match(pblangParser::T__8);
         break;
       }
 
       case pblangParser::ID: {
-        setState(144);
+        setState(146);
         match(pblangParser::ID);
         break;
       }
@@ -1067,31 +1074,31 @@ pblangParser::SbmlModelContext* pblangParser::sbmlModel() {
   });
   try {
     enterOuterAlt(_localctx, 1);
-    setState(147);
-    match(pblangParser::T__13);
-    setState(148);
-    match(pblangParser::ID);
     setState(149);
-    match(pblangParser::T__14);
+    match(pblangParser::T__13);
     setState(150);
+    match(pblangParser::ID);
+    setState(151);
+    match(pblangParser::T__14);
+    setState(152);
     match(pblangParser::STRING);
-    setState(154);
+    setState(156);
     _errHandler->sync(this);
     _la = _input->LA(1);
     while (_la == pblangParser::T__15) {
-      setState(151);
+      setState(153);
       sbmlParameter();
-      setState(156);
+      setState(158);
       _errHandler->sync(this);
       _la = _input->LA(1);
     }
-    setState(160);
+    setState(162);
     _errHandler->sync(this);
     _la = _input->LA(1);
     while (_la == pblangParser::T__16) {
-      setState(157);
+      setState(159);
       sbmlVariable();
-      setState(162);
+      setState(164);
       _errHandler->sync(this);
       _la = _input->LA(1);
     }
@@ -1146,9 +1153,9 @@ pblangParser::SbmlParameterContext* pblangParser::sbmlParameter() {
   });
   try {
     enterOuterAlt(_localctx, 1);
-    setState(163);
+    setState(165);
     match(pblangParser::T__15);
-    setState(164);
+    setState(166);
     schemaItem();
 
   }
@@ -1201,9 +1208,9 @@ pblangParser::SbmlVariableContext* pblangParser::sbmlVariable() {
   });
   try {
     enterOuterAlt(_localctx, 1);
-    setState(166);
+    setState(168);
     match(pblangParser::T__16);
-    setState(167);
+    setState(169);
     schemaItem();
 
   }
@@ -1224,6 +1231,10 @@ pblangParser::ProcessDefContext::ProcessDefContext(ParserRuleContext *parent, si
 
 tree::TerminalNode* pblangParser::ProcessDefContext::ID() {
   return getToken(pblangParser::ID, 0);
+}
+
+pblangParser::PythonRefContext* pblangParser::ProcessDefContext::pythonRef() {
+  return getRuleContext<pblangParser::PythonRefContext>(0);
 }
 
 std::vector<pblangParser::ProcessParameterContext *> pblangParser::ProcessDefContext::processParameter() {
@@ -1297,83 +1308,163 @@ pblangParser::ProcessDefContext* pblangParser::processDef() {
   });
   try {
     enterOuterAlt(_localctx, 1);
-    setState(169);
+    setState(171);
     match(pblangParser::T__17);
-    setState(170);
+    setState(172);
     match(pblangParser::ID);
     setState(174);
     _errHandler->sync(this);
+
+    _la = _input->LA(1);
+    if (_la == pblangParser::T__21) {
+      setState(173);
+      pythonRef();
+    }
+    setState(179);
+    _errHandler->sync(this);
     _la = _input->LA(1);
     while (_la == pblangParser::T__15) {
-      setState(171);
-      processParameter();
       setState(176);
+      processParameter();
+      setState(181);
       _errHandler->sync(this);
       _la = _input->LA(1);
     }
-    setState(180);
+    setState(185);
     _errHandler->sync(this);
     _la = _input->LA(1);
     while (_la == pblangParser::T__16) {
-      setState(177);
-      processVariable();
       setState(182);
+      processVariable();
+      setState(187);
       _errHandler->sync(this);
       _la = _input->LA(1);
     }
-    setState(190);
+    setState(195);
     _errHandler->sync(this);
 
     _la = _input->LA(1);
     if (_la == pblangParser::T__18) {
-      setState(183);
+      setState(188);
       match(pblangParser::T__18);
-      setState(187);
+      setState(192);
       _errHandler->sync(this);
       _la = _input->LA(1);
       while (_la == pblangParser::ID) {
-        setState(184);
-        processInput();
         setState(189);
+        processInput();
+        setState(194);
         _errHandler->sync(this);
         _la = _input->LA(1);
       }
     }
-    setState(199);
+    setState(204);
     _errHandler->sync(this);
 
     _la = _input->LA(1);
     if (_la == pblangParser::T__19) {
-      setState(192);
+      setState(197);
       match(pblangParser::T__19);
-      setState(196);
+      setState(201);
       _errHandler->sync(this);
       _la = _input->LA(1);
       while (_la == pblangParser::ID) {
-        setState(193);
-        processOutput();
         setState(198);
+        processOutput();
+        setState(203);
         _errHandler->sync(this);
         _la = _input->LA(1);
       }
     }
-    setState(208);
+    setState(213);
     _errHandler->sync(this);
 
     _la = _input->LA(1);
     if (_la == pblangParser::T__20) {
-      setState(201);
+      setState(206);
       match(pblangParser::T__20);
-      setState(205);
+      setState(210);
       _errHandler->sync(this);
       _la = _input->LA(1);
       while (_la == pblangParser::ID) {
-        setState(202);
-        update();
         setState(207);
+        update();
+        setState(212);
         _errHandler->sync(this);
         _la = _input->LA(1);
       }
+    }
+
+  }
+  catch (RecognitionException &e) {
+    _errHandler->reportError(this, e);
+    _localctx->exception = std::current_exception();
+    _errHandler->recover(this, _localctx->exception);
+  }
+
+  return _localctx;
+}
+
+//----------------- PythonRefContext ------------------------------------------------------------------
+
+pblangParser::PythonRefContext::PythonRefContext(ParserRuleContext *parent, size_t invokingState)
+  : ParserRuleContext(parent, invokingState) {
+}
+
+std::vector<tree::TerminalNode *> pblangParser::PythonRefContext::ID() {
+  return getTokens(pblangParser::ID);
+}
+
+tree::TerminalNode* pblangParser::PythonRefContext::ID(size_t i) {
+  return getToken(pblangParser::ID, i);
+}
+
+
+size_t pblangParser::PythonRefContext::getRuleIndex() const {
+  return pblangParser::RulePythonRef;
+}
+
+void pblangParser::PythonRefContext::enterRule(tree::ParseTreeListener *listener) {
+  auto parserListener = dynamic_cast<pblangListener *>(listener);
+  if (parserListener != nullptr)
+    parserListener->enterPythonRef(this);
+}
+
+void pblangParser::PythonRefContext::exitRule(tree::ParseTreeListener *listener) {
+  auto parserListener = dynamic_cast<pblangListener *>(listener);
+  if (parserListener != nullptr)
+    parserListener->exitPythonRef(this);
+}
+
+pblangParser::PythonRefContext* pblangParser::pythonRef() {
+  PythonRefContext *_localctx = _tracker.createInstance<PythonRefContext>(_ctx, getState());
+  enterRule(_localctx, 24, pblangParser::RulePythonRef);
+  size_t _la = 0;
+
+#if __cplusplus > 201703L
+  auto onExit = finally([=, this] {
+#else
+  auto onExit = finally([=] {
+#endif
+    exitRule();
+  });
+  try {
+    enterOuterAlt(_localctx, 1);
+    setState(215);
+    match(pblangParser::T__21);
+    setState(216);
+    match(pblangParser::ID);
+    setState(221);
+    _errHandler->sync(this);
+    _la = _input->LA(1);
+    while (_la == pblangParser::T__22) {
+      setState(217);
+      match(pblangParser::T__22);
+      setState(218);
+      match(pblangParser::ID);
+      setState(223);
+      _errHandler->sync(this);
+      _la = _input->LA(1);
     }
 
   }
@@ -1415,7 +1506,7 @@ void pblangParser::ProcessParameterContext::exitRule(tree::ParseTreeListener *li
 
 pblangParser::ProcessParameterContext* pblangParser::processParameter() {
   ProcessParameterContext *_localctx = _tracker.createInstance<ProcessParameterContext>(_ctx, getState());
-  enterRule(_localctx, 24, pblangParser::RuleProcessParameter);
+  enterRule(_localctx, 26, pblangParser::RuleProcessParameter);
 
 #if __cplusplus > 201703L
   auto onExit = finally([=, this] {
@@ -1426,9 +1517,9 @@ pblangParser::ProcessParameterContext* pblangParser::processParameter() {
   });
   try {
     enterOuterAlt(_localctx, 1);
-    setState(210);
+    setState(224);
     match(pblangParser::T__15);
-    setState(211);
+    setState(225);
     schemaItem();
 
   }
@@ -1470,7 +1561,7 @@ void pblangParser::ProcessVariableContext::exitRule(tree::ParseTreeListener *lis
 
 pblangParser::ProcessVariableContext* pblangParser::processVariable() {
   ProcessVariableContext *_localctx = _tracker.createInstance<ProcessVariableContext>(_ctx, getState());
-  enterRule(_localctx, 26, pblangParser::RuleProcessVariable);
+  enterRule(_localctx, 28, pblangParser::RuleProcessVariable);
 
 #if __cplusplus > 201703L
   auto onExit = finally([=, this] {
@@ -1481,9 +1572,9 @@ pblangParser::ProcessVariableContext* pblangParser::processVariable() {
   });
   try {
     enterOuterAlt(_localctx, 1);
-    setState(213);
+    setState(227);
     match(pblangParser::T__16);
-    setState(214);
+    setState(228);
     schemaItem();
 
   }
@@ -1525,7 +1616,7 @@ void pblangParser::ProcessInputContext::exitRule(tree::ParseTreeListener *listen
 
 pblangParser::ProcessInputContext* pblangParser::processInput() {
   ProcessInputContext *_localctx = _tracker.createInstance<ProcessInputContext>(_ctx, getState());
-  enterRule(_localctx, 28, pblangParser::RuleProcessInput);
+  enterRule(_localctx, 30, pblangParser::RuleProcessInput);
 
 #if __cplusplus > 201703L
   auto onExit = finally([=, this] {
@@ -1536,7 +1627,7 @@ pblangParser::ProcessInputContext* pblangParser::processInput() {
   });
   try {
     enterOuterAlt(_localctx, 1);
-    setState(216);
+    setState(230);
     match(pblangParser::ID);
 
   }
@@ -1578,7 +1669,7 @@ void pblangParser::ProcessOutputContext::exitRule(tree::ParseTreeListener *liste
 
 pblangParser::ProcessOutputContext* pblangParser::processOutput() {
   ProcessOutputContext *_localctx = _tracker.createInstance<ProcessOutputContext>(_ctx, getState());
-  enterRule(_localctx, 30, pblangParser::RuleProcessOutput);
+  enterRule(_localctx, 32, pblangParser::RuleProcessOutput);
 
 #if __cplusplus > 201703L
   auto onExit = finally([=, this] {
@@ -1589,7 +1680,7 @@ pblangParser::ProcessOutputContext* pblangParser::processOutput() {
   });
   try {
     enterOuterAlt(_localctx, 1);
-    setState(218);
+    setState(232);
     match(pblangParser::ID);
 
   }
@@ -1635,7 +1726,7 @@ void pblangParser::ProcessContext::exitRule(tree::ParseTreeListener *listener) {
 
 pblangParser::ProcessContext* pblangParser::process() {
   ProcessContext *_localctx = _tracker.createInstance<ProcessContext>(_ctx, getState());
-  enterRule(_localctx, 32, pblangParser::RuleProcess);
+  enterRule(_localctx, 34, pblangParser::RuleProcess);
   size_t _la = 0;
 
 #if __cplusplus > 201703L
@@ -1647,26 +1738,26 @@ pblangParser::ProcessContext* pblangParser::process() {
   });
   try {
     enterOuterAlt(_localctx, 1);
-    setState(220);
-    match(pblangParser::ID);
-    setState(221);
+    setState(234);
+    antlrcpp::downCast<ProcessContext *>(_localctx)->name = match(pblangParser::ID);
+    setState(235);
     match(pblangParser::T__5);
-    setState(222);
-    match(pblangParser::ID);
-    setState(230);
+    setState(236);
+    antlrcpp::downCast<ProcessContext *>(_localctx)->process_def_ref = match(pblangParser::ID);
+    setState(244);
     _errHandler->sync(this);
 
     _la = _input->LA(1);
-    if (_la == pblangParser::T__21) {
-      setState(223);
-      match(pblangParser::T__21);
-      setState(227);
+    if (_la == pblangParser::T__23) {
+      setState(237);
+      match(pblangParser::T__23);
+      setState(241);
       _errHandler->sync(this);
       _la = _input->LA(1);
       while (_la == pblangParser::ID) {
-        setState(224);
-        match(pblangParser::ID);
-        setState(229);
+        setState(238);
+        antlrcpp::downCast<ProcessContext *>(_localctx)->store_def = match(pblangParser::ID);
+        setState(243);
         _errHandler->sync(this);
         _la = _input->LA(1);
       }
@@ -1723,7 +1814,7 @@ void pblangParser::CompositeDefContext::exitRule(tree::ParseTreeListener *listen
 
 pblangParser::CompositeDefContext* pblangParser::compositeDef() {
   CompositeDefContext *_localctx = _tracker.createInstance<CompositeDefContext>(_ctx, getState());
-  enterRule(_localctx, 34, pblangParser::RuleCompositeDef);
+  enterRule(_localctx, 36, pblangParser::RuleCompositeDef);
   size_t _la = 0;
 
 #if __cplusplus > 201703L
@@ -1735,37 +1826,37 @@ pblangParser::CompositeDefContext* pblangParser::compositeDef() {
   });
   try {
     enterOuterAlt(_localctx, 1);
-    setState(232);
-    match(pblangParser::T__22);
-    setState(233);
+    setState(246);
+    match(pblangParser::T__24);
+    setState(247);
     match(pblangParser::ID);
-    setState(241);
+    setState(255);
     _errHandler->sync(this);
 
     _la = _input->LA(1);
-    if (_la == pblangParser::T__21) {
-      setState(234);
-      match(pblangParser::T__21);
-      setState(238);
+    if (_la == pblangParser::T__23) {
+      setState(248);
+      match(pblangParser::T__23);
+      setState(252);
       _errHandler->sync(this);
       _la = _input->LA(1);
       while (_la == pblangParser::ID) {
-        setState(235);
+        setState(249);
         match(pblangParser::ID);
-        setState(240);
+        setState(254);
         _errHandler->sync(this);
         _la = _input->LA(1);
       }
     }
-    setState(247);
+    setState(261);
     _errHandler->sync(this);
     _la = _input->LA(1);
-    while (_la == pblangParser::T__23) {
-      setState(243);
-      match(pblangParser::T__23);
-      setState(244);
+    while (_la == pblangParser::T__25) {
+      setState(257);
+      match(pblangParser::T__25);
+      setState(258);
       process();
-      setState(249);
+      setState(263);
       _errHandler->sync(this);
       _la = _input->LA(1);
     }
@@ -1786,12 +1877,12 @@ pblangParser::UpdateContext::UpdateContext(ParserRuleContext *parent, size_t inv
   : ParserRuleContext(parent, invokingState) {
 }
 
-tree::TerminalNode* pblangParser::UpdateContext::ID() {
-  return getToken(pblangParser::ID, 0);
-}
-
 pblangParser::ExpressionContext* pblangParser::UpdateContext::expression() {
   return getRuleContext<pblangParser::ExpressionContext>(0);
+}
+
+tree::TerminalNode* pblangParser::UpdateContext::ID() {
+  return getToken(pblangParser::ID, 0);
 }
 
 
@@ -1813,7 +1904,7 @@ void pblangParser::UpdateContext::exitRule(tree::ParseTreeListener *listener) {
 
 pblangParser::UpdateContext* pblangParser::update() {
   UpdateContext *_localctx = _tracker.createInstance<UpdateContext>(_ctx, getState());
-  enterRule(_localctx, 36, pblangParser::RuleUpdate);
+  enterRule(_localctx, 38, pblangParser::RuleUpdate);
 
 #if __cplusplus > 201703L
   auto onExit = finally([=, this] {
@@ -1824,14 +1915,14 @@ pblangParser::UpdateContext* pblangParser::update() {
   });
   try {
     enterOuterAlt(_localctx, 1);
-    setState(250);
-    match(pblangParser::ID);
-    setState(251);
-    match(pblangParser::T__24);
-    setState(252);
+    setState(264);
+    antlrcpp::downCast<UpdateContext *>(_localctx)->lhs = match(pblangParser::ID);
+    setState(265);
+    match(pblangParser::T__26);
+    setState(266);
     expression();
-    setState(253);
-    match(pblangParser::T__25);
+    setState(267);
+    match(pblangParser::T__27);
 
   }
   catch (RecognitionException &e) {
@@ -1884,7 +1975,7 @@ void pblangParser::DefinitionContext::exitRule(tree::ParseTreeListener *listener
 
 pblangParser::DefinitionContext* pblangParser::definition() {
   DefinitionContext *_localctx = _tracker.createInstance<DefinitionContext>(_ctx, getState());
-  enterRule(_localctx, 38, pblangParser::RuleDefinition);
+  enterRule(_localctx, 40, pblangParser::RuleDefinition);
   size_t _la = 0;
 
 #if __cplusplus > 201703L
@@ -1896,52 +1987,52 @@ pblangParser::DefinitionContext* pblangParser::definition() {
   });
   try {
     enterOuterAlt(_localctx, 1);
-    setState(255);
-    match(pblangParser::T__26);
-    setState(256);
+    setState(269);
+    match(pblangParser::T__28);
+    setState(270);
     match(pblangParser::ID);
-    setState(268);
+    setState(282);
     _errHandler->sync(this);
 
     _la = _input->LA(1);
-    if (_la == pblangParser::T__27) {
-      setState(257);
-      match(pblangParser::T__27);
-      setState(258);
+    if (_la == pblangParser::T__29) {
+      setState(271);
+      match(pblangParser::T__29);
+      setState(272);
       declaredParameter();
-      setState(263);
+      setState(277);
       _errHandler->sync(this);
       _la = _input->LA(1);
-      while (_la == pblangParser::T__28) {
-        setState(259);
-        match(pblangParser::T__28);
-        setState(260);
+      while (_la == pblangParser::T__30) {
+        setState(273);
+        match(pblangParser::T__30);
+        setState(274);
         declaredParameter();
-        setState(265);
+        setState(279);
         _errHandler->sync(this);
         _la = _input->LA(1);
       }
-      setState(266);
-      match(pblangParser::T__29);
+      setState(280);
+      match(pblangParser::T__31);
     }
-    setState(270);
+    setState(284);
     match(pblangParser::T__5);
-    setState(275);
+    setState(289);
     _errHandler->sync(this);
     switch (_input->LA(1)) {
       case pblangParser::T__1: {
-        setState(271);
+        setState(285);
         antlrcpp::downCast<DefinitionContext *>(_localctx)->builtin = match(pblangParser::T__1);
         break;
       }
 
-      case pblangParser::T__27:
+      case pblangParser::T__29:
       case pblangParser::ID:
       case pblangParser::FLOAT: {
-        setState(272);
+        setState(286);
         expression();
-        setState(273);
-        match(pblangParser::T__25);
+        setState(287);
+        match(pblangParser::T__27);
         break;
       }
 
@@ -1988,7 +2079,7 @@ void pblangParser::DeclaredParameterContext::exitRule(tree::ParseTreeListener *l
 
 pblangParser::DeclaredParameterContext* pblangParser::declaredParameter() {
   DeclaredParameterContext *_localctx = _tracker.createInstance<DeclaredParameterContext>(_ctx, getState());
-  enterRule(_localctx, 40, pblangParser::RuleDeclaredParameter);
+  enterRule(_localctx, 42, pblangParser::RuleDeclaredParameter);
 
 #if __cplusplus > 201703L
   auto onExit = finally([=, this] {
@@ -1999,7 +2090,7 @@ pblangParser::DeclaredParameterContext* pblangParser::declaredParameter() {
   });
   try {
     enterOuterAlt(_localctx, 1);
-    setState(277);
+    setState(291);
     match(pblangParser::ID);
 
   }
@@ -2041,7 +2132,7 @@ void pblangParser::ExpressionContext::exitRule(tree::ParseTreeListener *listener
 
 pblangParser::ExpressionContext* pblangParser::expression() {
   ExpressionContext *_localctx = _tracker.createInstance<ExpressionContext>(_ctx, getState());
-  enterRule(_localctx, 42, pblangParser::RuleExpression);
+  enterRule(_localctx, 44, pblangParser::RuleExpression);
 
 #if __cplusplus > 201703L
   auto onExit = finally([=, this] {
@@ -2052,7 +2143,7 @@ pblangParser::ExpressionContext* pblangParser::expression() {
   });
   try {
     enterOuterAlt(_localctx, 1);
-    setState(279);
+    setState(293);
     addition();
 
   }
@@ -2098,7 +2189,7 @@ void pblangParser::AdditionContext::exitRule(tree::ParseTreeListener *listener) 
 
 pblangParser::AdditionContext* pblangParser::addition() {
   AdditionContext *_localctx = _tracker.createInstance<AdditionContext>(_ctx, getState());
-  enterRule(_localctx, 44, pblangParser::RuleAddition);
+  enterRule(_localctx, 46, pblangParser::RuleAddition);
   size_t _la = 0;
 
 #if __cplusplus > 201703L
@@ -2110,28 +2201,28 @@ pblangParser::AdditionContext* pblangParser::addition() {
   });
   try {
     enterOuterAlt(_localctx, 1);
-    setState(281);
+    setState(295);
     multiplication();
-    setState(286);
+    setState(300);
     _errHandler->sync(this);
     _la = _input->LA(1);
-    while (_la == pblangParser::T__30
+    while (_la == pblangParser::T__32
 
-    || _la == pblangParser::T__31) {
-      setState(282);
+    || _la == pblangParser::T__33) {
+      setState(296);
       _la = _input->LA(1);
-      if (!(_la == pblangParser::T__30
+      if (!(_la == pblangParser::T__32
 
-      || _la == pblangParser::T__31)) {
+      || _la == pblangParser::T__33)) {
       _errHandler->recoverInline(this);
       }
       else {
         _errHandler->reportMatch(this);
         consume();
       }
-      setState(283);
+      setState(297);
       multiplication();
-      setState(288);
+      setState(302);
       _errHandler->sync(this);
       _la = _input->LA(1);
     }
@@ -2179,7 +2270,7 @@ void pblangParser::MultiplicationContext::exitRule(tree::ParseTreeListener *list
 
 pblangParser::MultiplicationContext* pblangParser::multiplication() {
   MultiplicationContext *_localctx = _tracker.createInstance<MultiplicationContext>(_ctx, getState());
-  enterRule(_localctx, 46, pblangParser::RuleMultiplication);
+  enterRule(_localctx, 48, pblangParser::RuleMultiplication);
   size_t _la = 0;
 
 #if __cplusplus > 201703L
@@ -2191,28 +2282,28 @@ pblangParser::MultiplicationContext* pblangParser::multiplication() {
   });
   try {
     enterOuterAlt(_localctx, 1);
-    setState(289);
+    setState(303);
     exponentiation();
-    setState(294);
+    setState(308);
     _errHandler->sync(this);
     _la = _input->LA(1);
-    while (_la == pblangParser::T__32
+    while (_la == pblangParser::T__34
 
-    || _la == pblangParser::T__33) {
-      setState(290);
+    || _la == pblangParser::T__35) {
+      setState(304);
       _la = _input->LA(1);
-      if (!(_la == pblangParser::T__32
+      if (!(_la == pblangParser::T__34
 
-      || _la == pblangParser::T__33)) {
+      || _la == pblangParser::T__35)) {
       _errHandler->recoverInline(this);
       }
       else {
         _errHandler->reportMatch(this);
         consume();
       }
-      setState(291);
+      setState(305);
       exponentiation();
-      setState(296);
+      setState(310);
       _errHandler->sync(this);
       _la = _input->LA(1);
     }
@@ -2260,7 +2351,7 @@ void pblangParser::ExponentiationContext::exitRule(tree::ParseTreeListener *list
 
 pblangParser::ExponentiationContext* pblangParser::exponentiation() {
   ExponentiationContext *_localctx = _tracker.createInstance<ExponentiationContext>(_ctx, getState());
-  enterRule(_localctx, 48, pblangParser::RuleExponentiation);
+  enterRule(_localctx, 50, pblangParser::RuleExponentiation);
   size_t _la = 0;
 
 #if __cplusplus > 201703L
@@ -2272,17 +2363,17 @@ pblangParser::ExponentiationContext* pblangParser::exponentiation() {
   });
   try {
     enterOuterAlt(_localctx, 1);
-    setState(297);
+    setState(311);
     modulo();
-    setState(302);
+    setState(316);
     _errHandler->sync(this);
     _la = _input->LA(1);
-    while (_la == pblangParser::T__34) {
-      setState(298);
-      match(pblangParser::T__34);
-      setState(299);
+    while (_la == pblangParser::T__36) {
+      setState(312);
+      match(pblangParser::T__36);
+      setState(313);
       modulo();
-      setState(304);
+      setState(318);
       _errHandler->sync(this);
       _la = _input->LA(1);
     }
@@ -2330,7 +2421,7 @@ void pblangParser::ModuloContext::exitRule(tree::ParseTreeListener *listener) {
 
 pblangParser::ModuloContext* pblangParser::modulo() {
   ModuloContext *_localctx = _tracker.createInstance<ModuloContext>(_ctx, getState());
-  enterRule(_localctx, 50, pblangParser::RuleModulo);
+  enterRule(_localctx, 52, pblangParser::RuleModulo);
   size_t _la = 0;
 
 #if __cplusplus > 201703L
@@ -2342,17 +2433,17 @@ pblangParser::ModuloContext* pblangParser::modulo() {
   });
   try {
     enterOuterAlt(_localctx, 1);
-    setState(305);
+    setState(319);
     primaryExpression();
-    setState(310);
+    setState(324);
     _errHandler->sync(this);
     _la = _input->LA(1);
-    while (_la == pblangParser::T__35) {
-      setState(306);
-      match(pblangParser::T__35);
-      setState(307);
+    while (_la == pblangParser::T__37) {
+      setState(320);
+      match(pblangParser::T__37);
+      setState(321);
       primaryExpression();
-      setState(312);
+      setState(326);
       _errHandler->sync(this);
       _la = _input->LA(1);
     }
@@ -2408,7 +2499,7 @@ void pblangParser::PrimaryExpressionContext::exitRule(tree::ParseTreeListener *l
 
 pblangParser::PrimaryExpressionContext* pblangParser::primaryExpression() {
   PrimaryExpressionContext *_localctx = _tracker.createInstance<PrimaryExpressionContext>(_ctx, getState());
-  enterRule(_localctx, 52, pblangParser::RulePrimaryExpression);
+  enterRule(_localctx, 54, pblangParser::RulePrimaryExpression);
   size_t _la = 0;
 
 #if __cplusplus > 201703L
@@ -2419,61 +2510,61 @@ pblangParser::PrimaryExpressionContext* pblangParser::primaryExpression() {
     exitRule();
   });
   try {
-    setState(333);
+    setState(347);
     _errHandler->sync(this);
-    switch (getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 39, _ctx)) {
+    switch (getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 41, _ctx)) {
     case 1: {
       enterOuterAlt(_localctx, 1);
-      setState(313);
-      match(pblangParser::T__27);
-      setState(314);
-      expression();
-      setState(315);
+      setState(327);
       match(pblangParser::T__29);
+      setState(328);
+      expression();
+      setState(329);
+      match(pblangParser::T__31);
       break;
     }
 
     case 2: {
       enterOuterAlt(_localctx, 2);
-      setState(317);
+      setState(331);
       match(pblangParser::FLOAT);
       break;
     }
 
     case 3: {
       enterOuterAlt(_localctx, 3);
-      setState(318);
+      setState(332);
       match(pblangParser::ID);
-      setState(330);
+      setState(344);
       _errHandler->sync(this);
 
       _la = _input->LA(1);
-      if (_la == pblangParser::T__27) {
-        setState(319);
-        match(pblangParser::T__27);
-        setState(320);
+      if (_la == pblangParser::T__29) {
+        setState(333);
+        match(pblangParser::T__29);
+        setState(334);
         expression();
-        setState(325);
+        setState(339);
         _errHandler->sync(this);
         _la = _input->LA(1);
-        while (_la == pblangParser::T__28) {
-          setState(321);
-          match(pblangParser::T__28);
-          setState(322);
+        while (_la == pblangParser::T__30) {
+          setState(335);
+          match(pblangParser::T__30);
+          setState(336);
           expression();
-          setState(327);
+          setState(341);
           _errHandler->sync(this);
           _la = _input->LA(1);
         }
-        setState(328);
-        match(pblangParser::T__29);
+        setState(342);
+        match(pblangParser::T__31);
       }
       break;
     }
 
     case 4: {
       enterOuterAlt(_localctx, 4);
-      setState(332);
+      setState(346);
       match(pblangParser::ID);
       break;
     }

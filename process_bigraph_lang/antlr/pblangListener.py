@@ -14,12 +14,12 @@ class pblangListener(ParseTreeListener):
     def exitModel(self, ctx: pblangParser.ModelContext):
         pass
 
-    # Enter a parse tree produced by pblangParser#type.
-    def enterType(self, ctx: pblangParser.TypeContext):
+    # Enter a parse tree produced by pblangParser#typeDef.
+    def enterTypeDef(self, ctx: pblangParser.TypeDefContext):
         pass
 
-    # Exit a parse tree produced by pblangParser#type.
-    def exitType(self, ctx: pblangParser.TypeContext):
+    # Exit a parse tree produced by pblangParser#typeDef.
+    def exitTypeDef(self, ctx: pblangParser.TypeDefContext):
         pass
 
     # Enter a parse tree produced by pblangParser#namedType.
@@ -100,6 +100,14 @@ class pblangListener(ParseTreeListener):
 
     # Exit a parse tree produced by pblangParser#processDef.
     def exitProcessDef(self, ctx: pblangParser.ProcessDefContext):
+        pass
+
+    # Enter a parse tree produced by pblangParser#pythonRef.
+    def enterPythonRef(self, ctx: pblangParser.PythonRefContext):
+        pass
+
+    # Exit a parse tree produced by pblangParser#pythonRef.
+    def exitPythonRef(self, ctx: pblangParser.PythonRefContext):
         pass
 
     # Enter a parse tree produced by pblangParser#processParameter.

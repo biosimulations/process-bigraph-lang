@@ -17,8 +17,8 @@ public:
   virtual void enterModel(pblangParser::ModelContext *ctx) = 0;
   virtual void exitModel(pblangParser::ModelContext *ctx) = 0;
 
-  virtual void enterType(pblangParser::TypeContext *ctx) = 0;
-  virtual void exitType(pblangParser::TypeContext *ctx) = 0;
+  virtual void enterTypeDef(pblangParser::TypeDefContext *ctx) = 0;
+  virtual void exitTypeDef(pblangParser::TypeDefContext *ctx) = 0;
 
   virtual void enterNamedType(pblangParser::NamedTypeContext *ctx) = 0;
   virtual void exitNamedType(pblangParser::NamedTypeContext *ctx) = 0;
@@ -49,6 +49,9 @@ public:
 
   virtual void enterProcessDef(pblangParser::ProcessDefContext *ctx) = 0;
   virtual void exitProcessDef(pblangParser::ProcessDefContext *ctx) = 0;
+
+  virtual void enterPythonRef(pblangParser::PythonRefContext *ctx) = 0;
+  virtual void exitPythonRef(pblangParser::PythonRefContext *ctx) = 0;
 
   virtual void enterProcessParameter(pblangParser::ProcessParameterContext *ctx) = 0;
   virtual void exitProcessParameter(pblangParser::ProcessParameterContext *ctx) = 0;
