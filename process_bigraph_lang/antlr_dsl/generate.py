@@ -230,3 +230,40 @@ def _bind_model(model: Model) -> None:
         symbols = [e for e in symbol_table if e.ref_type == RefType.UNIT and not e.path.startswith(f"#/units@{i}")]
         if unit.unit_ref:
             _bind_ref(unit.unit_ref, symbols)
+
+    for i, processDef in enumerate(model.processDefs):
+        type_symbols = [e for e in symbol_table if e.ref_type == RefType.TYPE]
+        unit_symbols = [e for e in symbol_table if e.ref_type == RefType.UNIT]
+        process_def_var_symbols = [e for e in symbol_table if e.ref_type == RefType.PROCESS_DEF_VARIABLE]
+        process_def_param_symbols = [e for e in symbol_table if e.ref_type == RefType.PROCESS_DEF_VARIABLE]
+        expr_symbols = process_def_param_symbols + process_def_var_symbols + symbol_table
+        for j, param in enumerate(processDef.params):
+            if param.unit_ref:
+                _bind_ref(param.unit_ref, unit_symbols)
+            if param.type:
+                _bind_ref(param.type, type_symbols)
+        for j, var in enumerate(processDef.vars):
+            if var.unit_ref:
+                _bind_ref(var.unit_ref, unit_symbols)
+            if var.type:
+                _bind_ref(var.type, type_symbols)
+        for j, input_def in enumerate(processDef.inputs):
+            _bind_ref(input_def, process_def_var_symbols)
+        for j, output_def in enumerate(processDef.outputs):
+            _bind_ref(output_def, process_def_var_symbols)
+        for j, update_def in enumerate(processDef.updates):
+            _bind_ref(update_def.lhs, process_def_var_symbols)
+            _bind_expr(update_def.rhs, expr_symbols)
+
+    for i, store in enumerate(model.stores):
+        type_symbols = [e for e in symbol_table if e.ref_type == RefType.TYPE]
+        unit_symbols = [e for e in symbol_table if e.ref_type == RefType.UNIT]
+        store_symbols = [e for e in symbol_table if e.ref_type == RefType.STORE]
+        if store.states:
+            for j, state in enumerate(store.states):
+                if state.unit_ref:
+                    _bind_ref(state.unit_ref, unit_symbols)
+                if state.type:
+                    _bind_ref(state.type, type_symbols)
+        if store.parent:
+            _bind_ref(store.parent, store_symbols)
