@@ -36,7 +36,7 @@ def test_simple_parse_bind() -> None:
         args=[DeclaredParameter(name="a")],
         expr=expr,
     )
-    expected_model = Model(definitions=[definition], types=[], units=[], processDefs=[], stores=[])
+    expected_model = Model(definitions=[definition], types=[], units=[], processDefs=[], stores=[], compositeDefs=[])
     model = parse_str(lang)
 
     assert model == expected_model
@@ -69,7 +69,9 @@ def test_square_parse_bind() -> None:
         args=[DeclaredParameter(name="a")],
         expr=expr2,
     )
-    expected_model = Model(definitions=[definition1, definition2], types=[], units=[], processDefs=[], stores=[])
+    expected_model = Model(
+        definitions=[definition1, definition2], types=[], units=[], processDefs=[], stores=[], compositeDefs=[]
+    )
     model = parse_str(lang)
     assert model == expected_model
 
@@ -124,6 +126,7 @@ def test_types_units_defs_parse_bind() -> None:
         types=[type_float, type_concentration],
         processDefs=[],
         stores=[],
+        compositeDefs=[],
     )
     model = parse_str(lang)
     assert model.model_dump_json(indent=2) == expected_model.model_dump_json(indent=2)
@@ -266,6 +269,7 @@ def test_processes_parse_only() -> None:
         types=[type_float],
         processDefs=[process_MyProcess],
         stores=[store_medium, store_cell, store_nucleus],
+        compositeDefs=[],
     )
     _model = parse_str(lang)
     assert _model.model_dump_json(indent=2) == _expected_model.model_dump_json(indent=2)

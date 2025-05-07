@@ -42,10 +42,10 @@ ProcessDef:
 Process:
     name=ID ':' process_def=[ProcessDef] ('stores' stores+=[Store]*);
 
-CompositeDef infers ProcessDef:
+CompositeDef:
     'composite_def' name=ID
-        ('stores' stores+=[Store]*)?
-        ('process' process+=Process)*;
+        ('stores' store_refs+=[Store]*)?
+        ('process' processes+=Process)*;
 
 Update:
     (lhs=[SchemaItem]) ':=' (rhs=Expression) ';';

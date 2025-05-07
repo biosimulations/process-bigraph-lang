@@ -50,7 +50,7 @@ class ASTBuilderListener(pblangListener):
 
     def __init__(self) -> None:
         super().__init__()
-        self.model = Model(definitions=[], types=[], units=[], processDefs=[], stores=[])
+        self.model = Model(definitions=[], types=[], units=[], processDefs=[], stores=[], compositeDefs=[])
         self.current_definition = None
         self.current_process_def = None
         self.current_store = None

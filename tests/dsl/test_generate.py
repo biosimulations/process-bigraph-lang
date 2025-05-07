@@ -22,6 +22,10 @@ from process_bigraph_lang.dsl.model import (
     SchemaItemRef,
     DefinitionRef,
     Store,
+    CompositeDef,
+    ProcessDefRef,
+    Process,
+    StoreRef,
 )
 
 
@@ -39,7 +43,7 @@ def test_simple() -> None:
         args=[DeclaredParameter(name="a")],
         expr=expr,
     )
-    expected_model = Model(definitions=[definition], types=[], units=[], processDefs=[], stores=[])
+    expected_model = Model(definitions=[definition], types=[], units=[], processDefs=[], stores=[], compositeDefs=[])
     with tempfile.TemporaryDirectory() as tmpdir:
         tmp_path = Path(tmpdir) / "test.pblang"
         with open(tmp_path, "w") as f:
@@ -77,7 +81,9 @@ def test_square() -> None:
         args=[DeclaredParameter(name="a")],
         expr=expr2,
     )
-    expected_model = Model(definitions=[definition1, definition2], types=[], units=[], processDefs=[], stores=[])
+    expected_model = Model(
+        definitions=[definition1, definition2], types=[], units=[], processDefs=[], stores=[], compositeDefs=[]
+    )
     with tempfile.TemporaryDirectory() as tmpdir:
         tmp_path = Path(tmpdir) / "test.pblang"
         with open(tmp_path, "w") as f:
@@ -138,6 +144,7 @@ def test_types_units_defs() -> None:
         types=[type_float, type_concentration],
         processDefs=[],
         stores=[],
+        compositeDefs=[],
     )
     with tempfile.TemporaryDirectory() as tmpdir:
         tmp_path = Path(tmpdir) / "test.pblang"
@@ -279,12 +286,31 @@ def test_processes() -> None:
             SchemaItem(name="calcium", type=TypeRef(ref="#/types@0", ref_text="float"), default=DefaultValue(val=0)),
         ],
     )
+    process_p1 = Process(
+        name="p1",
+        process_def=ProcessDefRef(ref="#/processDefs@0", ref_text="MyProcess"),
+        stores=[StoreRef(ref="#/stores@1", ref_text="cell")],
+    )
+    process_p2 = Process(
+        name="p2",
+        process_def=ProcessDefRef(ref="#/processDefs@0", ref_text="MyProcess"),
+        stores=[StoreRef(ref="#/stores@2", ref_text="nucleus")],
+    )
+    composite_def = CompositeDef(
+        name="CellComposite",
+        store_refs=[
+            StoreRef(ref="#/stores@1", ref_text="cell"),
+            StoreRef(ref="#/stores@2", ref_text="nucleus"),
+        ],
+        processes=[process_p1, process_p2],
+    )
     expected_model = Model(
         units=[unit_hour, unit_uM_per_h, unit_uM],
         definitions=[def_my_update],
         types=[type_float],
         processDefs=[process_MyProcess],
         stores=[store_medium, store_cell, store_nucleus],
+        compositeDefs=[composite_def],
     )
     with tempfile.TemporaryDirectory() as tmpdir:
         tmp_path = Path(tmpdir) / "test.pblang"

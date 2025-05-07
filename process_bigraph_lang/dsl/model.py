@@ -13,6 +13,7 @@ TypeRef = Reference
 UnitRef = Reference
 DefinitionRef = Reference
 StoreRef = Reference
+ProcessDefRef = Reference
 
 BinaryOp = Literal["+", "-", "*", "/", "^", "%"]
 
@@ -118,6 +119,20 @@ class Unit(BaseModel):
     unit_ref: UnitRef | None = None
 
 
+class Process(BaseModel):
+    obj_type: Literal["Process"] = Field(default="Process")
+    name: str
+    process_def: ProcessDefRef
+    stores: list[StoreRef] = []
+
+
+class CompositeDef(BaseModel):
+    obj_type: Literal["CompositeDef"] = Field(default="CompositeDef")
+    name: str
+    store_refs: list[StoreRef] = []
+    processes: list[Process] = []
+
+
 class Model(BaseModel):
     obj_type: Literal["Model"] = Field(default="Model")
     definitions: list[Definition]
@@ -125,3 +140,4 @@ class Model(BaseModel):
     units: list[Unit]
     processDefs: list[ProcessDef]
     stores: list[Store]
+    compositeDefs: list[CompositeDef]
