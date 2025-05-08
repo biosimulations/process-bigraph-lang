@@ -1,7 +1,7 @@
 grammar ProcessBigraphLanguage
 
 entry Model:
-    ((types+=Type) | (definitions+=Definition) | (units+=Unit) | (processDefs+=ProcessDef) | (stores+=Store) | (compositeDefs+=CompositeDef) | (sbmlModels+=SbmlModel))*;
+    ((types+=Type) | (definitions+=Definition) | (units+=Unit) | (processDefs+=ProcessDef) | (store_defs+=StoreDef) | (compositeDefs+=CompositeDef) | (sbmlModels+=SbmlModel))*;
 
 Type:
     'type' name=ID (builtin='builtin')? ('extends' superType=[Type])? ('default' default=DefaultValue)? ('update' update=[Definition])? (subtypes+=NamedType)*;
@@ -16,9 +16,9 @@ DefaultValue:
 SchemaItem:
     name=ID ':' type=[Type] ('default' default=DefaultValue)? ("[" unit_ref=[Unit] "]")?;
 
-Store:
-    'store' name=ID ('parent' parent=[Store])?
-        ('state' states+=SchemaItem)*;
+StoreDef:
+    'store_def' name=ID ('parent' parent=[StoreDef])?
+        ('state_def' states+=SchemaItem)*;
 
 Unit:
     "unit" name=ID ":" (('[' symbol=STRING ']') | (unit_ref=[Unit]));
@@ -28,24 +28,27 @@ SbmlModel:
         ('param' params+=SchemaItem)*
         ('var' vars+=SchemaItem)*;
 
-PythonRef:
-    'path' module_path+=ID ("." module_path+=ID)*;
+PythonPath:
+    'path' path+=ID ("." path+=ID)*;
 
 ProcessDef:
-    'process_def' name=ID pythonImpl=PythonRef?
+    'process_def' name=ID python_path=PythonPath?
         ('param' params+=SchemaItem)*
         ('var' vars+=SchemaItem)*
         ('inputs' inputs+=[SchemaItem]*)?
         ('outputs' outputs+=[SchemaItem]*)?
         ('updates' updates+=Update*)?;
 
+Store:
+    'store' name=ID ':' store_def=[StoreDef];
+
 Process:
-    name=ID ':' process_def=[ProcessDef] ('stores' stores+=[Store]*);
+    'process' name=ID ':' process_def=[ProcessDef] ('stores' stores+=[Store]*);
 
 CompositeDef:
     'composite_def' name=ID
-        ('stores' store_refs+=[Store]*)?
-        ('process' processes+=Process)*;
+        stores+=Store*
+        processes+=Process*;
 
 Update:
     (lhs=[SchemaItem]) ':=' (rhs=Expression) ';';

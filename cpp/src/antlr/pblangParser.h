@@ -18,19 +18,20 @@ public:
     T__20 = 21, T__21 = 22, T__22 = 23, T__23 = 24, T__24 = 25, T__25 = 26,
     T__26 = 27, T__27 = 28, T__28 = 29, T__29 = 30, T__30 = 31, T__31 = 32,
     T__32 = 33, T__33 = 34, T__34 = 35, T__35 = 36, T__36 = 37, T__37 = 38,
-    ID = 39, FLOAT = 40, INT = 41, STRING = 42, WS = 43, ML_COMMENT = 44,
-    SL_COMMENT = 45
+    T__38 = 39, ID = 40, FLOAT = 41, INT = 42, STRING = 43, WS = 44, ML_COMMENT = 45,
+    SL_COMMENT = 46
   };
 
   enum {
     RuleModel = 0, RuleTypeDef = 1, RuleNamedType = 2, RuleDefaultValue = 3,
-    RuleSchemaItem = 4, RuleStore = 5, RuleStoreState = 6, RuleUnit = 7,
-    RuleSbmlModel = 8, RuleSbmlParameter = 9, RuleSbmlVariable = 10, RuleProcessDef = 11,
-    RulePythonRef = 12, RuleProcessParameter = 13, RuleProcessVariable = 14,
-    RuleProcessInput = 15, RuleProcessOutput = 16, RuleProcess = 17, RuleCompositeDef = 18,
-    RuleUpdate = 19, RuleDefinition = 20, RuleDeclaredParameter = 21, RuleExpression = 22,
-    RuleAddition = 23, RuleMultiplication = 24, RuleExponentiation = 25,
-    RuleModulo = 26, RulePrimaryExpression = 27
+    RuleSchemaItem = 4, RuleStoreDefRef = 5, RuleStoreDef = 6, RuleStoreDefStateDef = 7,
+    RuleUnit = 8, RuleSbmlModel = 9, RuleSbmlParameter = 10, RuleSbmlVariable = 11,
+    RuleProcessDef = 12, RulePythonPath = 13, RuleProcessParameter = 14,
+    RuleProcessVariable = 15, RuleProcessInput = 16, RuleProcessOutput = 17,
+    RuleProcess = 18, RuleStore = 19, RuleCompositeDef = 20, RuleUpdate = 21,
+    RuleDefinition = 22, RuleDeclaredParameter = 23, RuleExpression = 24,
+    RuleAddition = 25, RuleMultiplication = 26, RuleExponentiation = 27,
+    RuleModulo = 28, RulePrimaryExpression = 29
   };
 
   explicit pblangParser(antlr4::TokenStream *input);
@@ -55,19 +56,21 @@ public:
   class NamedTypeContext;
   class DefaultValueContext;
   class SchemaItemContext;
-  class StoreContext;
-  class StoreStateContext;
+  class StoreDefRefContext;
+  class StoreDefContext;
+  class StoreDefStateDefContext;
   class UnitContext;
   class SbmlModelContext;
   class SbmlParameterContext;
   class SbmlVariableContext;
   class ProcessDefContext;
-  class PythonRefContext;
+  class PythonPathContext;
   class ProcessParameterContext;
   class ProcessVariableContext;
   class ProcessInputContext;
   class ProcessOutputContext;
   class ProcessContext;
+  class StoreContext;
   class CompositeDefContext;
   class UpdateContext;
   class DefinitionContext;
@@ -92,8 +95,8 @@ public:
     UnitContext* unit(size_t i);
     std::vector<ProcessDefContext *> processDef();
     ProcessDefContext* processDef(size_t i);
-    std::vector<StoreContext *> store();
-    StoreContext* store(size_t i);
+    std::vector<StoreDefContext *> storeDef();
+    StoreDefContext* storeDef(size_t i);
     std::vector<CompositeDefContext *> compositeDef();
     CompositeDefContext* compositeDef(size_t i);
     std::vector<SbmlModelContext *> sbmlModel();
@@ -176,25 +179,39 @@ public:
 
   SchemaItemContext* schemaItem();
 
-  class  StoreContext : public antlr4::ParserRuleContext {
+  class  StoreDefRefContext : public antlr4::ParserRuleContext {
   public:
-    StoreContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    StoreDefRefContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
-    std::vector<antlr4::tree::TerminalNode *> ID();
-    antlr4::tree::TerminalNode* ID(size_t i);
-    std::vector<StoreStateContext *> storeState();
-    StoreStateContext* storeState(size_t i);
+    antlr4::tree::TerminalNode *ID();
 
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
 
   };
 
-  StoreContext* store();
+  StoreDefRefContext* storeDefRef();
 
-  class  StoreStateContext : public antlr4::ParserRuleContext {
+  class  StoreDefContext : public antlr4::ParserRuleContext {
   public:
-    StoreStateContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    antlr4::Token *name = nullptr;
+    StoreDefContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
+    antlr4::tree::TerminalNode *ID();
+    StoreDefRefContext *storeDefRef();
+    std::vector<StoreDefStateDefContext *> storeDefStateDef();
+    StoreDefStateDefContext* storeDefStateDef(size_t i);
+
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+
+  };
+
+  StoreDefContext* storeDef();
+
+  class  StoreDefStateDefContext : public antlr4::ParserRuleContext {
+  public:
+    StoreDefStateDefContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
     SchemaItemContext *schemaItem();
 
@@ -203,10 +220,11 @@ public:
 
   };
 
-  StoreStateContext* storeState();
+  StoreDefStateDefContext* storeDefStateDef();
 
   class  UnitContext : public antlr4::ParserRuleContext {
   public:
+    antlr4::Token *name = nullptr;
     UnitContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
     std::vector<antlr4::tree::TerminalNode *> ID();
@@ -222,10 +240,11 @@ public:
 
   class  SbmlModelContext : public antlr4::ParserRuleContext {
   public:
+    antlr4::Token *name = nullptr;
     SbmlModelContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
-    antlr4::tree::TerminalNode *ID();
     antlr4::tree::TerminalNode *STRING();
+    antlr4::tree::TerminalNode *ID();
     std::vector<SbmlParameterContext *> sbmlParameter();
     SbmlParameterContext* sbmlParameter(size_t i);
     std::vector<SbmlVariableContext *> sbmlVariable();
@@ -269,7 +288,7 @@ public:
     ProcessDefContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
     antlr4::tree::TerminalNode *ID();
-    PythonRefContext *pythonRef();
+    PythonPathContext *pythonPath();
     std::vector<ProcessParameterContext *> processParameter();
     ProcessParameterContext* processParameter(size_t i);
     std::vector<ProcessVariableContext *> processVariable();
@@ -288,9 +307,9 @@ public:
 
   ProcessDefContext* processDef();
 
-  class  PythonRefContext : public antlr4::ParserRuleContext {
+  class  PythonPathContext : public antlr4::ParserRuleContext {
   public:
-    PythonRefContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    PythonPathContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
     std::vector<antlr4::tree::TerminalNode *> ID();
     antlr4::tree::TerminalNode* ID(size_t i);
@@ -300,7 +319,7 @@ public:
 
   };
 
-  PythonRefContext* pythonRef();
+  PythonPathContext* pythonPath();
 
   class  ProcessParameterContext : public antlr4::ParserRuleContext {
   public:
@@ -358,8 +377,25 @@ public:
   public:
     antlr4::Token *name = nullptr;
     antlr4::Token *process_def_ref = nullptr;
-    antlr4::Token *store_def = nullptr;
     ProcessContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
+    std::vector<antlr4::tree::TerminalNode *> ID();
+    antlr4::tree::TerminalNode* ID(size_t i);
+    std::vector<StoreDefRefContext *> storeDefRef();
+    StoreDefRefContext* storeDefRef(size_t i);
+
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+
+  };
+
+  ProcessContext* process();
+
+  class  StoreContext : public antlr4::ParserRuleContext {
+  public:
+    antlr4::Token *name = nullptr;
+    antlr4::Token *store_def = nullptr;
+    StoreContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
     std::vector<antlr4::tree::TerminalNode *> ID();
     antlr4::tree::TerminalNode* ID(size_t i);
@@ -369,14 +405,16 @@ public:
 
   };
 
-  ProcessContext* process();
+  StoreContext* store();
 
   class  CompositeDefContext : public antlr4::ParserRuleContext {
   public:
+    antlr4::Token *name = nullptr;
     CompositeDefContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
-    std::vector<antlr4::tree::TerminalNode *> ID();
-    antlr4::tree::TerminalNode* ID(size_t i);
+    antlr4::tree::TerminalNode *ID();
+    std::vector<StoreContext *> store();
+    StoreContext* store(size_t i);
     std::vector<ProcessContext *> process();
     ProcessContext* process(size_t i);
 

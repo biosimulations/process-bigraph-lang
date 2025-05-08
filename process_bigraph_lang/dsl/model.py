@@ -12,6 +12,7 @@ SchemaItemRef = Reference
 TypeRef = Reference
 UnitRef = Reference
 DefinitionRef = Reference
+StoreDefRef = Reference
 StoreRef = Reference
 ProcessDefRef = Reference
 
@@ -35,16 +36,27 @@ class SchemaItem(BaseModel):
     unit_ref: UnitRef | None = None
 
 
+class StoreDef(BaseModel):
+    obj_type: Literal["StoreDef"] = Field(default="StoreDef")
+    name: str
+    parent: StoreDefRef | None = None
+    states: list[SchemaItem] | None = None
+
+
 class Store(BaseModel):
     obj_type: Literal["Store"] = Field(default="Store")
     name: str
-    parent: StoreRef | None = None
-    states: list[SchemaItem] | None = None
+    store_def: StoreDefRef
 
 
 class Update(BaseModel):
     lhs: SchemaItemRef
     rhs: "Expression"
+
+
+class PythonPath(BaseModel):
+    obj_type: Literal["PythonPath"] = Field(default="PythonPath")
+    path: list[str]
 
 
 class ProcessDef(BaseModel):
@@ -55,7 +67,7 @@ class ProcessDef(BaseModel):
     inputs: list[SchemaItemRef]
     outputs: list[SchemaItemRef]
     updates: list[Update]
-    python_path: list[str] | None = None
+    python_path: PythonPath | None = None
 
 
 class SbmlModel(BaseModel):
@@ -129,7 +141,7 @@ class Process(BaseModel):
 class CompositeDef(BaseModel):
     obj_type: Literal["CompositeDef"] = Field(default="CompositeDef")
     name: str
-    store_refs: list[StoreRef] = []
+    stores: list[Store] = []
     processes: list[Process] = []
 
 
@@ -139,5 +151,5 @@ class Model(BaseModel):
     types: list[Type]
     units: list[Unit]
     processDefs: list[ProcessDef]
-    stores: list[Store]
+    store_defs: list[StoreDef]
     compositeDefs: list[CompositeDef]

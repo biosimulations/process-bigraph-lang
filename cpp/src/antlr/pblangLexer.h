@@ -18,8 +18,8 @@ public:
     T__20 = 21, T__21 = 22, T__22 = 23, T__23 = 24, T__24 = 25, T__25 = 26,
     T__26 = 27, T__27 = 28, T__28 = 29, T__29 = 30, T__30 = 31, T__31 = 32,
     T__32 = 33, T__33 = 34, T__34 = 35, T__35 = 36, T__36 = 37, T__37 = 38,
-    ID = 39, FLOAT = 40, INT = 41, STRING = 42, WS = 43, ML_COMMENT = 44,
-    SL_COMMENT = 45
+    T__38 = 39, ID = 40, FLOAT = 41, INT = 42, STRING = 43, WS = 44, ML_COMMENT = 45,
+    SL_COMMENT = 46
   };
 
   explicit pblangLexer(antlr4::CharStream *input);

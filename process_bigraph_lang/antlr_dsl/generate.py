@@ -15,7 +15,6 @@ from process_bigraph_lang.dsl.model import (
     Unit,
     Type,
     Definition,
-    Store,
     SchemaItem,
     Expression,
     DeclaredParameter,
@@ -24,6 +23,7 @@ from process_bigraph_lang.dsl.model import (
     BinaryExpression,
     VariableRef,
     NumberLiteral,
+    StoreDef,
 )
 
 
@@ -90,7 +90,7 @@ class RefType(Enum):
     TYPE = "type"  # Type
     DEFINITION = "definition"  # Definition
     DEFINITION_PARAMETER = "definitionParameter"  # DeclaredParameter
-    STORE = "store"  # Store
+    STORE_DEF = "storeDef"  # Store
     STORE_STATE = "storeState"  # SchemaItem
     PROCESS_DEF = "processDef"  # ProcessDef
     PROCESS_DEF_VARIABLE = "processDefVariable"  # SchemaItem
@@ -102,7 +102,7 @@ class SymbolTableEntry:
     name: str
     path: str
     ref_type: RefType
-    target_obj: Unit | Type | Definition | DeclaredParameter | Store | SchemaItem | ProcessDef
+    target_obj: Unit | Type | Definition | DeclaredParameter | StoreDef | SchemaItem | ProcessDef
 
 
 def create_symbol_table(model: Model) -> list[SymbolTableEntry]:
@@ -134,12 +134,14 @@ def create_symbol_table(model: Model) -> list[SymbolTableEntry]:
                 )
             )
 
-    for i, store in enumerate(model.stores):
+    for i, store_def in enumerate(model.store_defs):
         symbol_table.append(
-            SymbolTableEntry(name=store.name, path=f"#/stores@{i}", ref_type=RefType.STORE, target_obj=store)
+            SymbolTableEntry(
+                name=store_def.name, path=f"#/store_defs@{i}", ref_type=RefType.STORE_DEF, target_obj=store_def
+            )
         )
-        if store.states:
-            for j, state in enumerate(store.states):
+        if store_def.states:
+            for j, state in enumerate(store_def.states):
                 symbol_table.append(
                     SymbolTableEntry(
                         name=state.name, path=f"#/stores@{i}/states@{j}", ref_type=RefType.STORE_STATE, target_obj=state
@@ -255,15 +257,28 @@ def _bind_model(model: Model) -> None:
             _bind_ref(update_def.lhs, process_def_var_symbols)
             _bind_expr(update_def.rhs, expr_symbols)
 
-    for i, store in enumerate(model.stores):
+    for i, store_def in enumerate(model.store_defs):
         type_symbols = [e for e in symbol_table if e.ref_type == RefType.TYPE]
         unit_symbols = [e for e in symbol_table if e.ref_type == RefType.UNIT]
-        store_symbols = [e for e in symbol_table if e.ref_type == RefType.STORE]
-        if store.states:
-            for j, state in enumerate(store.states):
+        store_def_symbols = [e for e in symbol_table if e.ref_type == RefType.STORE_DEF]
+        if store_def.states:
+            for j, state in enumerate(store_def.states):
                 if state.unit_ref:
                     _bind_ref(state.unit_ref, unit_symbols)
                 if state.type:
                     _bind_ref(state.type, type_symbols)
-        if store.parent:
-            _bind_ref(store.parent, store_symbols)
+        if store_def.parent:
+            _bind_ref(store_def.parent, store_def_symbols)
+
+    for i, composite_def in enumerate(model.compositeDefs):
+        # store_symbols = [e for e in symbol_table if e.ref_type == RefType.STORE]
+        process_def_symbols = [e for e in symbol_table if e.ref_type == RefType.PROCESS_DEF]
+        store_def_symbols = [e for e in symbol_table if e.ref_type == RefType.STORE_DEF]
+        for j, store in enumerate(composite_def.stores):
+            if store.store_def:
+                _bind_ref(store.store_def, store_def_symbols)
+        for j, process in enumerate(composite_def.processes):
+            if process.process_def:
+                _bind_ref(process.process_def, process_def_symbols)
+                # for k, store in enumerate(process.stores):
+                #     _bind_ref(store, store_def_symbols)

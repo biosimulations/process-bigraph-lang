@@ -46,20 +46,28 @@ class pblangListener(ParseTreeListener):
     def exitSchemaItem(self, ctx: pblangParser.SchemaItemContext):
         pass
 
-    # Enter a parse tree produced by pblangParser#store.
-    def enterStore(self, ctx: pblangParser.StoreContext):
+    # Enter a parse tree produced by pblangParser#storeDefRef.
+    def enterStoreDefRef(self, ctx: pblangParser.StoreDefRefContext):
         pass
 
-    # Exit a parse tree produced by pblangParser#store.
-    def exitStore(self, ctx: pblangParser.StoreContext):
+    # Exit a parse tree produced by pblangParser#storeDefRef.
+    def exitStoreDefRef(self, ctx: pblangParser.StoreDefRefContext):
         pass
 
-    # Enter a parse tree produced by pblangParser#storeState.
-    def enterStoreState(self, ctx: pblangParser.StoreStateContext):
+    # Enter a parse tree produced by pblangParser#storeDef.
+    def enterStoreDef(self, ctx: pblangParser.StoreDefContext):
         pass
 
-    # Exit a parse tree produced by pblangParser#storeState.
-    def exitStoreState(self, ctx: pblangParser.StoreStateContext):
+    # Exit a parse tree produced by pblangParser#storeDef.
+    def exitStoreDef(self, ctx: pblangParser.StoreDefContext):
+        pass
+
+    # Enter a parse tree produced by pblangParser#storeDefStateDef.
+    def enterStoreDefStateDef(self, ctx: pblangParser.StoreDefStateDefContext):
+        pass
+
+    # Exit a parse tree produced by pblangParser#storeDefStateDef.
+    def exitStoreDefStateDef(self, ctx: pblangParser.StoreDefStateDefContext):
         pass
 
     # Enter a parse tree produced by pblangParser#unit.
@@ -102,12 +110,12 @@ class pblangListener(ParseTreeListener):
     def exitProcessDef(self, ctx: pblangParser.ProcessDefContext):
         pass
 
-    # Enter a parse tree produced by pblangParser#pythonRef.
-    def enterPythonRef(self, ctx: pblangParser.PythonRefContext):
+    # Enter a parse tree produced by pblangParser#pythonPath.
+    def enterPythonPath(self, ctx: pblangParser.PythonPathContext):
         pass
 
-    # Exit a parse tree produced by pblangParser#pythonRef.
-    def exitPythonRef(self, ctx: pblangParser.PythonRefContext):
+    # Exit a parse tree produced by pblangParser#pythonPath.
+    def exitPythonPath(self, ctx: pblangParser.PythonPathContext):
         pass
 
     # Enter a parse tree produced by pblangParser#processParameter.
@@ -148,6 +156,14 @@ class pblangListener(ParseTreeListener):
 
     # Exit a parse tree produced by pblangParser#process.
     def exitProcess(self, ctx: pblangParser.ProcessContext):
+        pass
+
+    # Enter a parse tree produced by pblangParser#store.
+    def enterStore(self, ctx: pblangParser.StoreContext):
+        pass
+
+    # Exit a parse tree produced by pblangParser#store.
+    def exitStore(self, ctx: pblangParser.StoreContext):
         pass
 
     # Enter a parse tree produced by pblangParser#compositeDef.
