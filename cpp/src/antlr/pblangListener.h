@@ -29,11 +29,11 @@ public:
   virtual void enterSchemaItem(pblangParser::SchemaItemContext *ctx) = 0;
   virtual void exitSchemaItem(pblangParser::SchemaItemContext *ctx) = 0;
 
-  virtual void enterStore(pblangParser::StoreContext *ctx) = 0;
-  virtual void exitStore(pblangParser::StoreContext *ctx) = 0;
+  virtual void enterStoreDef(pblangParser::StoreDefContext *ctx) = 0;
+  virtual void exitStoreDef(pblangParser::StoreDefContext *ctx) = 0;
 
-  virtual void enterStoreState(pblangParser::StoreStateContext *ctx) = 0;
-  virtual void exitStoreState(pblangParser::StoreStateContext *ctx) = 0;
+  virtual void enterStoreDefStateDef(pblangParser::StoreDefStateDefContext *ctx) = 0;
+  virtual void exitStoreDefStateDef(pblangParser::StoreDefStateDefContext *ctx) = 0;
 
   virtual void enterUnit(pblangParser::UnitContext *ctx) = 0;
   virtual void exitUnit(pblangParser::UnitContext *ctx) = 0;
@@ -50,8 +50,8 @@ public:
   virtual void enterProcessDef(pblangParser::ProcessDefContext *ctx) = 0;
   virtual void exitProcessDef(pblangParser::ProcessDefContext *ctx) = 0;
 
-  virtual void enterPythonRef(pblangParser::PythonRefContext *ctx) = 0;
-  virtual void exitPythonRef(pblangParser::PythonRefContext *ctx) = 0;
+  virtual void enterPythonPath(pblangParser::PythonPathContext *ctx) = 0;
+  virtual void exitPythonPath(pblangParser::PythonPathContext *ctx) = 0;
 
   virtual void enterProcessParameter(pblangParser::ProcessParameterContext *ctx) = 0;
   virtual void exitProcessParameter(pblangParser::ProcessParameterContext *ctx) = 0;
@@ -67,6 +67,9 @@ public:
 
   virtual void enterProcess(pblangParser::ProcessContext *ctx) = 0;
   virtual void exitProcess(pblangParser::ProcessContext *ctx) = 0;
+
+  virtual void enterStore(pblangParser::StoreContext *ctx) = 0;
+  virtual void exitStore(pblangParser::StoreContext *ctx) = 0;
 
   virtual void enterCompositeDef(pblangParser::CompositeDefContext *ctx) = 0;
   virtual void exitCompositeDef(pblangParser::CompositeDefContext *ctx) = 0;

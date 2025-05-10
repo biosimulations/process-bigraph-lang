@@ -31,11 +31,11 @@ public:
   virtual void enterSchemaItem(pblangParser::SchemaItemContext * /*ctx*/) override { }
   virtual void exitSchemaItem(pblangParser::SchemaItemContext * /*ctx*/) override { }
 
-  virtual void enterStore(pblangParser::StoreContext * /*ctx*/) override { }
-  virtual void exitStore(pblangParser::StoreContext * /*ctx*/) override { }
+  virtual void enterStoreDef(pblangParser::StoreDefContext * /*ctx*/) override { }
+  virtual void exitStoreDef(pblangParser::StoreDefContext * /*ctx*/) override { }
 
-  virtual void enterStoreState(pblangParser::StoreStateContext * /*ctx*/) override { }
-  virtual void exitStoreState(pblangParser::StoreStateContext * /*ctx*/) override { }
+  virtual void enterStoreDefStateDef(pblangParser::StoreDefStateDefContext * /*ctx*/) override { }
+  virtual void exitStoreDefStateDef(pblangParser::StoreDefStateDefContext * /*ctx*/) override { }
 
   virtual void enterUnit(pblangParser::UnitContext * /*ctx*/) override { }
   virtual void exitUnit(pblangParser::UnitContext * /*ctx*/) override { }
@@ -52,8 +52,8 @@ public:
   virtual void enterProcessDef(pblangParser::ProcessDefContext * /*ctx*/) override { }
   virtual void exitProcessDef(pblangParser::ProcessDefContext * /*ctx*/) override { }
 
-  virtual void enterPythonRef(pblangParser::PythonRefContext * /*ctx*/) override { }
-  virtual void exitPythonRef(pblangParser::PythonRefContext * /*ctx*/) override { }
+  virtual void enterPythonPath(pblangParser::PythonPathContext * /*ctx*/) override { }
+  virtual void exitPythonPath(pblangParser::PythonPathContext * /*ctx*/) override { }
 
   virtual void enterProcessParameter(pblangParser::ProcessParameterContext * /*ctx*/) override { }
   virtual void exitProcessParameter(pblangParser::ProcessParameterContext * /*ctx*/) override { }
@@ -69,6 +69,9 @@ public:
 
   virtual void enterProcess(pblangParser::ProcessContext * /*ctx*/) override { }
   virtual void exitProcess(pblangParser::ProcessContext * /*ctx*/) override { }
+
+  virtual void enterStore(pblangParser::StoreContext * /*ctx*/) override { }
+  virtual void exitStore(pblangParser::StoreContext * /*ctx*/) override { }
 
   virtual void enterCompositeDef(pblangParser::CompositeDefContext * /*ctx*/) override { }
   virtual void exitCompositeDef(pblangParser::CompositeDefContext * /*ctx*/) override { }

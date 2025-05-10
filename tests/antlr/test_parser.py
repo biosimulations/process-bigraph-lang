@@ -47,34 +47,34 @@ def test_parse_abc(model_path_abc: Path) -> None:
         "          (modulo \n"
         "            (primaryExpression interval)))))) ;)",
     ]
-    store_strs: list[str] = [pretty_print(def_.toStringTree(recog=parser)) for def_ in model.store()]
+    store_strs: list[str] = [pretty_print(def_.toStringTree(recog=parser)) for def_ in model.storeDef()]
     assert store_strs == [
-        "(store store medium state \n"
-        "  (storeState \n"
+        "(storeDef store_def medium state_def \n"
+        "  (storeDefStateDef \n"
         "    (schemaItem glucose : float default \n"
-        "      (defaultValue 3.0) [ uM ])) state \n"
-        "  (storeState \n"
+        "      (defaultValue 3.0) [ uM ])) state_def \n"
+        "  (storeDefStateDef \n"
         "    (schemaItem calcium : float default \n"
         "      (defaultValue 0.5))))",
-        "(store store cell parent medium state \n"
-        "  (storeState \n"
+        "(storeDef store_def cell parent medium state_def \n"
+        "  (storeDefStateDef \n"
         "    (schemaItem glucose : float default \n"
-        "      (defaultValue 0.0))) state \n"
-        "  (storeState \n"
+        "      (defaultValue 0.0))) state_def \n"
+        "  (storeDefStateDef \n"
         "    (schemaItem calcium : float default \n"
         "      (defaultValue 0.0))))",
-        "(store store nucleus parent cell state \n"
-        "  (storeState \n"
+        "(storeDef store_def nucleus parent cell state_def \n"
+        "  (storeDefStateDef \n"
         "    (schemaItem glucose : float default \n"
-        "      (defaultValue 0.0))) state \n"
-        "  (storeState \n"
+        "      (defaultValue 0.0))) state_def \n"
+        "  (storeDefStateDef \n"
         "    (schemaItem calcium : float default \n"
         "      (defaultValue 0.0))))",
     ]
     processDef_strs: list[str] = [pretty_print(def_.toStringTree(recog=parser)) for def_ in model.processDef()]
     assert processDef_strs == [
         "(processDef process_def MyProcess \n"
-        "  (pythonRef path my_processes . Process1) \n"
+        "  (pythonPath path my_processes . Process1) \n"
         "  (processParameter param \n"
         "    (schemaItem calcium_growth : float default \n"
         "      (defaultValue 0.1) [ uM_per_h ])) \n"

@@ -27,19 +27,20 @@ process_def MyProcess path my_processes.Process1
         glucose := my_update(glucose, glucose_growth, dt);
         calcium := calcium * (1-exp(dt)) + alpha * calcium_growth * dt;
 
-store medium
-    state glucose: float default 3.0 [uM]
-    state calcium: float default 0.5
+store_def medium
+    state_def glucose: float default 3.0 [uM]
+    state_def calcium: float default 0.5
 
-store cell parent medium
-    state glucose: float default 0.0
-    state calcium: float default 0.0
+store_def cell parent medium
+    state_def glucose: float default 0.0
+    state_def calcium: float default 0.0
 
-store nucleus parent cell
-    state glucose: float default 0.0
-    state calcium: float default 0.0
+store_def nucleus parent cell
+    state_def glucose: float default 0.0
+    state_def calcium: float default 0.0
 
 composite_def CellComposite
-    stores cell nucleus
-    process p1: MyProcess stores cell
-    process p2: MyProcess stores nucleus
+    store cell1: cell
+    store nuc1: nucleus
+    process p1: MyProcess stores cell1
+    process p2: MyProcess stores nuc1
