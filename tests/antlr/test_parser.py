@@ -56,16 +56,14 @@ def test_parse_abc(model_path_abc: Path) -> None:
         "  (storeDefStateDef \n"
         "    (schemaItem calcium : float default \n"
         "      (defaultValue 0.5))))",
-        "(storeDef store_def cell parent \n"
-        "  (storeDefRef medium) state_def \n"
+        "(storeDef store_def cell parent medium state_def \n"
         "  (storeDefStateDef \n"
         "    (schemaItem glucose : float default \n"
         "      (defaultValue 0.0))) state_def \n"
         "  (storeDefStateDef \n"
         "    (schemaItem calcium : float default \n"
         "      (defaultValue 0.0))))",
-        "(storeDef store_def nucleus parent \n"
-        "  (storeDefRef cell) state_def \n"
+        "(storeDef store_def nucleus parent cell state_def \n"
         "  (storeDefStateDef \n"
         "    (schemaItem glucose : float default \n"
         "      (defaultValue 0.0))) state_def \n"

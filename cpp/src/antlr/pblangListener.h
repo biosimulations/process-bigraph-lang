@@ -29,9 +29,6 @@ public:
   virtual void enterSchemaItem(pblangParser::SchemaItemContext *ctx) = 0;
   virtual void exitSchemaItem(pblangParser::SchemaItemContext *ctx) = 0;
 
-  virtual void enterStoreDefRef(pblangParser::StoreDefRefContext *ctx) = 0;
-  virtual void exitStoreDefRef(pblangParser::StoreDefRefContext *ctx) = 0;
-
   virtual void enterStoreDef(pblangParser::StoreDefContext *ctx) = 0;
   virtual void exitStoreDef(pblangParser::StoreDefContext *ctx) = 0;
 

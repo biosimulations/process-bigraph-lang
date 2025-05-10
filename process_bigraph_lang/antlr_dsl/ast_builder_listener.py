@@ -202,9 +202,16 @@ class ASTBuilderListener(pblangListener):
     def enterProcess(self, ctx: pblangParser.ProcessContext) -> None:
         if not self.current_composite_def:
             raise ValueError("unexpected listener error, current_composite_def is None")
-        name = ctx.ID(0).getText()
-        process_ref = Reference(ref="", ref_text=ctx.ID(1).getText()) if len(ctx.ID()) > 1 else None
-        process = Process(name=name, process_def=process_ref, stores=[])
+        if not ctx.name:
+            raise ValueError("unexpected listener error, process name is None")
+        name = ctx.name.text
+        if not ctx.process_def_ref:
+            raise ValueError("unexpected listener error, process_def_ref is None")
+        parent_ref = Reference(ref="", ref_text=ctx.process_def_ref.text)
+        store_def_refs: list[Reference] = []
+        for store_def_ref in ctx.store_def_refs:
+            store_def_refs.append(Reference(ref="", ref_text=store_def_ref.text))
+        process = Process(name=name, process_def=parent_ref, stores=store_def_refs)
         self.current_composite_def.processes.append(process)
 
     @override
@@ -260,9 +267,13 @@ class ASTBuilderListener(pblangListener):
 
     @override
     def enterStoreDef(self, ctx: pblangParser.StoreDefContext) -> None:
-        name = ctx.ID().getText()
-        store_def_ref = ctx.storeDefRef().getText() if ctx.storeDefRef() else None
-        parent = Reference(ref="", ref_text=ctx.storeDefRef().ID(1).getText()) if len(ctx.ID()) > 1 else None
+        if not ctx.name:
+            raise ValueError("unexpected listener error, store_def name is None")
+        name = ctx.name.text
+        store_def_ref = ctx.store_def_ref.text if ctx.store_def_ref else None
+        parent: Reference | None = None
+        if store_def_ref:
+            parent = Reference(ref="", ref_text=store_def_ref)
         self.current_store_def = StoreDef(name=name, parent=parent, states=[])
 
     @override

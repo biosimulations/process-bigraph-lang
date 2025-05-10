@@ -24,14 +24,13 @@ public:
 
   enum {
     RuleModel = 0, RuleTypeDef = 1, RuleNamedType = 2, RuleDefaultValue = 3,
-    RuleSchemaItem = 4, RuleStoreDefRef = 5, RuleStoreDef = 6, RuleStoreDefStateDef = 7,
-    RuleUnit = 8, RuleSbmlModel = 9, RuleSbmlParameter = 10, RuleSbmlVariable = 11,
-    RuleProcessDef = 12, RulePythonPath = 13, RuleProcessParameter = 14,
-    RuleProcessVariable = 15, RuleProcessInput = 16, RuleProcessOutput = 17,
-    RuleProcess = 18, RuleStore = 19, RuleCompositeDef = 20, RuleUpdate = 21,
-    RuleDefinition = 22, RuleDeclaredParameter = 23, RuleExpression = 24,
-    RuleAddition = 25, RuleMultiplication = 26, RuleExponentiation = 27,
-    RuleModulo = 28, RulePrimaryExpression = 29
+    RuleSchemaItem = 4, RuleStoreDef = 5, RuleStoreDefStateDef = 6, RuleUnit = 7,
+    RuleSbmlModel = 8, RuleSbmlParameter = 9, RuleSbmlVariable = 10, RuleProcessDef = 11,
+    RulePythonPath = 12, RuleProcessParameter = 13, RuleProcessVariable = 14,
+    RuleProcessInput = 15, RuleProcessOutput = 16, RuleProcess = 17, RuleStore = 18,
+    RuleCompositeDef = 19, RuleUpdate = 20, RuleDefinition = 21, RuleDeclaredParameter = 22,
+    RuleExpression = 23, RuleAddition = 24, RuleMultiplication = 25, RuleExponentiation = 26,
+    RuleModulo = 27, RulePrimaryExpression = 28
   };
 
   explicit pblangParser(antlr4::TokenStream *input);
@@ -56,7 +55,6 @@ public:
   class NamedTypeContext;
   class DefaultValueContext;
   class SchemaItemContext;
-  class StoreDefRefContext;
   class StoreDefContext;
   class StoreDefStateDefContext;
   class UnitContext;
@@ -179,26 +177,14 @@ public:
 
   SchemaItemContext* schemaItem();
 
-  class  StoreDefRefContext : public antlr4::ParserRuleContext {
-  public:
-    StoreDefRefContext(antlr4::ParserRuleContext *parent, size_t invokingState);
-    virtual size_t getRuleIndex() const override;
-    antlr4::tree::TerminalNode *ID();
-
-    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
-    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
-
-  };
-
-  StoreDefRefContext* storeDefRef();
-
   class  StoreDefContext : public antlr4::ParserRuleContext {
   public:
     antlr4::Token *name = nullptr;
+    antlr4::Token *store_def_ref = nullptr;
     StoreDefContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
-    antlr4::tree::TerminalNode *ID();
-    StoreDefRefContext *storeDefRef();
+    std::vector<antlr4::tree::TerminalNode *> ID();
+    antlr4::tree::TerminalNode* ID(size_t i);
     std::vector<StoreDefStateDefContext *> storeDefStateDef();
     StoreDefStateDefContext* storeDefStateDef(size_t i);
 
@@ -377,12 +363,12 @@ public:
   public:
     antlr4::Token *name = nullptr;
     antlr4::Token *process_def_ref = nullptr;
+    antlr4::Token *idToken = nullptr;
+    std::vector<antlr4::Token *> store_def_refs;
     ProcessContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
     std::vector<antlr4::tree::TerminalNode *> ID();
     antlr4::tree::TerminalNode* ID(size_t i);
-    std::vector<StoreDefRefContext *> storeDefRef();
-    StoreDefRefContext* storeDefRef(size_t i);
 
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;

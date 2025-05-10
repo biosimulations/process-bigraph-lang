@@ -31,9 +31,6 @@ public:
   virtual void enterSchemaItem(pblangParser::SchemaItemContext * /*ctx*/) override { }
   virtual void exitSchemaItem(pblangParser::SchemaItemContext * /*ctx*/) override { }
 
-  virtual void enterStoreDefRef(pblangParser::StoreDefRefContext * /*ctx*/) override { }
-  virtual void exitStoreDefRef(pblangParser::StoreDefRefContext * /*ctx*/) override { }
-
   virtual void enterStoreDef(pblangParser::StoreDefContext * /*ctx*/) override { }
   virtual void exitStoreDef(pblangParser::StoreDefContext * /*ctx*/) override { }
 

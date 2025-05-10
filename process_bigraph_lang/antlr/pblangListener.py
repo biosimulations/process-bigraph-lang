@@ -46,14 +46,6 @@ class pblangListener(ParseTreeListener):
     def exitSchemaItem(self, ctx: pblangParser.SchemaItemContext):
         pass
 
-    # Enter a parse tree produced by pblangParser#storeDefRef.
-    def enterStoreDefRef(self, ctx: pblangParser.StoreDefRefContext):
-        pass
-
-    # Exit a parse tree produced by pblangParser#storeDefRef.
-    def exitStoreDefRef(self, ctx: pblangParser.StoreDefRefContext):
-        pass
-
     # Enter a parse tree produced by pblangParser#storeDef.
     def enterStoreDef(self, ctx: pblangParser.StoreDefContext):
         pass

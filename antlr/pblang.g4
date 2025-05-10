@@ -20,12 +20,8 @@ schemaItem
     : name=ID ':' type_ref=ID ('default' defaultValue)? ('[' unit_ref=ID ']')?
     ;
 
-storeDefRef
-    : ID
-    ;
-
 storeDef
-    : 'store_def' name=ID ('parent' storeDefRef)? ('state_def' storeDefStateDef)*
+    : 'store_def' name=ID ('parent' store_def_ref=ID)? ('state_def' storeDefStateDef)*
     ;
 
 storeDefStateDef
@@ -78,7 +74,7 @@ processOutput
     ;
 
 process
-    : 'process' name=ID ':' process_def_ref=ID ('stores' storeDefRef*)?
+    : 'process' name=ID ':' process_def_ref=ID ('stores' store_def_refs+=ID*)?
     ;
 
 store
