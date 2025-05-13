@@ -9,12 +9,18 @@ from process_bigraph_lang.dsl.model import (
 def test_simple_parse_bind(simple_parse_data_1: tuple[str, Path, Model]) -> None:
     dsl_str, _dsl_path, expected_model = simple_parse_data_1
     model = parse_str(dsl_str)
+    # round trip to JSON to clear ref_objects
+    model_json = model.model_dump_json(indent=2)
+    model = Model.model_validate_json(model_json)
     assert model == expected_model
 
 
 def test_square_parse_bind(simple_parse_data_2: tuple[str, Path, Model]) -> None:
     dsl_str, _dsl_path, expected_model = simple_parse_data_2
     model = parse_str(dsl_str)
+    # round trip to JSON to clear ref_objects
+    model_json = model.model_dump_json(indent=2)
+    model = Model.model_validate_json(model_json)
     assert model == expected_model
 
 

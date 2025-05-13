@@ -61,7 +61,7 @@ def parse_file(filename: PathLike[str]) -> Model:
     walker = ParseTreeWalker()
     walker.walk(listener, tree)
     model = listener.model
-    _bind_model(model)
+    bind_model(model)
     return model
 
 
@@ -221,25 +221,18 @@ def create_symbol_table(model: Model) -> list[SymbolTableEntry]:
     return symbol_table
 
 
-def _bind_var_ref(var_ref: VariableRef, symbol_table: list[SymbolTableEntry]) -> None:
-    for entry in symbol_table:
-        if entry.name == var_ref.variable.ref_text:
-            var_ref.variable.ref = entry.path
-            return
-    raise ValueError(f"Reference '{var_ref.variable.ref_text}' not found in symbol table")
-
-
 def _bind_ref(ref: Reference, symbol_table: list[SymbolTableEntry]) -> None:
     for entry in symbol_table:
         if entry.name == ref.ref_text:
             ref.ref = entry.path
+            ref.ref_object = entry.target_obj
             return
     raise ValueError(f"Reference '{ref.ref_text}' not found in symbol table")
 
 
 def _bind_expr(expr: Expression, symbol_table: list[SymbolTableEntry]) -> None:
     if isinstance(expr, VariableRef):
-        _bind_var_ref(expr, symbol_table)
+        _bind_ref(expr.variable, symbol_table)
     elif isinstance(expr, BinaryExpression):
         _bind_expr(expr.left, symbol_table)
         _bind_expr(expr.right, symbol_table)
@@ -252,7 +245,7 @@ def _bind_expr(expr: Expression, symbol_table: list[SymbolTableEntry]) -> None:
         pass  # No binding needed for literals
 
 
-def _bind_model(model: Model) -> None:
+def bind_model(model: Model) -> None:
     # 1. generate symbol table with paths and objects
     symbol_table: list[SymbolTableEntry] = create_symbol_table(model)
 

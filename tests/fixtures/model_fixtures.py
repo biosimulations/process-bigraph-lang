@@ -65,7 +65,7 @@ def simple_parse_data_1() -> Generator[tuple[str, Path, Model], None, None]:
     """
     expr = BinaryExpression(
         operator="+",
-        left=VariableRef(variable=Reference(ref="#/definitions@0/args@0", ref_text="a")),
+        left=VariableRef(variable=Reference(ref="#/definitions@0/args@0", ref_text="a", ref_object=None)),
         right=NumberLiteral(value=1.0),
     )
     definition = Definition(
@@ -76,6 +76,7 @@ def simple_parse_data_1() -> Generator[tuple[str, Path, Model], None, None]:
     expected_model = Model(
         definitions=[definition], types=[], units=[], processDefs=[], store_defs=[], compositeDefs=[]
     )
+
     with tempfile.TemporaryDirectory() as tmpdir:
         tmp_path = Path(tmpdir) / "test.pblang"
         with open(tmp_path, "w") as f:
@@ -103,8 +104,8 @@ def simple_parse_data_2() -> Generator[tuple[str, Path, Model], None, None]:
     expr2 = FunctionCall(
         func=Reference(ref="#/definitions@0", ref_text="mult"),
         args=[
-            VariableRef(variable=Reference(ref="#/definitions@1/args@0", ref_text="a")),
-            VariableRef(variable=Reference(ref="#/definitions@1/args@0", ref_text="a")),
+            VariableRef(variable=Reference(ref="#/definitions@1/args@0", ref_text="a", ref_object=None)),
+            VariableRef(variable=Reference(ref="#/definitions@1/args@0", ref_text="a", ref_object=None)),
         ],
     )
     definition2 = Definition(
