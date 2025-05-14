@@ -1,10 +1,11 @@
 import dataclasses
 import tempfile
+from enum import Enum
 from os import PathLike
 from pathlib import Path
-from enum import Enum
 
-from antlr4 import FileStream, CommonTokenStream, ParseTreeWalker  # type: ignore[import-untyped]
+from antlr4 import FileStream, CommonTokenStream, ParseTreeWalker, Token
+from antlr4.error.ErrorListener import ErrorListener
 
 from process_bigraph_lang.antlr.pblangLexer import pblangLexer
 from process_bigraph_lang.antlr.pblangParser import pblangParser
@@ -28,6 +29,19 @@ from process_bigraph_lang.dsl.model import (
     CompositeDef,
     Process,
 )
+
+
+class CustomErrorListener(ErrorListener):
+    def syntaxError(
+        self,
+        recognizer: pblangParser | pblangLexer,
+        offendingSymbol: Token | None,
+        line: int,
+        column: int,
+        msg: str,
+        e: Exception,
+    ) -> None:
+        raise ValueError(f"Syntax error at line {str(line)}, column {str(column)}: {msg}")
 
 
 # run cli-native with a filename of a .pblang file
@@ -54,8 +68,12 @@ def parse_file(filename: PathLike[str]) -> Model:
 
     input_stream = FileStream(fileName=str(file_path))
     lexer = pblangLexer(input_stream)
+    lexer.removeErrorListeners()  # remove default ConsoleErrorListener
+    lexer.addErrorListener(CustomErrorListener())  # add custom error listener
     stream = CommonTokenStream(lexer)
     parser = pblangParser(stream)
+    parser.removeErrorListeners()  # remove default ConsoleErrorListener
+    parser.addErrorListener(CustomErrorListener())  # add custom error listener
     tree = parser.model()
     listener = ASTBuilderListener()
     walker = ParseTreeWalker()
