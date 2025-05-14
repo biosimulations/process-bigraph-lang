@@ -18,8 +18,8 @@ public:
     T__20 = 21, T__21 = 22, T__22 = 23, T__23 = 24, T__24 = 25, T__25 = 26,
     T__26 = 27, T__27 = 28, T__28 = 29, T__29 = 30, T__30 = 31, T__31 = 32,
     T__32 = 33, T__33 = 34, T__34 = 35, T__35 = 36, T__36 = 37, T__37 = 38,
-    T__38 = 39, ID = 40, FLOAT = 41, INT = 42, STRING = 43, WS = 44, ML_COMMENT = 45,
-    SL_COMMENT = 46
+    T__38 = 39, T__39 = 40, T__40 = 41, ID = 42, FLOAT = 43, INT = 44, STRING = 45,
+    WS = 46, ML_COMMENT = 47, SL_COMMENT = 48
   };
 
   enum {
@@ -151,6 +151,7 @@ public:
     virtual size_t getRuleIndex() const override;
     antlr4::tree::TerminalNode *INT();
     antlr4::tree::TerminalNode *FLOAT();
+    antlr4::tree::TerminalNode *STRING();
 
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;

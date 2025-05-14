@@ -25,7 +25,7 @@ BinaryOp = Literal["+", "-", "*", "/", "^", "%"]
 
 
 class DefaultValue(BaseModel):
-    val: int | float
+    val: int | float | str | bool
 
 
 class DeclaredParameter(NamedObject):

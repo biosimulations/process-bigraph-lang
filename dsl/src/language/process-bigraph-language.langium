@@ -11,7 +11,7 @@ NamedType:
     ('default' default=DefaultValue)? ("[" unit_ref=[Unit] "]")?;
 
 DefaultValue:
-    val=(INT | FLOAT);
+    val=(INT | FLOAT | STRING | 'true' | 'false');
 
 SchemaItem:
     name=ID ':' type=[Type] ('default' default=DefaultValue)? ("[" unit_ref=[Unit] "]")?;
