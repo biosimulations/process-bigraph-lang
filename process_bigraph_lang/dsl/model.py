@@ -3,9 +3,14 @@ from typing import Annotated, Literal, Union
 from pydantic import BaseModel, Field
 
 
+class NamedObject(BaseModel):
+    name: str
+
+
 class Reference(BaseModel):
     ref: str
     ref_text: str
+    ref_object: NamedObject | None = Field(default=None, exclude=True)
 
 
 SchemaItemRef = Reference
@@ -20,32 +25,28 @@ BinaryOp = Literal["+", "-", "*", "/", "^", "%"]
 
 
 class DefaultValue(BaseModel):
-    val: int | float
+    val: int | float | str | bool
 
 
-class DeclaredParameter(BaseModel):
+class DeclaredParameter(NamedObject):
     obj_type: Literal["DeclaredParameter"] = Field(default="DeclaredParameter")
-    name: str
 
 
-class SchemaItem(BaseModel):
+class SchemaItem(NamedObject):
     obj_type: Literal["SchemaItem"] = Field(default="SchemaItem")
-    name: str
     type: TypeRef
     default: DefaultValue | None = None
     unit_ref: UnitRef | None = None
 
 
-class StoreDef(BaseModel):
+class StoreDef(NamedObject):
     obj_type: Literal["StoreDef"] = Field(default="StoreDef")
-    name: str
     parent: StoreDefRef | None = None
     states: list[SchemaItem] | None = None
 
 
-class Store(BaseModel):
+class Store(NamedObject):
     obj_type: Literal["Store"] = Field(default="Store")
-    name: str
     store_def: StoreDefRef
 
 
@@ -59,9 +60,8 @@ class PythonPath(BaseModel):
     path: list[str]
 
 
-class ProcessDef(BaseModel):
+class ProcessDef(NamedObject):
     obj_type: Literal["ProcessDef"] = Field(default="ProcessDef")
-    name: str
     params: list[SchemaItem]
     vars: list[SchemaItem]
     inputs: list[SchemaItemRef]
@@ -70,9 +70,8 @@ class ProcessDef(BaseModel):
     python_path: PythonPath | None = None
 
 
-class SbmlModel(BaseModel):
+class SbmlModel(NamedObject):
     obj_type: Literal["SbmlModel"] = Field(default="SbmlModel")
-    name: str
     filepath: str
     params: list[SchemaItem]
     vars: list[SchemaItem]
@@ -106,17 +105,15 @@ Expression = Annotated[
 ]
 
 
-class Definition(BaseModel):
+class Definition(NamedObject):
     obj_type: Literal["Definition"] = Field(default="Definition")
-    name: str
     args: list[DeclaredParameter]
     builtin: Literal["builtin"] | None = None
     expr: Expression | None = None
 
 
-class Type(BaseModel):
+class Type(NamedObject):
     obj_type: Literal["Type"] = Field(default="Type")
-    name: str
     builtin: Literal["builtin"] | None = None
     superType: Reference | None = None
     default: DefaultValue | None = None
@@ -124,23 +121,20 @@ class Type(BaseModel):
     subtypes: list[Reference] = []
 
 
-class Unit(BaseModel):
+class Unit(NamedObject):
     obj_type: Literal["Unit"] = Field(default="Unit")
-    name: str
     symbol: str | None = None
     unit_ref: UnitRef | None = None
 
 
-class Process(BaseModel):
+class Process(NamedObject):
     obj_type: Literal["Process"] = Field(default="Process")
-    name: str
     process_def: ProcessDefRef
     stores: list[StoreRef] = []
 
 
-class CompositeDef(BaseModel):
+class CompositeDef(NamedObject):
     obj_type: Literal["CompositeDef"] = Field(default="CompositeDef")
-    name: str
     stores: list[Store] = []
     processes: list[Process] = []
 

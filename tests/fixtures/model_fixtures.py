@@ -65,7 +65,7 @@ def simple_parse_data_1() -> Generator[tuple[str, Path, Model], None, None]:
     """
     expr = BinaryExpression(
         operator="+",
-        left=VariableRef(variable=Reference(ref="#/definitions@0/args@0", ref_text="a")),
+        left=VariableRef(variable=Reference(ref="#/definitions@0/args@0", ref_text="a", ref_object=None)),
         right=NumberLiteral(value=1.0),
     )
     definition = Definition(
@@ -76,6 +76,7 @@ def simple_parse_data_1() -> Generator[tuple[str, Path, Model], None, None]:
     expected_model = Model(
         definitions=[definition], types=[], units=[], processDefs=[], store_defs=[], compositeDefs=[]
     )
+
     with tempfile.TemporaryDirectory() as tmpdir:
         tmp_path = Path(tmpdir) / "test.pblang"
         with open(tmp_path, "w") as f:
@@ -103,8 +104,8 @@ def simple_parse_data_2() -> Generator[tuple[str, Path, Model], None, None]:
     expr2 = FunctionCall(
         func=Reference(ref="#/definitions@0", ref_text="mult"),
         args=[
-            VariableRef(variable=Reference(ref="#/definitions@1/args@0", ref_text="a")),
-            VariableRef(variable=Reference(ref="#/definitions@1/args@0", ref_text="a")),
+            VariableRef(variable=Reference(ref="#/definitions@1/args@0", ref_text="a", ref_object=None)),
+            VariableRef(variable=Reference(ref="#/definitions@1/args@0", ref_text="a", ref_object=None)),
         ],
     )
     definition2 = Definition(
@@ -188,6 +189,7 @@ def simple_parse_data_3() -> Generator[tuple[str, Path, Model], None, None]:
 def simple_parse_data_4() -> Generator[tuple[str, Path, Model], None, None]:
     dsl_str = """
     type float builtin
+    type string builtin
 
     unit hour: ["h"]
     unit uM_per_h: ["10e-6 mole/liter/h"]
@@ -198,6 +200,7 @@ def simple_parse_data_4() -> Generator[tuple[str, Path, Model], None, None]:
     process_def MyProcess path my_processes.Process1
         param glucose_growth: float default 0.1 [uM_per_h]
         param dt: float default 0.1 [hour]
+        param dummy_path: string default "/tmp/file.txt"
 
         var glucose: float [uM]
 
@@ -226,6 +229,7 @@ def simple_parse_data_4() -> Generator[tuple[str, Path, Model], None, None]:
         process p2: MyProcess stores nuc1
     """
     type_float = Type(name="float", builtin="builtin")
+    type_string = Type(name="string", builtin="builtin")
 
     unit_hour = Unit(name="hour", symbol="h")
     unit_uM_per_h = Unit(name="uM_per_h", symbol="10e-6 mole/liter/h")
@@ -260,6 +264,11 @@ def simple_parse_data_4() -> Generator[tuple[str, Path, Model], None, None]:
                 type=TypeRef(ref="#/types@0", ref_text="float"),
                 default=DefaultValue(val=0.1),
                 unit_ref=UnitRef(ref="#/units@0", ref_text="hour"),
+            ),
+            SchemaItem(
+                name="dummy_path",
+                type=TypeRef(ref="#/types@1", ref_text="string"),
+                default=DefaultValue(val="/tmp/file.txt"),
             ),
         ],
         vars=[
@@ -339,7 +348,7 @@ def simple_parse_data_4() -> Generator[tuple[str, Path, Model], None, None]:
     expected_model = Model(
         units=[unit_hour, unit_uM_per_h, unit_uM],
         definitions=[def_my_update],
-        types=[type_float],
+        types=[type_float, type_string],
         processDefs=[process_MyProcess],
         store_defs=[store_medium, store_cell, store_nucleus],
         compositeDefs=[composite_def],

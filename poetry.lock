@@ -1374,6 +1374,18 @@ virtualenv = ">=20.29.1"
 test = ["devpi-process (>=1.0.2)", "pytest (>=8.3.4)", "pytest-mock (>=3.14)"]
 
 [[package]]
+name = "types-antlr4-python3-runtime"
+version = "4.13.0.20240519"
+description = "Typing stubs for antlr4-python3-runtime"
+optional = false
+python-versions = ">=3.8"
+groups = ["dev"]
+files = [
+    {file = "types-antlr4-python3-runtime-4.13.0.20240519.tar.gz", hash = "sha256:c26c0a15c69fd3921cb95ffe84e386e69437cd51ac402c016f3155354fd5ea01"},
+    {file = "types_antlr4_python3_runtime-4.13.0.20240519-py3-none-any.whl", hash = "sha256:2e3bb146f0cf08244c0927b727846a06032f217318235af33d99e319b20a2c77"},
+]
+
+[[package]]
 name = "typing-extensions"
 version = "4.13.2"
 description = "Backported and Experimental Type Hints for Python 3.8+"
@@ -1511,4 +1523,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.9,<4.0"
-content-hash = "cd8ce680d35e29dc552303e3e45c829ad5a32d0d359927c76d151875fcff52ce"
+content-hash = "41efdd5a5bbf781e511433f278721daf51e68a4f24399482561cd0c338fe7a70"

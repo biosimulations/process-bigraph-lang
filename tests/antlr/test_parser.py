@@ -1,6 +1,7 @@
 from pathlib import Path
 
-from antlr4 import FileStream, CommonTokenStream  # type: ignore[import-untyped]
+from antlr4 import FileStream, CommonTokenStream
+
 from process_bigraph_lang.antlr.pblangLexer import pblangLexer
 from process_bigraph_lang.antlr.pblangParser import pblangParser
 

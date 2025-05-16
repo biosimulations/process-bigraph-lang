@@ -35,12 +35,20 @@ from process_bigraph_lang.dsl.model import (
 )
 
 
-def float_or_int(value: str) -> float | int:
-    f = float(value)
-    if f.is_integer():
-        return int(f)
-    else:
-        return f
+def float_or_int_or_bool_or_str(value: str) -> float | int | bool | str:
+    try:
+        f = float(value)
+        if f.is_integer():
+            return int(f)
+        else:
+            return f
+    except ValueError:
+        if value.lower() == "true":
+            return True
+        elif value.lower() == "false":
+            return False
+        else:
+            return value.strip('"')
 
 
 class SchemaItemParentType(Enum):
@@ -73,7 +81,9 @@ class ASTBuilderListener(pblangListener):
     @override
     def enterTypeDef(self, ctx: pblangParser.TypeDefContext) -> None:
         type_name = ctx.ID(0).getText()
-        default_value = DefaultValue(val=float_or_int(ctx.defaultValue().getText())) if ctx.defaultValue() else None
+        default_value = (
+            DefaultValue(val=float_or_int_or_bool_or_str(ctx.defaultValue().getText())) if ctx.defaultValue() else None
+        )
         super_type = Reference(ref="", ref_text=ctx.ID(1).getText()) if len(ctx.ID()) > 1 else None
         new_type = Type(name=type_name, default=default_value, superType=super_type)
         if ctx.builtin:
@@ -248,7 +258,9 @@ class ASTBuilderListener(pblangListener):
     def enterSchemaItem(self, ctx: pblangParser.SchemaItemContext) -> None:
         name = ctx.ID(0).getText()
         type_ref = TypeRef(ref="", ref_text=ctx.ID(1).getText())
-        default = DefaultValue(val=float_or_int(ctx.defaultValue().getText())) if ctx.defaultValue() else None
+        default = (
+            DefaultValue(val=float_or_int_or_bool_or_str(ctx.defaultValue().getText())) if ctx.defaultValue() else None
+        )
         unit_ref = UnitRef(ref="", ref_text=ctx.ID(2).getText()) if len(ctx.ID()) > 2 else None
         schema_item = SchemaItem(name=name, type=type_ref, default=default, unit_ref=unit_ref)
         if self.current_process_def:

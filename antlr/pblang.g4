@@ -13,7 +13,7 @@ namedType
     ;
 
 defaultValue
-    : INT | FLOAT
+    : INT | FLOAT | STRING | 'true' | 'false'
     ;
 
 schemaItem

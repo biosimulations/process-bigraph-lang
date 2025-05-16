@@ -61,8 +61,8 @@ void pblangParserInitialize() {
     },
     std::vector<std::string>{
       "", "'type'", "'builtin'", "'extends'", "'default'", "'update'", "':'",
-      "'maybe'", "'['", "']'", "'store_def'", "'parent'", "'state_def'",
-      "'unit'", "'sbml'", "'file'", "'param'", "'var'", "'process_def'",
+      "'maybe'", "'['", "']'", "'true'", "'false'", "'store_def'", "'parent'",
+      "'state_def'", "'unit'", "'sbml'", "'file'", "'param'", "'var'", "'process_def'",
       "'inputs'", "'outputs'", "'updates'", "'path'", "'.'", "'process'",
       "'stores'", "'store'", "'composite_def'", "':='", "';'", "'def'",
       "'('", "','", "')'", "'+'", "'-'", "'*'", "'/'", "'^'", "'%'"
@@ -70,12 +70,12 @@ void pblangParserInitialize() {
     std::vector<std::string>{
       "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "",
       "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "",
-      "", "", "", "", "", "", "ID", "FLOAT", "INT", "STRING", "WS", "ML_COMMENT",
-      "SL_COMMENT"
+      "", "", "", "", "", "", "", "", "ID", "FLOAT", "INT", "STRING", "WS",
+      "ML_COMMENT", "SL_COMMENT"
     }
   );
   static const int32_t serializedATNSegment[] = {
-  	4,1,46,358,2,0,7,0,2,1,7,1,2,2,7,2,2,3,7,3,2,4,7,4,2,5,7,5,2,6,7,6,2,
+  	4,1,48,358,2,0,7,0,2,1,7,1,2,2,7,2,2,3,7,3,2,4,7,4,2,5,7,5,2,6,7,6,2,
   	7,7,7,2,8,7,8,2,9,7,9,2,10,7,10,2,11,7,11,2,12,7,12,2,13,7,13,2,14,7,
   	14,2,15,7,15,2,16,7,16,2,17,7,17,2,18,7,18,2,19,7,19,2,20,7,20,2,21,7,
   	21,2,22,7,22,2,23,7,23,2,24,7,24,2,25,7,25,2,26,7,26,2,27,7,27,2,28,7,
@@ -104,95 +104,95 @@ void pblangParserInitialize() {
   	9,27,1,28,1,28,1,28,1,28,1,28,1,28,1,28,1,28,1,28,1,28,5,28,346,8,28,
   	10,28,12,28,349,9,28,1,28,1,28,3,28,353,8,28,1,28,3,28,356,8,28,1,28,
   	0,0,29,0,2,4,6,8,10,12,14,16,18,20,22,24,26,28,30,32,34,36,38,40,42,44,
-  	46,48,50,52,54,56,0,3,1,0,41,42,1,0,34,35,1,0,36,37,377,0,67,1,0,0,0,
-  	2,72,1,0,0,0,4,95,1,0,0,0,6,113,1,0,0,0,8,115,1,0,0,0,10,127,1,0,0,0,
-  	12,140,1,0,0,0,14,142,1,0,0,0,16,151,1,0,0,0,18,167,1,0,0,0,20,170,1,
-  	0,0,0,22,173,1,0,0,0,24,217,1,0,0,0,26,226,1,0,0,0,28,229,1,0,0,0,30,
-  	232,1,0,0,0,32,234,1,0,0,0,34,236,1,0,0,0,36,249,1,0,0,0,38,258,1,0,0,
-  	0,40,272,1,0,0,0,42,277,1,0,0,0,44,299,1,0,0,0,46,301,1,0,0,0,48,303,
-  	1,0,0,0,50,311,1,0,0,0,52,319,1,0,0,0,54,327,1,0,0,0,56,355,1,0,0,0,58,
-  	66,3,2,1,0,59,66,3,42,21,0,60,66,3,14,7,0,61,66,3,22,11,0,62,66,3,10,
-  	5,0,63,66,3,38,19,0,64,66,3,16,8,0,65,58,1,0,0,0,65,59,1,0,0,0,65,60,
-  	1,0,0,0,65,61,1,0,0,0,65,62,1,0,0,0,65,63,1,0,0,0,65,64,1,0,0,0,66,69,
-  	1,0,0,0,67,65,1,0,0,0,67,68,1,0,0,0,68,70,1,0,0,0,69,67,1,0,0,0,70,71,
-  	5,0,0,1,71,1,1,0,0,0,72,73,5,1,0,0,73,75,5,40,0,0,74,76,5,2,0,0,75,74,
-  	1,0,0,0,75,76,1,0,0,0,76,79,1,0,0,0,77,78,5,3,0,0,78,80,5,40,0,0,79,77,
-  	1,0,0,0,79,80,1,0,0,0,80,83,1,0,0,0,81,82,5,4,0,0,82,84,3,6,3,0,83,81,
-  	1,0,0,0,83,84,1,0,0,0,84,87,1,0,0,0,85,86,5,5,0,0,86,88,5,40,0,0,87,85,
-  	1,0,0,0,87,88,1,0,0,0,88,92,1,0,0,0,89,91,3,4,2,0,90,89,1,0,0,0,91,94,
-  	1,0,0,0,92,90,1,0,0,0,92,93,1,0,0,0,93,3,1,0,0,0,94,92,1,0,0,0,95,96,
-  	5,40,0,0,96,101,5,6,0,0,97,98,5,7,0,0,98,99,5,8,0,0,99,100,5,40,0,0,100,
-  	102,5,9,0,0,101,97,1,0,0,0,101,102,1,0,0,0,102,103,1,0,0,0,103,106,5,
-  	40,0,0,104,105,5,4,0,0,105,107,3,6,3,0,106,104,1,0,0,0,106,107,1,0,0,
-  	0,107,111,1,0,0,0,108,109,5,8,0,0,109,110,5,40,0,0,110,112,5,9,0,0,111,
-  	108,1,0,0,0,111,112,1,0,0,0,112,5,1,0,0,0,113,114,7,0,0,0,114,7,1,0,0,
-  	0,115,116,5,40,0,0,116,117,5,6,0,0,117,120,5,40,0,0,118,119,5,4,0,0,119,
-  	121,3,6,3,0,120,118,1,0,0,0,120,121,1,0,0,0,121,125,1,0,0,0,122,123,5,
-  	8,0,0,123,124,5,40,0,0,124,126,5,9,0,0,125,122,1,0,0,0,125,126,1,0,0,
-  	0,126,9,1,0,0,0,127,128,5,10,0,0,128,131,5,40,0,0,129,130,5,11,0,0,130,
-  	132,5,40,0,0,131,129,1,0,0,0,131,132,1,0,0,0,132,137,1,0,0,0,133,134,
-  	5,12,0,0,134,136,3,12,6,0,135,133,1,0,0,0,136,139,1,0,0,0,137,135,1,0,
-  	0,0,137,138,1,0,0,0,138,11,1,0,0,0,139,137,1,0,0,0,140,141,3,8,4,0,141,
-  	13,1,0,0,0,142,143,5,13,0,0,143,144,5,40,0,0,144,149,5,6,0,0,145,146,
-  	5,8,0,0,146,147,5,43,0,0,147,150,5,9,0,0,148,150,5,40,0,0,149,145,1,0,
-  	0,0,149,148,1,0,0,0,150,15,1,0,0,0,151,152,5,14,0,0,152,153,5,40,0,0,
-  	153,154,5,15,0,0,154,158,5,43,0,0,155,157,3,18,9,0,156,155,1,0,0,0,157,
-  	160,1,0,0,0,158,156,1,0,0,0,158,159,1,0,0,0,159,164,1,0,0,0,160,158,1,
-  	0,0,0,161,163,3,20,10,0,162,161,1,0,0,0,163,166,1,0,0,0,164,162,1,0,0,
-  	0,164,165,1,0,0,0,165,17,1,0,0,0,166,164,1,0,0,0,167,168,5,16,0,0,168,
-  	169,3,8,4,0,169,19,1,0,0,0,170,171,5,17,0,0,171,172,3,8,4,0,172,21,1,
-  	0,0,0,173,174,5,18,0,0,174,176,5,40,0,0,175,177,3,24,12,0,176,175,1,0,
-  	0,0,176,177,1,0,0,0,177,181,1,0,0,0,178,180,3,26,13,0,179,178,1,0,0,0,
-  	180,183,1,0,0,0,181,179,1,0,0,0,181,182,1,0,0,0,182,187,1,0,0,0,183,181,
-  	1,0,0,0,184,186,3,28,14,0,185,184,1,0,0,0,186,189,1,0,0,0,187,185,1,0,
-  	0,0,187,188,1,0,0,0,188,197,1,0,0,0,189,187,1,0,0,0,190,194,5,19,0,0,
-  	191,193,3,30,15,0,192,191,1,0,0,0,193,196,1,0,0,0,194,192,1,0,0,0,194,
-  	195,1,0,0,0,195,198,1,0,0,0,196,194,1,0,0,0,197,190,1,0,0,0,197,198,1,
-  	0,0,0,198,206,1,0,0,0,199,203,5,20,0,0,200,202,3,32,16,0,201,200,1,0,
-  	0,0,202,205,1,0,0,0,203,201,1,0,0,0,203,204,1,0,0,0,204,207,1,0,0,0,205,
-  	203,1,0,0,0,206,199,1,0,0,0,206,207,1,0,0,0,207,215,1,0,0,0,208,212,5,
-  	21,0,0,209,211,3,40,20,0,210,209,1,0,0,0,211,214,1,0,0,0,212,210,1,0,
-  	0,0,212,213,1,0,0,0,213,216,1,0,0,0,214,212,1,0,0,0,215,208,1,0,0,0,215,
-  	216,1,0,0,0,216,23,1,0,0,0,217,218,5,22,0,0,218,223,5,40,0,0,219,220,
-  	5,23,0,0,220,222,5,40,0,0,221,219,1,0,0,0,222,225,1,0,0,0,223,221,1,0,
-  	0,0,223,224,1,0,0,0,224,25,1,0,0,0,225,223,1,0,0,0,226,227,5,16,0,0,227,
-  	228,3,8,4,0,228,27,1,0,0,0,229,230,5,17,0,0,230,231,3,8,4,0,231,29,1,
-  	0,0,0,232,233,5,40,0,0,233,31,1,0,0,0,234,235,5,40,0,0,235,33,1,0,0,0,
-  	236,237,5,24,0,0,237,238,5,40,0,0,238,239,5,6,0,0,239,247,5,40,0,0,240,
-  	244,5,25,0,0,241,243,5,40,0,0,242,241,1,0,0,0,243,246,1,0,0,0,244,242,
-  	1,0,0,0,244,245,1,0,0,0,245,248,1,0,0,0,246,244,1,0,0,0,247,240,1,0,0,
-  	0,247,248,1,0,0,0,248,35,1,0,0,0,249,250,5,26,0,0,250,251,5,40,0,0,251,
-  	255,5,6,0,0,252,254,5,40,0,0,253,252,1,0,0,0,254,257,1,0,0,0,255,253,
-  	1,0,0,0,255,256,1,0,0,0,256,37,1,0,0,0,257,255,1,0,0,0,258,259,5,27,0,
-  	0,259,263,5,40,0,0,260,262,3,36,18,0,261,260,1,0,0,0,262,265,1,0,0,0,
-  	263,261,1,0,0,0,263,264,1,0,0,0,264,269,1,0,0,0,265,263,1,0,0,0,266,268,
-  	3,34,17,0,267,266,1,0,0,0,268,271,1,0,0,0,269,267,1,0,0,0,269,270,1,0,
-  	0,0,270,39,1,0,0,0,271,269,1,0,0,0,272,273,5,40,0,0,273,274,5,28,0,0,
-  	274,275,3,46,23,0,275,276,5,29,0,0,276,41,1,0,0,0,277,278,5,30,0,0,278,
-  	290,5,40,0,0,279,280,5,31,0,0,280,285,3,44,22,0,281,282,5,32,0,0,282,
-  	284,3,44,22,0,283,281,1,0,0,0,284,287,1,0,0,0,285,283,1,0,0,0,285,286,
-  	1,0,0,0,286,288,1,0,0,0,287,285,1,0,0,0,288,289,5,33,0,0,289,291,1,0,
-  	0,0,290,279,1,0,0,0,290,291,1,0,0,0,291,292,1,0,0,0,292,297,5,6,0,0,293,
-  	298,5,2,0,0,294,295,3,46,23,0,295,296,5,29,0,0,296,298,1,0,0,0,297,293,
-  	1,0,0,0,297,294,1,0,0,0,298,43,1,0,0,0,299,300,5,40,0,0,300,45,1,0,0,
-  	0,301,302,3,48,24,0,302,47,1,0,0,0,303,308,3,50,25,0,304,305,7,1,0,0,
-  	305,307,3,50,25,0,306,304,1,0,0,0,307,310,1,0,0,0,308,306,1,0,0,0,308,
-  	309,1,0,0,0,309,49,1,0,0,0,310,308,1,0,0,0,311,316,3,52,26,0,312,313,
-  	7,2,0,0,313,315,3,52,26,0,314,312,1,0,0,0,315,318,1,0,0,0,316,314,1,0,
-  	0,0,316,317,1,0,0,0,317,51,1,0,0,0,318,316,1,0,0,0,319,324,3,54,27,0,
-  	320,321,5,38,0,0,321,323,3,54,27,0,322,320,1,0,0,0,323,326,1,0,0,0,324,
-  	322,1,0,0,0,324,325,1,0,0,0,325,53,1,0,0,0,326,324,1,0,0,0,327,332,3,
-  	56,28,0,328,329,5,39,0,0,329,331,3,56,28,0,330,328,1,0,0,0,331,334,1,
-  	0,0,0,332,330,1,0,0,0,332,333,1,0,0,0,333,55,1,0,0,0,334,332,1,0,0,0,
-  	335,336,5,31,0,0,336,337,3,46,23,0,337,338,5,33,0,0,338,356,1,0,0,0,339,
-  	356,5,41,0,0,340,352,5,40,0,0,341,342,5,31,0,0,342,347,3,46,23,0,343,
-  	344,5,32,0,0,344,346,3,46,23,0,345,343,1,0,0,0,346,349,1,0,0,0,347,345,
-  	1,0,0,0,347,348,1,0,0,0,348,350,1,0,0,0,349,347,1,0,0,0,350,351,5,33,
-  	0,0,351,353,1,0,0,0,352,341,1,0,0,0,352,353,1,0,0,0,353,356,1,0,0,0,354,
-  	356,5,40,0,0,355,335,1,0,0,0,355,339,1,0,0,0,355,340,1,0,0,0,355,354,
-  	1,0,0,0,356,57,1,0,0,0,42,65,67,75,79,83,87,92,101,106,111,120,125,131,
-  	137,149,158,164,176,181,187,194,197,203,206,212,215,223,244,247,255,263,
-  	269,285,290,297,308,316,324,332,347,352,355
+  	46,48,50,52,54,56,0,3,2,0,10,11,43,45,1,0,36,37,1,0,38,39,377,0,67,1,
+  	0,0,0,2,72,1,0,0,0,4,95,1,0,0,0,6,113,1,0,0,0,8,115,1,0,0,0,10,127,1,
+  	0,0,0,12,140,1,0,0,0,14,142,1,0,0,0,16,151,1,0,0,0,18,167,1,0,0,0,20,
+  	170,1,0,0,0,22,173,1,0,0,0,24,217,1,0,0,0,26,226,1,0,0,0,28,229,1,0,0,
+  	0,30,232,1,0,0,0,32,234,1,0,0,0,34,236,1,0,0,0,36,249,1,0,0,0,38,258,
+  	1,0,0,0,40,272,1,0,0,0,42,277,1,0,0,0,44,299,1,0,0,0,46,301,1,0,0,0,48,
+  	303,1,0,0,0,50,311,1,0,0,0,52,319,1,0,0,0,54,327,1,0,0,0,56,355,1,0,0,
+  	0,58,66,3,2,1,0,59,66,3,42,21,0,60,66,3,14,7,0,61,66,3,22,11,0,62,66,
+  	3,10,5,0,63,66,3,38,19,0,64,66,3,16,8,0,65,58,1,0,0,0,65,59,1,0,0,0,65,
+  	60,1,0,0,0,65,61,1,0,0,0,65,62,1,0,0,0,65,63,1,0,0,0,65,64,1,0,0,0,66,
+  	69,1,0,0,0,67,65,1,0,0,0,67,68,1,0,0,0,68,70,1,0,0,0,69,67,1,0,0,0,70,
+  	71,5,0,0,1,71,1,1,0,0,0,72,73,5,1,0,0,73,75,5,42,0,0,74,76,5,2,0,0,75,
+  	74,1,0,0,0,75,76,1,0,0,0,76,79,1,0,0,0,77,78,5,3,0,0,78,80,5,42,0,0,79,
+  	77,1,0,0,0,79,80,1,0,0,0,80,83,1,0,0,0,81,82,5,4,0,0,82,84,3,6,3,0,83,
+  	81,1,0,0,0,83,84,1,0,0,0,84,87,1,0,0,0,85,86,5,5,0,0,86,88,5,42,0,0,87,
+  	85,1,0,0,0,87,88,1,0,0,0,88,92,1,0,0,0,89,91,3,4,2,0,90,89,1,0,0,0,91,
+  	94,1,0,0,0,92,90,1,0,0,0,92,93,1,0,0,0,93,3,1,0,0,0,94,92,1,0,0,0,95,
+  	96,5,42,0,0,96,101,5,6,0,0,97,98,5,7,0,0,98,99,5,8,0,0,99,100,5,42,0,
+  	0,100,102,5,9,0,0,101,97,1,0,0,0,101,102,1,0,0,0,102,103,1,0,0,0,103,
+  	106,5,42,0,0,104,105,5,4,0,0,105,107,3,6,3,0,106,104,1,0,0,0,106,107,
+  	1,0,0,0,107,111,1,0,0,0,108,109,5,8,0,0,109,110,5,42,0,0,110,112,5,9,
+  	0,0,111,108,1,0,0,0,111,112,1,0,0,0,112,5,1,0,0,0,113,114,7,0,0,0,114,
+  	7,1,0,0,0,115,116,5,42,0,0,116,117,5,6,0,0,117,120,5,42,0,0,118,119,5,
+  	4,0,0,119,121,3,6,3,0,120,118,1,0,0,0,120,121,1,0,0,0,121,125,1,0,0,0,
+  	122,123,5,8,0,0,123,124,5,42,0,0,124,126,5,9,0,0,125,122,1,0,0,0,125,
+  	126,1,0,0,0,126,9,1,0,0,0,127,128,5,12,0,0,128,131,5,42,0,0,129,130,5,
+  	13,0,0,130,132,5,42,0,0,131,129,1,0,0,0,131,132,1,0,0,0,132,137,1,0,0,
+  	0,133,134,5,14,0,0,134,136,3,12,6,0,135,133,1,0,0,0,136,139,1,0,0,0,137,
+  	135,1,0,0,0,137,138,1,0,0,0,138,11,1,0,0,0,139,137,1,0,0,0,140,141,3,
+  	8,4,0,141,13,1,0,0,0,142,143,5,15,0,0,143,144,5,42,0,0,144,149,5,6,0,
+  	0,145,146,5,8,0,0,146,147,5,45,0,0,147,150,5,9,0,0,148,150,5,42,0,0,149,
+  	145,1,0,0,0,149,148,1,0,0,0,150,15,1,0,0,0,151,152,5,16,0,0,152,153,5,
+  	42,0,0,153,154,5,17,0,0,154,158,5,45,0,0,155,157,3,18,9,0,156,155,1,0,
+  	0,0,157,160,1,0,0,0,158,156,1,0,0,0,158,159,1,0,0,0,159,164,1,0,0,0,160,
+  	158,1,0,0,0,161,163,3,20,10,0,162,161,1,0,0,0,163,166,1,0,0,0,164,162,
+  	1,0,0,0,164,165,1,0,0,0,165,17,1,0,0,0,166,164,1,0,0,0,167,168,5,18,0,
+  	0,168,169,3,8,4,0,169,19,1,0,0,0,170,171,5,19,0,0,171,172,3,8,4,0,172,
+  	21,1,0,0,0,173,174,5,20,0,0,174,176,5,42,0,0,175,177,3,24,12,0,176,175,
+  	1,0,0,0,176,177,1,0,0,0,177,181,1,0,0,0,178,180,3,26,13,0,179,178,1,0,
+  	0,0,180,183,1,0,0,0,181,179,1,0,0,0,181,182,1,0,0,0,182,187,1,0,0,0,183,
+  	181,1,0,0,0,184,186,3,28,14,0,185,184,1,0,0,0,186,189,1,0,0,0,187,185,
+  	1,0,0,0,187,188,1,0,0,0,188,197,1,0,0,0,189,187,1,0,0,0,190,194,5,21,
+  	0,0,191,193,3,30,15,0,192,191,1,0,0,0,193,196,1,0,0,0,194,192,1,0,0,0,
+  	194,195,1,0,0,0,195,198,1,0,0,0,196,194,1,0,0,0,197,190,1,0,0,0,197,198,
+  	1,0,0,0,198,206,1,0,0,0,199,203,5,22,0,0,200,202,3,32,16,0,201,200,1,
+  	0,0,0,202,205,1,0,0,0,203,201,1,0,0,0,203,204,1,0,0,0,204,207,1,0,0,0,
+  	205,203,1,0,0,0,206,199,1,0,0,0,206,207,1,0,0,0,207,215,1,0,0,0,208,212,
+  	5,23,0,0,209,211,3,40,20,0,210,209,1,0,0,0,211,214,1,0,0,0,212,210,1,
+  	0,0,0,212,213,1,0,0,0,213,216,1,0,0,0,214,212,1,0,0,0,215,208,1,0,0,0,
+  	215,216,1,0,0,0,216,23,1,0,0,0,217,218,5,24,0,0,218,223,5,42,0,0,219,
+  	220,5,25,0,0,220,222,5,42,0,0,221,219,1,0,0,0,222,225,1,0,0,0,223,221,
+  	1,0,0,0,223,224,1,0,0,0,224,25,1,0,0,0,225,223,1,0,0,0,226,227,5,18,0,
+  	0,227,228,3,8,4,0,228,27,1,0,0,0,229,230,5,19,0,0,230,231,3,8,4,0,231,
+  	29,1,0,0,0,232,233,5,42,0,0,233,31,1,0,0,0,234,235,5,42,0,0,235,33,1,
+  	0,0,0,236,237,5,26,0,0,237,238,5,42,0,0,238,239,5,6,0,0,239,247,5,42,
+  	0,0,240,244,5,27,0,0,241,243,5,42,0,0,242,241,1,0,0,0,243,246,1,0,0,0,
+  	244,242,1,0,0,0,244,245,1,0,0,0,245,248,1,0,0,0,246,244,1,0,0,0,247,240,
+  	1,0,0,0,247,248,1,0,0,0,248,35,1,0,0,0,249,250,5,28,0,0,250,251,5,42,
+  	0,0,251,255,5,6,0,0,252,254,5,42,0,0,253,252,1,0,0,0,254,257,1,0,0,0,
+  	255,253,1,0,0,0,255,256,1,0,0,0,256,37,1,0,0,0,257,255,1,0,0,0,258,259,
+  	5,29,0,0,259,263,5,42,0,0,260,262,3,36,18,0,261,260,1,0,0,0,262,265,1,
+  	0,0,0,263,261,1,0,0,0,263,264,1,0,0,0,264,269,1,0,0,0,265,263,1,0,0,0,
+  	266,268,3,34,17,0,267,266,1,0,0,0,268,271,1,0,0,0,269,267,1,0,0,0,269,
+  	270,1,0,0,0,270,39,1,0,0,0,271,269,1,0,0,0,272,273,5,42,0,0,273,274,5,
+  	30,0,0,274,275,3,46,23,0,275,276,5,31,0,0,276,41,1,0,0,0,277,278,5,32,
+  	0,0,278,290,5,42,0,0,279,280,5,33,0,0,280,285,3,44,22,0,281,282,5,34,
+  	0,0,282,284,3,44,22,0,283,281,1,0,0,0,284,287,1,0,0,0,285,283,1,0,0,0,
+  	285,286,1,0,0,0,286,288,1,0,0,0,287,285,1,0,0,0,288,289,5,35,0,0,289,
+  	291,1,0,0,0,290,279,1,0,0,0,290,291,1,0,0,0,291,292,1,0,0,0,292,297,5,
+  	6,0,0,293,298,5,2,0,0,294,295,3,46,23,0,295,296,5,31,0,0,296,298,1,0,
+  	0,0,297,293,1,0,0,0,297,294,1,0,0,0,298,43,1,0,0,0,299,300,5,42,0,0,300,
+  	45,1,0,0,0,301,302,3,48,24,0,302,47,1,0,0,0,303,308,3,50,25,0,304,305,
+  	7,1,0,0,305,307,3,50,25,0,306,304,1,0,0,0,307,310,1,0,0,0,308,306,1,0,
+  	0,0,308,309,1,0,0,0,309,49,1,0,0,0,310,308,1,0,0,0,311,316,3,52,26,0,
+  	312,313,7,2,0,0,313,315,3,52,26,0,314,312,1,0,0,0,315,318,1,0,0,0,316,
+  	314,1,0,0,0,316,317,1,0,0,0,317,51,1,0,0,0,318,316,1,0,0,0,319,324,3,
+  	54,27,0,320,321,5,40,0,0,321,323,3,54,27,0,322,320,1,0,0,0,323,326,1,
+  	0,0,0,324,322,1,0,0,0,324,325,1,0,0,0,325,53,1,0,0,0,326,324,1,0,0,0,
+  	327,332,3,56,28,0,328,329,5,41,0,0,329,331,3,56,28,0,330,328,1,0,0,0,
+  	331,334,1,0,0,0,332,330,1,0,0,0,332,333,1,0,0,0,333,55,1,0,0,0,334,332,
+  	1,0,0,0,335,336,5,33,0,0,336,337,3,46,23,0,337,338,5,35,0,0,338,356,1,
+  	0,0,0,339,356,5,43,0,0,340,352,5,42,0,0,341,342,5,33,0,0,342,347,3,46,
+  	23,0,343,344,5,34,0,0,344,346,3,46,23,0,345,343,1,0,0,0,346,349,1,0,0,
+  	0,347,345,1,0,0,0,347,348,1,0,0,0,348,350,1,0,0,0,349,347,1,0,0,0,350,
+  	351,5,35,0,0,351,353,1,0,0,0,352,341,1,0,0,0,352,353,1,0,0,0,353,356,
+  	1,0,0,0,354,356,5,42,0,0,355,335,1,0,0,0,355,339,1,0,0,0,355,340,1,0,
+  	0,0,355,354,1,0,0,0,356,57,1,0,0,0,42,65,67,75,79,83,87,92,101,106,111,
+  	120,125,131,137,149,158,164,176,181,187,194,197,203,206,212,215,223,244,
+  	247,255,263,269,285,290,297,308,316,324,332,347,352,355
   };
   staticData->serializedATN = antlr4::atn::SerializedATNView(serializedATNSegment, sizeof(serializedATNSegment) / sizeof(serializedATNSegment[0]));
 
@@ -342,7 +342,7 @@ pblangParser::ModelContext* pblangParser::model() {
     _errHandler->sync(this);
     _la = _input->LA(1);
     while ((((_la & ~ 0x3fULL) == 0) &&
-      ((1ULL << _la) & 1208247298) != 0)) {
+      ((1ULL << _la) & 4832989186) != 0)) {
       setState(65);
       _errHandler->sync(this);
       switch (_input->LA(1)) {
@@ -352,37 +352,37 @@ pblangParser::ModelContext* pblangParser::model() {
           break;
         }
 
-        case pblangParser::T__29: {
+        case pblangParser::T__31: {
           setState(59);
           definition();
           break;
         }
 
-        case pblangParser::T__12: {
+        case pblangParser::T__14: {
           setState(60);
           unit();
           break;
         }
 
-        case pblangParser::T__17: {
+        case pblangParser::T__19: {
           setState(61);
           processDef();
           break;
         }
 
-        case pblangParser::T__9: {
+        case pblangParser::T__11: {
           setState(62);
           storeDef();
           break;
         }
 
-        case pblangParser::T__26: {
+        case pblangParser::T__28: {
           setState(63);
           compositeDef();
           break;
         }
 
-        case pblangParser::T__13: {
+        case pblangParser::T__15: {
           setState(64);
           sbmlModel();
           break;
@@ -644,6 +644,10 @@ tree::TerminalNode* pblangParser::DefaultValueContext::FLOAT() {
   return getToken(pblangParser::FLOAT, 0);
 }
 
+tree::TerminalNode* pblangParser::DefaultValueContext::STRING() {
+  return getToken(pblangParser::STRING, 0);
+}
+
 
 size_t pblangParser::DefaultValueContext::getRuleIndex() const {
   return pblangParser::RuleDefaultValue;
@@ -677,9 +681,8 @@ pblangParser::DefaultValueContext* pblangParser::defaultValue() {
     enterOuterAlt(_localctx, 1);
     setState(113);
     _la = _input->LA(1);
-    if (!(_la == pblangParser::FLOAT
-
-    || _la == pblangParser::INT)) {
+    if (!((((_la & ~ 0x3fULL) == 0) &&
+      ((1ULL << _la) & 61572651158528) != 0))) {
     _errHandler->recoverInline(this);
     }
     else {
@@ -839,25 +842,25 @@ pblangParser::StoreDefContext* pblangParser::storeDef() {
   try {
     enterOuterAlt(_localctx, 1);
     setState(127);
-    match(pblangParser::T__9);
+    match(pblangParser::T__11);
     setState(128);
     antlrcpp::downCast<StoreDefContext *>(_localctx)->name = match(pblangParser::ID);
     setState(131);
     _errHandler->sync(this);
 
     _la = _input->LA(1);
-    if (_la == pblangParser::T__10) {
+    if (_la == pblangParser::T__12) {
       setState(129);
-      match(pblangParser::T__10);
+      match(pblangParser::T__12);
       setState(130);
       antlrcpp::downCast<StoreDefContext *>(_localctx)->store_def_ref = match(pblangParser::ID);
     }
     setState(137);
     _errHandler->sync(this);
     _la = _input->LA(1);
-    while (_la == pblangParser::T__11) {
+    while (_la == pblangParser::T__13) {
       setState(133);
-      match(pblangParser::T__11);
+      match(pblangParser::T__13);
       setState(134);
       storeDefStateDef();
       setState(139);
@@ -977,7 +980,7 @@ pblangParser::UnitContext* pblangParser::unit() {
   try {
     enterOuterAlt(_localctx, 1);
     setState(142);
-    match(pblangParser::T__12);
+    match(pblangParser::T__14);
     setState(143);
     antlrcpp::downCast<UnitContext *>(_localctx)->name = match(pblangParser::ID);
     setState(144);
@@ -1077,17 +1080,17 @@ pblangParser::SbmlModelContext* pblangParser::sbmlModel() {
   try {
     enterOuterAlt(_localctx, 1);
     setState(151);
-    match(pblangParser::T__13);
+    match(pblangParser::T__15);
     setState(152);
     antlrcpp::downCast<SbmlModelContext *>(_localctx)->name = match(pblangParser::ID);
     setState(153);
-    match(pblangParser::T__14);
+    match(pblangParser::T__16);
     setState(154);
     match(pblangParser::STRING);
     setState(158);
     _errHandler->sync(this);
     _la = _input->LA(1);
-    while (_la == pblangParser::T__15) {
+    while (_la == pblangParser::T__17) {
       setState(155);
       sbmlParameter();
       setState(160);
@@ -1097,7 +1100,7 @@ pblangParser::SbmlModelContext* pblangParser::sbmlModel() {
     setState(164);
     _errHandler->sync(this);
     _la = _input->LA(1);
-    while (_la == pblangParser::T__16) {
+    while (_la == pblangParser::T__18) {
       setState(161);
       sbmlVariable();
       setState(166);
@@ -1156,7 +1159,7 @@ pblangParser::SbmlParameterContext* pblangParser::sbmlParameter() {
   try {
     enterOuterAlt(_localctx, 1);
     setState(167);
-    match(pblangParser::T__15);
+    match(pblangParser::T__17);
     setState(168);
     schemaItem();
 
@@ -1211,7 +1214,7 @@ pblangParser::SbmlVariableContext* pblangParser::sbmlVariable() {
   try {
     enterOuterAlt(_localctx, 1);
     setState(170);
-    match(pblangParser::T__16);
+    match(pblangParser::T__18);
     setState(171);
     schemaItem();
 
@@ -1311,21 +1314,21 @@ pblangParser::ProcessDefContext* pblangParser::processDef() {
   try {
     enterOuterAlt(_localctx, 1);
     setState(173);
-    match(pblangParser::T__17);
+    match(pblangParser::T__19);
     setState(174);
     match(pblangParser::ID);
     setState(176);
     _errHandler->sync(this);
 
     _la = _input->LA(1);
-    if (_la == pblangParser::T__21) {
+    if (_la == pblangParser::T__23) {
       setState(175);
       pythonPath();
     }
     setState(181);
     _errHandler->sync(this);
     _la = _input->LA(1);
-    while (_la == pblangParser::T__15) {
+    while (_la == pblangParser::T__17) {
       setState(178);
       processParameter();
       setState(183);
@@ -1335,7 +1338,7 @@ pblangParser::ProcessDefContext* pblangParser::processDef() {
     setState(187);
     _errHandler->sync(this);
     _la = _input->LA(1);
-    while (_la == pblangParser::T__16) {
+    while (_la == pblangParser::T__18) {
       setState(184);
       processVariable();
       setState(189);
@@ -1346,9 +1349,9 @@ pblangParser::ProcessDefContext* pblangParser::processDef() {
     _errHandler->sync(this);
 
     _la = _input->LA(1);
-    if (_la == pblangParser::T__18) {
+    if (_la == pblangParser::T__20) {
       setState(190);
-      match(pblangParser::T__18);
+      match(pblangParser::T__20);
       setState(194);
       _errHandler->sync(this);
       _la = _input->LA(1);
@@ -1364,9 +1367,9 @@ pblangParser::ProcessDefContext* pblangParser::processDef() {
     _errHandler->sync(this);
 
     _la = _input->LA(1);
-    if (_la == pblangParser::T__19) {
+    if (_la == pblangParser::T__21) {
       setState(199);
-      match(pblangParser::T__19);
+      match(pblangParser::T__21);
       setState(203);
       _errHandler->sync(this);
       _la = _input->LA(1);
@@ -1382,9 +1385,9 @@ pblangParser::ProcessDefContext* pblangParser::processDef() {
     _errHandler->sync(this);
 
     _la = _input->LA(1);
-    if (_la == pblangParser::T__20) {
+    if (_la == pblangParser::T__22) {
       setState(208);
-      match(pblangParser::T__20);
+      match(pblangParser::T__22);
       setState(212);
       _errHandler->sync(this);
       _la = _input->LA(1);
@@ -1453,15 +1456,15 @@ pblangParser::PythonPathContext* pblangParser::pythonPath() {
   try {
     enterOuterAlt(_localctx, 1);
     setState(217);
-    match(pblangParser::T__21);
+    match(pblangParser::T__23);
     setState(218);
     match(pblangParser::ID);
     setState(223);
     _errHandler->sync(this);
     _la = _input->LA(1);
-    while (_la == pblangParser::T__22) {
+    while (_la == pblangParser::T__24) {
       setState(219);
-      match(pblangParser::T__22);
+      match(pblangParser::T__24);
       setState(220);
       match(pblangParser::ID);
       setState(225);
@@ -1520,7 +1523,7 @@ pblangParser::ProcessParameterContext* pblangParser::processParameter() {
   try {
     enterOuterAlt(_localctx, 1);
     setState(226);
-    match(pblangParser::T__15);
+    match(pblangParser::T__17);
     setState(227);
     schemaItem();
 
@@ -1575,7 +1578,7 @@ pblangParser::ProcessVariableContext* pblangParser::processVariable() {
   try {
     enterOuterAlt(_localctx, 1);
     setState(229);
-    match(pblangParser::T__16);
+    match(pblangParser::T__18);
     setState(230);
     schemaItem();
 
@@ -1741,7 +1744,7 @@ pblangParser::ProcessContext* pblangParser::process() {
   try {
     enterOuterAlt(_localctx, 1);
     setState(236);
-    match(pblangParser::T__23);
+    match(pblangParser::T__25);
     setState(237);
     antlrcpp::downCast<ProcessContext *>(_localctx)->name = match(pblangParser::ID);
     setState(238);
@@ -1752,9 +1755,9 @@ pblangParser::ProcessContext* pblangParser::process() {
     _errHandler->sync(this);
 
     _la = _input->LA(1);
-    if (_la == pblangParser::T__24) {
+    if (_la == pblangParser::T__26) {
       setState(240);
-      match(pblangParser::T__24);
+      match(pblangParser::T__26);
       setState(244);
       _errHandler->sync(this);
       _la = _input->LA(1);
@@ -1824,7 +1827,7 @@ pblangParser::StoreContext* pblangParser::store() {
   try {
     enterOuterAlt(_localctx, 1);
     setState(249);
-    match(pblangParser::T__25);
+    match(pblangParser::T__27);
     setState(250);
     antlrcpp::downCast<StoreContext *>(_localctx)->name = match(pblangParser::ID);
     setState(251);
@@ -1908,13 +1911,13 @@ pblangParser::CompositeDefContext* pblangParser::compositeDef() {
   try {
     enterOuterAlt(_localctx, 1);
     setState(258);
-    match(pblangParser::T__26);
+    match(pblangParser::T__28);
     setState(259);
     antlrcpp::downCast<CompositeDefContext *>(_localctx)->name = match(pblangParser::ID);
     setState(263);
     _errHandler->sync(this);
     _la = _input->LA(1);
-    while (_la == pblangParser::T__25) {
+    while (_la == pblangParser::T__27) {
       setState(260);
       store();
       setState(265);
@@ -1924,7 +1927,7 @@ pblangParser::CompositeDefContext* pblangParser::compositeDef() {
     setState(269);
     _errHandler->sync(this);
     _la = _input->LA(1);
-    while (_la == pblangParser::T__23) {
+    while (_la == pblangParser::T__25) {
       setState(266);
       process();
       setState(271);
@@ -1989,11 +1992,11 @@ pblangParser::UpdateContext* pblangParser::update() {
     setState(272);
     antlrcpp::downCast<UpdateContext *>(_localctx)->lhs = match(pblangParser::ID);
     setState(273);
-    match(pblangParser::T__27);
+    match(pblangParser::T__29);
     setState(274);
     expression();
     setState(275);
-    match(pblangParser::T__28);
+    match(pblangParser::T__30);
 
   }
   catch (RecognitionException &e) {
@@ -2059,24 +2062,24 @@ pblangParser::DefinitionContext* pblangParser::definition() {
   try {
     enterOuterAlt(_localctx, 1);
     setState(277);
-    match(pblangParser::T__29);
+    match(pblangParser::T__31);
     setState(278);
     match(pblangParser::ID);
     setState(290);
     _errHandler->sync(this);
 
     _la = _input->LA(1);
-    if (_la == pblangParser::T__30) {
+    if (_la == pblangParser::T__32) {
       setState(279);
-      match(pblangParser::T__30);
+      match(pblangParser::T__32);
       setState(280);
       declaredParameter();
       setState(285);
       _errHandler->sync(this);
       _la = _input->LA(1);
-      while (_la == pblangParser::T__31) {
+      while (_la == pblangParser::T__33) {
         setState(281);
-        match(pblangParser::T__31);
+        match(pblangParser::T__33);
         setState(282);
         declaredParameter();
         setState(287);
@@ -2084,7 +2087,7 @@ pblangParser::DefinitionContext* pblangParser::definition() {
         _la = _input->LA(1);
       }
       setState(288);
-      match(pblangParser::T__32);
+      match(pblangParser::T__34);
     }
     setState(292);
     match(pblangParser::T__5);
@@ -2097,13 +2100,13 @@ pblangParser::DefinitionContext* pblangParser::definition() {
         break;
       }
 
-      case pblangParser::T__30:
+      case pblangParser::T__32:
       case pblangParser::ID:
       case pblangParser::FLOAT: {
         setState(294);
         expression();
         setState(295);
-        match(pblangParser::T__28);
+        match(pblangParser::T__30);
         break;
       }
 
@@ -2277,14 +2280,14 @@ pblangParser::AdditionContext* pblangParser::addition() {
     setState(308);
     _errHandler->sync(this);
     _la = _input->LA(1);
-    while (_la == pblangParser::T__33
+    while (_la == pblangParser::T__35
 
-    || _la == pblangParser::T__34) {
+    || _la == pblangParser::T__36) {
       setState(304);
       _la = _input->LA(1);
-      if (!(_la == pblangParser::T__33
+      if (!(_la == pblangParser::T__35
 
-      || _la == pblangParser::T__34)) {
+      || _la == pblangParser::T__36)) {
       _errHandler->recoverInline(this);
       }
       else {
@@ -2358,14 +2361,14 @@ pblangParser::MultiplicationContext* pblangParser::multiplication() {
     setState(316);
     _errHandler->sync(this);
     _la = _input->LA(1);
-    while (_la == pblangParser::T__35
+    while (_la == pblangParser::T__37
 
-    || _la == pblangParser::T__36) {
+    || _la == pblangParser::T__38) {
       setState(312);
       _la = _input->LA(1);
-      if (!(_la == pblangParser::T__35
+      if (!(_la == pblangParser::T__37
 
-      || _la == pblangParser::T__36)) {
+      || _la == pblangParser::T__38)) {
       _errHandler->recoverInline(this);
       }
       else {
@@ -2439,9 +2442,9 @@ pblangParser::ExponentiationContext* pblangParser::exponentiation() {
     setState(324);
     _errHandler->sync(this);
     _la = _input->LA(1);
-    while (_la == pblangParser::T__37) {
+    while (_la == pblangParser::T__39) {
       setState(320);
-      match(pblangParser::T__37);
+      match(pblangParser::T__39);
       setState(321);
       modulo();
       setState(326);
@@ -2509,9 +2512,9 @@ pblangParser::ModuloContext* pblangParser::modulo() {
     setState(332);
     _errHandler->sync(this);
     _la = _input->LA(1);
-    while (_la == pblangParser::T__38) {
+    while (_la == pblangParser::T__40) {
       setState(328);
-      match(pblangParser::T__38);
+      match(pblangParser::T__40);
       setState(329);
       primaryExpression();
       setState(334);
@@ -2587,11 +2590,11 @@ pblangParser::PrimaryExpressionContext* pblangParser::primaryExpression() {
     case 1: {
       enterOuterAlt(_localctx, 1);
       setState(335);
-      match(pblangParser::T__30);
+      match(pblangParser::T__32);
       setState(336);
       expression();
       setState(337);
-      match(pblangParser::T__32);
+      match(pblangParser::T__34);
       break;
     }
 
@@ -2610,17 +2613,17 @@ pblangParser::PrimaryExpressionContext* pblangParser::primaryExpression() {
       _errHandler->sync(this);
 
       _la = _input->LA(1);
-      if (_la == pblangParser::T__30) {
+      if (_la == pblangParser::T__32) {
         setState(341);
-        match(pblangParser::T__30);
+        match(pblangParser::T__32);
         setState(342);
         expression();
         setState(347);
         _errHandler->sync(this);
         _la = _input->LA(1);
-        while (_la == pblangParser::T__31) {
+        while (_la == pblangParser::T__33) {
           setState(343);
-          match(pblangParser::T__31);
+          match(pblangParser::T__33);
           setState(344);
           expression();
           setState(349);
@@ -2628,7 +2631,7 @@ pblangParser::PrimaryExpressionContext* pblangParser::primaryExpression() {
           _la = _input->LA(1);
         }
         setState(350);
-        match(pblangParser::T__32);
+        match(pblangParser::T__34);
       }
       break;
     }
