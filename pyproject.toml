@@ -21,6 +21,8 @@ antlr4-python3-runtime = "^4.13.2"
 typing-extensions = "^4.13.2"
 bigraph-schema = "^0.0.58"
 process-bigraph = "^0.0.37"
+typer = "^0.15.4"
+bigraph-viz = "^0.1.5"
 
 [tool.poetry.build]
 script = "build.py"
