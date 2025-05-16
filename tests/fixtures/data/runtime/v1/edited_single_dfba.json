@@ -1,0 +1,299 @@
+{
+    "state": {
+        "global_time": "0.0",
+        "dfba": {
+            "inputs": {
+                "substrates": {
+                    "glucose": ["fields", "glucose"],
+                    "acetate": ["fields", "acetate"],
+                    "biomass": ["fields", "biomass"]
+                }
+            },
+            "outputs": {
+                "substrates": {
+                    "glucose": ["fields", "glucose"],
+                    "acetate": ["fields", "acetate"],
+                    "biomass": ["fields", "biomass"]
+                }
+            },
+            "interval": 1.0,
+            "address": "local:DynamicFBA",
+            "config": {
+                "model_file": "textbook",
+                "kinetic_params": {
+                    "glucose": ["0.5", "1.0"],
+                    "acetate": ["0.5", "2.0"]
+                },
+                "substrate_update_reactions": {
+                    "glucose": "EX_glc__D_e",
+                    "acetate": "EX_ac_e"
+                },
+                "biomass_identifier": "biomass",
+                "bounds": {
+                    "EX_o2_e": {
+                        "lower": "-2.0",
+                        "upper": "!nil"
+                    },
+                    "ATPM": {
+                        "lower": "1.0",
+                        "upper": "1.0"
+                    }
+                }
+            },
+            "shared": null
+        },
+        "emitter": {
+            "inputs": {
+                "global_time": ["global_time"],
+                "fields": ["fields"]
+            },
+            "outputs": null,
+            "address": "local:ram-emitter",
+            "config": {
+                "emit": {
+                    "global_time": "any",
+                    "fields": "any"
+                }
+            }
+        },
+        "fields": {
+            "glucose": "10.0",
+            "acetate": "0.0",
+            "biomass": "0.1"
+        }
+    },
+    "composition": {
+        "global_time": {
+            "_type": "float",
+            "_description": "64-bit floating point precision number",
+            "_default": 0.0
+        },
+        "dfba": {
+            "_type": "process",
+            "_inputs": { "substrates": "map[positive_float]" },
+            "_outputs": { "substrates": "map[positive_float]" },
+            "_description": "",
+            "inputs": {
+                "_type": "wires",
+                "_type_parameters": ["leaf"],
+                "_description": "mapping from str to some type in a potentially nested form",
+                "_leaf": {
+                    "_type": "path",
+                    "_default": [],
+                    "_type_parameters": ["element"],
+                    "_description": "general list type (or sublists)",
+                    "_element": {
+                        "_type": "union",
+                        "_description": "union of a set of possible types",
+                        "_type_parameters": ["0", "1"],
+                        "_0": "string",
+                        "_1": "integer"
+                    },
+                    "_inherit": ["list[string~integer]"]
+                },
+                "_inherit": ["tree[path]"]
+            },
+            "outputs": {
+                "_type": "wires",
+                "_default": "default_tree",
+                "_type_parameters": ["leaf"],
+                "_description": "mapping from str to some type in a potentially nested form",
+                "_leaf": {
+                    "_type": "path",
+                    "_default": [],
+                    "_type_parameters": ["element"],
+                    "_description": "general list type (or sublists)",
+                    "_element": {
+                        "_type": "union",
+                        "_default": "default_union",
+                        "_description": "union of a set of possible types",
+                        "_type_parameters": ["0", "1"],
+                        "_0": "string",
+                        "_1": "integer"
+                    },
+                    "_inherit": ["list[string~integer]"]
+                },
+                "_inherit": ["tree[path]"]
+            },
+            "_graphviz": "graphviz_edge",
+            "_inherit": ["edge"],
+            "interval": {
+                "_type": "interval",
+                "_description": "64-bit floating point precision number",
+                "_default": "1.0",
+                "_inherit": ["float"]
+            },
+            "address": {
+                "_type": "protocol",
+                "_description": "64-bit integer",
+                "_inherit": ["string"]
+            },
+            "config": {
+                "_type": "quote",
+                "_description": "protect a schema from generation, ie in the config for a nested composite which has type information we only want to evaluate inside of the composite",
+                "_graphviz": "graphviz_none"
+            },
+            "shared": {
+                "_type": "map",
+                "_default": {},
+                "_type_parameters": ["value"],
+                "_description": "flat mapping from keys of strings to values of any type",
+                "_value": {
+                    "_type": "step",
+                    "_type_parameters": ["inputs", "outputs"],
+                    "inputs": {
+                        "_type": "wires",
+                        "_type_parameters": ["leaf"],
+                        "_description": "mapping from str to some type in a potentially nested form",
+                        "_leaf": {
+                            "_type": "path",
+                            "_default": [],
+                            "_type_parameters": ["element"],
+                            "_description": "general list type (or sublists)",
+                            "_element": {
+                                "_type": "union",
+                                "_description": "union of a set of possible types",
+                                "_type_parameters": ["0", "1"],
+                                "_0": "string",
+                                "_1": "integer"
+                            },
+                            "_inherit": ["list[string~integer]"]
+                        },
+                        "_inherit": ["tree[path]"]
+                    },
+                    "outputs": {
+                        "_type": "wires",
+                        "_default": "default_tree",
+                        "_type_parameters": ["leaf"],
+                        "_description": "mapping from str to some type in a potentially nested form",
+                        "_leaf": {
+                            "_type": "path",
+                            "_default": [],
+                            "_type_parameters": ["element"],
+                            "_description": "general list type (or sublists)",
+                            "_element": {
+                                "_type": "union",
+                                "_default": "default_union",
+                                "_description": "union of a set of possible types",
+                                "_type_parameters": ["0", "1"],
+                                "_0": "string",
+                                "_1": "integer"
+                            },
+                            "_inherit": ["list[string~integer]"]
+                        },
+                        "_inherit": ["tree[path]"]
+                    },
+                    "_graphviz": "graphviz_edge",
+                    "_inherit": ["edge"],
+                    "address": {
+                        "_type": "protocol",
+                        "_description": "64-bit integer",
+                        "_inherit": ["string"]
+                    },
+                    "config": {
+                        "_type": "quote",
+                        "_description": "protect a schema from generation, ie in the config for a nested composite which has type information we only want to evaluate inside of the composite",
+                        "_graphviz": "graphviz_none"
+                    }
+                }
+            },
+            "instance": {
+                "_type": "any",
+                "_graphviz": "graphviz_any"
+            }
+        },
+        "emitter": {
+            "_type": "step",
+            "_default": "default_edge",
+            "_inputs": {
+                "global_time": "any",
+                "fields": "any"
+            },
+            "_outputs": null,
+            "_description": "",
+            "inputs": {
+                "_type": "wires",
+                "_type_parameters": ["leaf"],
+                "_description": "mapping from str to some type in a potentially nested form",
+                "_leaf": {
+                    "_type": "path",
+                    "_default": [],
+                    "_type_parameters": ["element"],
+                    "_description": "general list type (or sublists)",
+                    "_element": {
+                        "_type": "union",
+                        "_default": "default_union",
+                        "_description": "union of a set of possible types",
+                        "_type_parameters": ["0", "1"],
+                        "_0": "string",
+                        "_1": "integer"
+                    },
+                    "_inherit": ["list[string~integer]"]
+                },
+                "_inherit": ["tree[path]"]
+            },
+            "outputs": {
+                "_type": "wires",
+                "_default": "default_tree",
+                "_type_parameters": ["leaf"],
+                "_description": "mapping from str to some type in a potentially nested form",
+                "_leaf": {
+                    "_type": "path",
+                    "_default": [],
+                    "_type_parameters": ["element"],
+                    "_description": "general list type (or sublists)",
+                    "_element": {
+                        "_type": "union",
+                        "_default": "default_union",
+                        "_description": "union of a set of possible types",
+                        "_type_parameters": ["0", "1"],
+                        "_0": "string",
+                        "_1": "integer"
+                    },
+                    "_inherit": ["list[string~integer]"]
+                },
+                "_inherit": ["tree[path]"]
+            },
+            "_graphviz": "graphviz_edge",
+            "_inherit": ["edge"],
+            "address": {
+                "_type": "protocol",
+                "_default": "",
+                "_description": "64-bit integer",
+                "_inherit": ["string"]
+            },
+            "config": {
+                "_type": "quote",
+                "_deserialize": "deserialize_quote",
+                "_default": "default_quote",
+                "_description": "protect a schema from generation, ie in the config for a nested composite which has type information we only want to evaluate inside of the composite",
+                "_graphviz": "graphviz_none"
+            },
+            "instance": {
+                "_type": "any",
+                "_default": "default_any",
+                "_graphviz": "graphviz_any"
+            }
+        },
+        "fields": {
+            "glucose": {
+                "_type": "positive_float",
+                "_description": "64-bit floating point precision number",
+                "_default": 0.0,
+                "_inherit": ["float"]
+            },
+            "acetate": {
+                "_type": "positive_float",
+                "_description": "64-bit floating point precision number",
+                "_default": 0.0,
+                "_inherit": ["float"]
+            },
+            "biomass": {
+                "_type": "positive_float",
+                "_description": "64-bit floating point precision number",
+                "_default": 0.0,
+                "_inherit": ["float"]
+            }
+        }
+    }
+}

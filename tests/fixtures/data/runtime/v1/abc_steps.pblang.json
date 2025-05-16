@@ -1,0 +1,254 @@
+{
+    "obj_type": "Model",
+    "definitions": [],
+    "types": [
+        {
+            "name": "float",
+            "obj_type": "Type",
+            "builtin": "builtin",
+            "superType": null,
+            "default": null,
+            "update": null,
+            "subtypes": []
+        },
+        {
+            "name": "string",
+            "obj_type": "Type",
+            "builtin": "builtin",
+            "superType": null,
+            "default": null,
+            "update": null,
+            "subtypes": []
+        }
+    ],
+    "units": [],
+    "processDefs": [
+        {
+            "name": "add_nums",
+            "obj_type": "ProcessDef",
+            "params": [],
+            "vars": [
+                {
+                    "name": "left_hand_addend",
+                    "obj_type": "SchemaItem",
+                    "type": {
+                        "ref": "#/types@0",
+                        "ref_text": "float"
+                    },
+                    "default": null,
+                    "unit_ref": null
+                },
+                {
+                    "name": "right_hand_addend",
+                    "obj_type": "SchemaItem",
+                    "type": {
+                        "ref": "#/types@0",
+                        "ref_text": "float"
+                    },
+                    "default": null,
+                    "unit_ref": null
+                },
+                {
+                    "name": "result",
+                    "obj_type": "SchemaItem",
+                    "type": {
+                        "ref": "#/types@0",
+                        "ref_text": "float"
+                    },
+                    "default": null,
+                    "unit_ref": null
+                }
+            ],
+            "inputs": [
+                {
+                    "ref": "#/processDefs@0/vars@0",
+                    "ref_text": "left_hand_addend"
+                },
+                {
+                    "ref": "#/processDefs@0/vars@1",
+                    "ref_text": "right_hand_addend"
+                }
+            ],
+            "outputs": [
+                {
+                    "ref": "#/processDefs@0/vars@2",
+                    "ref_text": "result"
+                }
+            ],
+            "updates": [],
+            "python_path": {
+                "obj_type": "PythonPath",
+                "path": ["toy", "AddFloatsStep"]
+            }
+        },
+        {
+            "name": "print_result",
+            "obj_type": "ProcessDef",
+            "params": [
+                {
+                    "name": "output_file_path",
+                    "obj_type": "SchemaItem",
+                    "type": {
+                        "ref": "#/types@1",
+                        "ref_text": "string"
+                    },
+                    "default": {
+                        "val": "~/abc_result.txt"
+                    },
+                    "unit_ref": null
+                }
+            ],
+            "vars": [
+                {
+                    "name": "result",
+                    "obj_type": "SchemaItem",
+                    "type": {
+                        "ref": "#/types@0",
+                        "ref_text": "float"
+                    },
+                    "default": null,
+                    "unit_ref": null
+                }
+            ],
+            "inputs": [
+                {
+                    "ref": "#/processDefs@0/vars@2",
+                    "ref_text": "result"
+                }
+            ],
+            "outputs": [],
+            "updates": [],
+            "python_path": {
+                "obj_type": "PythonPath",
+                "path": ["toy", "SaveFloatToFileStep"]
+            }
+        }
+    ],
+    "store_defs": [
+        {
+            "name": "left_hand",
+            "obj_type": "StoreDef",
+            "parent": null,
+            "states": [
+                {
+                    "name": "left_hand_addend",
+                    "obj_type": "SchemaItem",
+                    "type": {
+                        "ref": "#/types@0",
+                        "ref_text": "float"
+                    },
+                    "default": {
+                        "val": 2.07
+                    },
+                    "unit_ref": null
+                }
+            ]
+        },
+        {
+            "name": "right_hand",
+            "obj_type": "StoreDef",
+            "parent": null,
+            "states": [
+                {
+                    "name": "right_hand_addend",
+                    "obj_type": "SchemaItem",
+                    "type": {
+                        "ref": "#/types@0",
+                        "ref_text": "float"
+                    },
+                    "default": {
+                        "val": 3.5
+                    },
+                    "unit_ref": null
+                }
+            ]
+        },
+        {
+            "name": "resulting_calculation",
+            "obj_type": "StoreDef",
+            "parent": null,
+            "states": [
+                {
+                    "name": "result",
+                    "obj_type": "SchemaItem",
+                    "type": {
+                        "ref": "#/types@0",
+                        "ref_text": "float"
+                    },
+                    "default": null,
+                    "unit_ref": null
+                }
+            ]
+        }
+    ],
+    "compositeDefs": [
+        {
+            "name": "CellComposite",
+            "obj_type": "CompositeDef",
+            "stores": [
+                {
+                    "name": "lhs",
+                    "obj_type": "Store",
+                    "store_def": {
+                        "ref": "#/store_defs@0",
+                        "ref_text": "left_hand"
+                    }
+                },
+                {
+                    "name": "rhs",
+                    "obj_type": "Store",
+                    "store_def": {
+                        "ref": "#/store_defs@1",
+                        "ref_text": "right_hand"
+                    }
+                },
+                {
+                    "name": "res",
+                    "obj_type": "Store",
+                    "store_def": {
+                        "ref": "#/store_defs@2",
+                        "ref_text": "resulting_calculation"
+                    }
+                }
+            ],
+            "processes": [
+                {
+                    "name": "addition",
+                    "obj_type": "Process",
+                    "process_def": {
+                        "ref": "#/processDefs@0",
+                        "ref_text": "add_nums"
+                    },
+                    "stores": [
+                        {
+                            "ref": "#/compositeDefs@0/stores@0",
+                            "ref_text": "lhs"
+                        },
+                        {
+                            "ref": "#/compositeDefs@0/stores@1",
+                            "ref_text": "rhs"
+                        },
+                        {
+                            "ref": "#/compositeDefs@0/stores@2",
+                            "ref_text": "res"
+                        }
+                    ]
+                },
+                {
+                    "name": "printing",
+                    "obj_type": "Process",
+                    "process_def": {
+                        "ref": "#/processDefs@1",
+                        "ref_text": "print_result"
+                    },
+                    "stores": [
+                        {
+                            "ref": "#/compositeDefs@0/stores@2",
+                            "ref_text": "res"
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}
