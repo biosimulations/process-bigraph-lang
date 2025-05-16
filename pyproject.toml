@@ -7,17 +7,20 @@ repository = "https://github.com/biosimulations/process-bigraph-lang"
 documentation = "https://biosimulations.github.io/process-bigraph-lang/"
 readme = "README.md"
 packages = [
-  {include = "process_bigraph_lang"}
+    {include = "process_bigraph_lang"},
+    {include = "process_bigraph_lang/py.typed"}
 ]
 include = [
     {path="process_bigraph_lang/bin/cli-native*", format="wheel"},
 ]
 
 [tool.poetry.dependencies]
-python = ">=3.9,<4.0"
+python = ">=3.11,<4.0"
 pydantic = "^2.11.3"
 antlr4-python3-runtime = "^4.13.2"
 typing-extensions = "^4.13.2"
+bigraph-schema = "^0.0.58"
+process-bigraph = "^0.0.37"
 
 [tool.poetry.build]
 script = "build.py"
@@ -30,6 +33,7 @@ mypy = "^1.5.1"
 pre-commit = "^3.4.0"
 tox = "^4.11.1"
 types-antlr4-python3-runtime = "^4.13.0.20240519"
+spatio-flux = {git = "https://github.com/vivarium-collective/spatio-flux.git"}
 
 [tool.poetry.group.docs.dependencies]
 mkdocs = "^1.4.2"
@@ -49,6 +53,7 @@ check_untyped_defs = "True"
 warn_return_any = "True"
 warn_unused_ignores = "True"
 show_error_codes = "True"
+disable_error_code = ["no-any-unimported"]
 
 [[tool.mypy.overrides]]
 module = "process_bigraph_lang.antlr.*"
