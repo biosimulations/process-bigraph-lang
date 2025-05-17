@@ -1,0 +1,80 @@
+from copy import deepcopy
+from pathlib import Path
+from typing import Any
+import numpy as np
+
+import process_bigraph as pg  # type: ignore[import-untyped]
+from tests.fixtures.test_registry.tellurium import TelluriumStep
+
+
+TELLURIUM_STEP_ADDR = f"{TelluriumStep.__module__}.{TelluriumStep.__qualname__}"
+config_template = {
+    "composition": {
+        "results_store": {"result_array": "array[(10|4),float]", "result_labels": "list[string]"},
+    },
+    "state": {
+        "start_time_store": 0.0,
+        "run_time_store": 10.0,
+        "tellurium": {
+            "_type": "step",
+            "address": f"local:{TELLURIUM_STEP_ADDR}",
+            "config": {
+                "sbml_model_path": "",
+                "num_steps": 10,
+            },
+            "inputs": {
+                "time": ["start_time_store"],
+                "run_time": ["run_time_store"],
+            },
+            "outputs": {
+                "results": ["results_store"],
+            },
+        },
+        "emitter": {
+            "_type": "step",
+            "address": "local:ram-emitter",
+            "config": {
+                "emit": {
+                    "floating_species": "tree[float]",
+                    "time": "float",
+                },
+            },
+            "inputs": {
+                "floating_species": ["floating_species_store"],
+                "time": ["start_time_store"],
+            },
+        },
+    },
+}
+
+
+def test_tellurium_step(sbml_path_caravagna2010: Path) -> None:
+    core = pg.ProcessTypes()
+    core = pg.register_types(core)
+
+    config: dict[str, Any] = deepcopy(config_template)
+    config["state"]["tellurium"]["config"]["sbml_model_path"] = str(sbml_path_caravagna2010)
+
+    core.register_process(TELLURIUM_STEP_ADDR, TelluriumStep)
+
+    composite = pg.Composite(config=config, core=core)
+    # composite.run(10.0)  # don't need to call run(), the steps execute in composite.initialize()
+    expected_array = np.array(
+        [
+            [0.00000000e00, 1.00000000e00, 1.00000000e00, 1.00000000e00],
+            [1.11111111e00, 1.22139854e00, 9.91424317e-01, 7.30381017e-05],
+            [2.22222222e00, 1.49181442e00, 9.88489441e-01, 7.07013044e-05],
+            [3.33333333e00, 1.82210000e00, 9.92197067e-01, 8.66141627e-05],
+            [4.44444444e00, 2.22551055e00, 1.00377879e00, 1.06933141e-04],
+            [5.55555556e00, 2.71823565e00, 1.02474669e00, 1.33203548e-04],
+            [6.66666667e00, 3.32005101e00, 1.05695535e00, 1.67618426e-04],
+            [7.77777778e00, 4.05510603e00, 1.10267689e00, 2.13314251e-04],
+            [8.88888889e00, 4.95289849e00, 1.16469371e00, 2.74811708e-04],
+            [1.00000000e01, 6.04945927e00, 1.24641134e00, 3.58663961e-04],
+        ],
+        dtype=np.float64,
+    )
+    observed_array = np.array(composite.state["results_store"]["result_array"], dtype=np.float64)
+    assert observed_array.shape == expected_array.shape
+    assert np.allclose(observed_array, expected_array)
+    assert composite.state["results_store"]["result_labels"] == ["time", "T", "E", "I"]

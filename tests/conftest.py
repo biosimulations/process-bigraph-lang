@@ -11,3 +11,6 @@ from tests.fixtures.v1_model_fixtures import (  # noqa: F401
     model_paths_abc_steps,
     model_paths_abc_processes,
 )
+from tests.fixtures.v2_model_fixtures import (  # noqa: F401
+    sbml_path_caravagna2010,
+)
