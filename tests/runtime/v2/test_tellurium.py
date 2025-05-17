@@ -4,6 +4,8 @@ from typing import Any
 import numpy as np
 
 import process_bigraph as pg  # type: ignore[import-untyped]
+from process_bigraph_lang.runtime.v2.generator import generate
+from process_bigraph_lang.runtime.v2.pb_model import PBStore, PBStep, PBModel
 from tests.fixtures.test_registry.tellurium import TelluriumStep
 
 
@@ -11,6 +13,8 @@ TELLURIUM_STEP_ADDR = f"{TelluriumStep.__module__}.{TelluriumStep.__qualname__}"
 config_template = {
     "composition": {
         "results_store": {"result_array": "array[(10|4),float]", "result_labels": "list[string]"},
+        "run_time_store": "float",
+        "start_time_store": "float",
     },
     "state": {
         "start_time_store": 0.0,
@@ -78,3 +82,39 @@ def test_tellurium_step(sbml_path_caravagna2010: Path) -> None:
     assert observed_array.shape == expected_array.shape
     assert np.allclose(observed_array, expected_array)
     assert composite.state["results_store"]["result_labels"] == ["time", "T", "E", "I"]
+
+
+def test_generator_tellurium_steps() -> None:
+    store_start_time = PBStore(key="start_time_store", path=[], value=0.0, data_type="float")
+    store_run_time = PBStore(key="run_time_store", path=[], value=10.0, data_type="float")
+    store_result_array = PBStore(
+        key="result_array", path=["results_store"], value=None, data_type="array[(10|4),float]"
+    )
+    store_result_labels = PBStore(key="result_labels", path=["results_store"], value=None, data_type="list[string]")
+    step_tellurium = PBStep(
+        key="tellurium",
+        path=[],
+        address=f"local:{TELLURIUM_STEP_ADDR}",
+        config=dict(sbml_model_path="", num_steps=10),
+        inputs=dict(time=["start_time_store"], run_time=["run_time_store"]),
+        outputs=dict(results=["results_store"]),
+    )
+
+    ram_emitter = PBStep(
+        key="emitter",
+        path=[],
+        address="local:ram-emitter",
+        config=dict(emit=dict(floating_species="tree[float]", time="float")),
+        inputs=dict(floating_species=["floating_species_store"], time=["start_time_store"]),
+        outputs={},
+    )
+
+    pb_model = PBModel(
+        stores=[store_start_time, store_run_time, store_result_array, store_result_labels],
+        steps=[step_tellurium, ram_emitter],
+        processes=[],
+        types=[],
+        composite_defs=[],
+    )
+    generated_config: dict[str, Any] = generate(pb_model=pb_model)
+    assert config_template == generated_config

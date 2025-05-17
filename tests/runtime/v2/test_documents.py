@@ -6,6 +6,12 @@ from process_bigraph_lang.runtime.v2.generator import generate
 from process_bigraph_lang.runtime.v2.pb_model import PBStore, PBStep, PBModel
 
 expected_config = {
+    "composition": {
+        "A": "float",
+        "B": "float",
+        "C": "float",
+        "D": "float",
+    },
     "state": {
         "A": 13,
         "B": 21,
@@ -23,7 +29,7 @@ expected_config = {
             "inputs": {"a": ["B"], "b": ["C"]},
             "outputs": {"c": ["D"]},
         },
-    }
+    },
 }
 
 
@@ -36,8 +42,10 @@ def test_step_initialization() -> None:
 
 
 def test_generator_steps() -> None:
-    store_A = PBStore(key="A", path=[], value=13)
-    store_B = PBStore(key="B", path=[], value=21)
+    store_A = PBStore(key="A", path=[], value=13, data_type="float")
+    store_B = PBStore(key="B", path=[], value=21, data_type="float")
+    store_C = PBStore(key="C", path=[], value=None, data_type="float")
+    store_D = PBStore(key="D", path=[], value=None, data_type="float")
     step_step1 = PBStep(
         key="step1",
         path=[],
@@ -56,7 +64,11 @@ def test_generator_steps() -> None:
     )
 
     pb_model = PBModel(
-        stores=[store_A, store_B], steps=[step_step1, step_step2], processes=[], types=[], composite_defs=[]
+        stores=[store_A, store_B, store_C, store_D],
+        steps=[step_step1, step_step2],
+        processes=[],
+        types=[],
+        composite_defs=[],
     )
     generated_config: dict[str, Any] = generate(pb_model=pb_model)
     assert expected_config == generated_config

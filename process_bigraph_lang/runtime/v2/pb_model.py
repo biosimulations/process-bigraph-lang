@@ -15,6 +15,7 @@ class PBEntity:
 
 @dataclass
 class PBStore(PBEntity):
+    data_type: str
     value: Optional[Any] = None
 
 

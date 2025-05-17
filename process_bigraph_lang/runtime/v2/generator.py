@@ -4,13 +4,20 @@ from process_bigraph_lang.runtime.v2.pb_model import PBModel
 
 
 def generate(pb_model: PBModel) -> dict[str, Any]:
-    doc: dict[str, Any] = dict(state={})
+    doc: dict[str, Any] = dict(composition={}, state={})
     for store in pb_model.stores:
-        set_value_at_path(doc["state"], store.full_path, value=store.value)
+        if store.value is not None:
+            set_value_at_path(doc["state"], store.full_path, value=store.value)
+        if store.data_type:
+            set_value_at_path(doc["composition"], store.full_path, value=store.data_type)
     for step in pb_model.steps:
-        step_dict = dict(
-            _type=step._type, address=step.address, config=step.config, inputs=step.inputs, outputs=step.outputs
-        )
+        step_dict: dict[str, Any] = dict(_type=step._type, address=step.address)
+        if step.config:
+            step_dict["config"] = step.config
+        if step.inputs:
+            step_dict["inputs"] = step.inputs
+        if step.outputs:
+            step_dict["outputs"] = step.outputs
         set_value_at_path(doc["state"], step.full_path, value=step_dict)
     return doc
 
