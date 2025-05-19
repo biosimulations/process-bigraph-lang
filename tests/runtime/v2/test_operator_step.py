@@ -5,7 +5,7 @@ import process_bigraph as pg  # type: ignore[import-untyped]
 from process_bigraph_lang.runtime.v2.generator import generate
 from process_bigraph_lang.runtime.v2.pb_model import PBStore, PBStep, PBModel
 
-expected_config = {
+op_step_expected_config = {
     "composition": {
         "A": "float",
         "B": "float",
@@ -33,15 +33,15 @@ expected_config = {
 }
 
 
-def test_step_initialization() -> None:
+def test_op_step_initialization() -> None:
     core = pg.ProcessTypes()
     core = pg.register_types(core)
-    composite = pg.Composite(config=deepcopy(expected_config), core=core)
+    composite = pg.Composite(config=deepcopy(op_step_expected_config), core=core)
     composite.run(0.0)
     assert composite.state["D"] == (13 + 21) * 21
 
 
-def test_generator_steps() -> None:
+def test_op_step_generator() -> None:
     store_A = PBStore(key="A", path=[], value=13, data_type="float")
     store_B = PBStore(key="B", path=[], value=21, data_type="float")
     store_C = PBStore(key="C", path=[], value=None, data_type="float")
@@ -71,7 +71,7 @@ def test_generator_steps() -> None:
         composite_defs=[],
     )
     generated_config: dict[str, Any] = generate(pb_model=pb_model)
-    assert expected_config == generated_config
+    assert op_step_expected_config == generated_config
 
     core = pg.ProcessTypes()
     core = pg.register_types(core)

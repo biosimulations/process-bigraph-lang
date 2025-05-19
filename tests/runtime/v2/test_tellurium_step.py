@@ -10,7 +10,7 @@ from tests.fixtures.test_registry.tellurium import TelluriumStep
 
 
 TELLURIUM_STEP_ADDR = f"{TelluriumStep.__module__}.{TelluriumStep.__qualname__}"
-config_template = {
+step_config_template = {
     "composition": {
         "results_store": {"result_array": "array[(10|4),float]", "result_labels": "list[string]"},
         "run_time_store": "float",
@@ -56,13 +56,15 @@ def test_tellurium_step(sbml_path_caravagna2010: Path) -> None:
     core = pg.ProcessTypes()
     core = pg.register_types(core)
 
-    config: dict[str, Any] = deepcopy(config_template)
+    config: dict[str, Any] = deepcopy(step_config_template)
     config["state"]["tellurium"]["config"]["sbml_model_path"] = str(sbml_path_caravagna2010)
 
     core.register_process(TELLURIUM_STEP_ADDR, TelluriumStep)
 
+    # construct and run the Step network (don't need to call composite.run(), executes in composite.initialize())
     composite = pg.Composite(config=config, core=core)
-    # composite.run(10.0)  # don't need to call run(), the steps execute in composite.initialize()
+
+    # compare results
     expected_array = np.array(
         [
             [0.00000000e00, 1.00000000e00, 1.00000000e00, 1.00000000e00],
@@ -117,4 +119,4 @@ def test_generator_tellurium_steps() -> None:
         composite_defs=[],
     )
     generated_config: dict[str, Any] = generate(pb_model=pb_model)
-    assert config_template == generated_config
+    assert step_config_template == generated_config
