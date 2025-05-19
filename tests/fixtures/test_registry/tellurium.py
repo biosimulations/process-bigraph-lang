@@ -1,10 +1,11 @@
-from typing import Any, override
+from typing import Any
 
 from roadrunner._roadrunner import NamedArray  # type: ignore[import-untyped]
 
 import numpy as np
 import tellurium as te  # type: ignore[import-untyped]
 from tests.fixtures.test_registry.utils import TypedStep
+from typing_extensions import override
 
 
 class TelluriumStep(TypedStep):
