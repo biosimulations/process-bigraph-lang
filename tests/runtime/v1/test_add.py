@@ -12,10 +12,10 @@ from process_bigraph_lang.runtime.v1.type_generator import register_types
 from process_bigraph_lang.runtime.v1.unit_generator import register_units
 
 
-def test_add_with_process(model_paths_abc_processes: tuple[Path, Path]) -> None:
+def test_add_floats_with_process(model_paths_add_floats_processes: tuple[Path, Path]) -> None:
     with tempfile.TemporaryDirectory() as tmp_dirname:
         # read JSON from DSL in second argument of tuple
-        ast_json_path = model_paths_abc_processes[1]
+        ast_json_path = model_paths_add_floats_processes[1]
         with open(ast_json_path, "r") as file:
             model_json = file.read()
 
@@ -51,10 +51,10 @@ def test_add_with_process(model_paths_abc_processes: tuple[Path, Path]) -> None:
             assert contents.strip() == "55.7"
 
 
-def test_add_with_step(model_paths_abc_steps: tuple[Path, Path]) -> None:
+def test_add_floats_with_step(model_paths_add_floats_steps: tuple[Path, Path]) -> None:
     with tempfile.TemporaryDirectory() as tmp_dirname:
         # read JSON from DSL in second argument of tuple
-        ast_json_path = model_paths_abc_steps[1]
+        ast_json_path = model_paths_add_floats_steps[1]
         with open(ast_json_path, "r") as file:
             model_json = file.read()
 

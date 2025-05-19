@@ -8,7 +8,7 @@ from process_bigraph_lang.dsl.model import (
 )
 
 
-def generateModelAst(pblang_file: os.PathLike[str]) -> ASTModel:
+def _generateModelAst(pblang_file: os.PathLike[str]) -> ASTModel:
     model_json: str = generate.generate_model(pblang_file)
     model: ASTModel = ASTModel.model_validate_json(model_json)
     bind_model(model)
@@ -17,12 +17,12 @@ def generateModelAst(pblang_file: os.PathLike[str]) -> ASTModel:
     return model
 
 
-def test_parse_abc_with_process(model_paths_abc_processes: tuple[Path, Path]) -> None:
-    pblang_path = model_paths_abc_processes[0]
-    ast_json_path = model_paths_abc_processes[1]
+def test_parse_add_floats_with_process(model_paths_add_floats_processes: tuple[Path, Path]) -> None:
+    pblang_path = model_paths_add_floats_processes[0]
+    ast_json_path = model_paths_add_floats_processes[1]
 
     # create the AST Model by parsing the pblang DSL
-    parsed_ast_model: ASTModel = generateModelAst(pblang_path)
+    parsed_ast_model: ASTModel = _generateModelAst(pblang_path)
 
     # read JSON from DSL in second argument of tuple
     with open(ast_json_path, "r") as file:
@@ -34,12 +34,12 @@ def test_parse_abc_with_process(model_paths_abc_processes: tuple[Path, Path]) ->
     assert loaded_ast_model == parsed_ast_model
 
 
-def test_parse_add_with_steps(model_paths_abc_steps: tuple[Path, Path]) -> None:
-    pblang_path = model_paths_abc_steps[0]
-    ast_json_path = model_paths_abc_steps[1]
+def test_parse_add_with_steps(model_paths_add_floats_steps: tuple[Path, Path]) -> None:
+    pblang_path = model_paths_add_floats_steps[0]
+    ast_json_path = model_paths_add_floats_steps[1]
 
     # create the AST Model by parsing the pblang DSL
-    parsed_ast_model: ASTModel = generateModelAst(pblang_path)
+    parsed_ast_model: ASTModel = _generateModelAst(pblang_path)
 
     # read JSON from DSL in second argument of tuple
     with open(ast_json_path, "r") as file:
