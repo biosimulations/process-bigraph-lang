@@ -2,7 +2,7 @@ import tempfile
 from pathlib import Path
 
 from process_bigraph_lang.antlr_dsl.generate import bind_model
-from process_bigraph_lang.dsl.model import Model
+from process_bigraph_lang.dsl.model import Model as ASTModel
 
 from tests.fixtures.test_registry.toy_library import register as register_toy_library
 from process_bigraph_lang.runtime.v1.process_bigraph_env import ProcessBigraphEnv
@@ -12,14 +12,14 @@ from process_bigraph_lang.runtime.v1.type_generator import register_types
 from process_bigraph_lang.runtime.v1.unit_generator import register_units
 
 
-def test_add_with_process(model_paths_abc_processes: tuple[Path, Path]) -> None:
+def test_add_floats_with_process(model_paths_add_floats_processes: tuple[Path, Path]) -> None:
     with tempfile.TemporaryDirectory() as tmp_dirname:
         # read JSON from DSL in second argument of tuple
-        json_path = model_paths_abc_processes[1]
-        with open(json_path, "r") as file:
+        ast_json_path = model_paths_add_floats_processes[1]
+        with open(ast_json_path, "r") as file:
             model_json = file.read()
 
-        ast_model: Model = Model.model_validate_json(model_json)
+        ast_model: ASTModel = ASTModel.model_validate_json(model_json)
         bind_model(ast_model)
 
         # set the output file path
@@ -51,14 +51,14 @@ def test_add_with_process(model_paths_abc_processes: tuple[Path, Path]) -> None:
             assert contents.strip() == "55.7"
 
 
-def test_add_with_step(model_paths_abc_steps: tuple[Path, Path]) -> None:
+def test_add_floats_with_step(model_paths_add_floats_steps: tuple[Path, Path]) -> None:
     with tempfile.TemporaryDirectory() as tmp_dirname:
         # read JSON from DSL in second argument of tuple
-        json_path = model_paths_abc_steps[1]
-        with open(json_path, "r") as file:
+        ast_json_path = model_paths_add_floats_steps[1]
+        with open(ast_json_path, "r") as file:
             model_json = file.read()
 
-        ast_model: Model = Model.model_validate_json(model_json)
+        ast_model: ASTModel = ASTModel.model_validate_json(model_json)
         bind_model(ast_model)
 
         model_json = ast_model.model_dump_json(indent=2)

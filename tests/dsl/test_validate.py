@@ -20,8 +20,15 @@ def test_validate_abc_should_fail(model_path_abc_error: Path) -> None:
     assert stdout == ""
 
 
-def test_validate_spatio_flux(model_path_spatio_flux: Path) -> None:
-    stdout, stderr = validate_file(model_path_spatio_flux)
+def test_validate_add_floats(model_add_floats: Path) -> None:
+    stdout, stderr = validate_file(model_add_floats)
+    assert stderr == ""
+    assert stdout.startswith("Parsed and validated ")
+    assert stdout.endswith("successfully!")
+
+
+def test_validate_dfba_single(model_dfba_single: Path) -> None:
+    stdout, stderr = validate_file(model_dfba_single)
     assert stderr == ""
     assert stdout.startswith("Parsed and validated ")
     assert stdout.endswith("successfully!")

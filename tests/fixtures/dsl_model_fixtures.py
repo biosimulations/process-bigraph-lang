@@ -51,11 +51,19 @@ def model_path_abc_error() -> Path:
 
 
 @pytest.fixture
-def model_path_spatio_flux() -> Path:
+def model_add_floats() -> Path:
     """
-    Fixture that provides the path to the Spatio-Flux model file.
+    Fixture that provides the path to the toy add floats model file.
     """
-    return Path(__file__).parent / "data" / "dsl" / "spatio_flux.pblang"
+    return Path(__file__).parent / "data" / "dsl" / "add_floats.pblang"
+
+
+@pytest.fixture
+def model_dfba_single() -> Path:
+    """
+    Fixture that provides the path to the single dfba model file.
+    """
+    return Path(__file__).parent / "data" / "dsl" / "dfba_single.pblang"
 
 
 @pytest.fixture
