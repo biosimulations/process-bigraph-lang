@@ -19,6 +19,15 @@ def generate(pb_model: PBModel) -> dict[str, Any]:
         if step.outputs:
             step_dict["outputs"] = step.outputs
         set_value_at_path(doc["state"], step.full_path, value=step_dict)
+    for process in pb_model.processes:
+        process_dict: dict[str, Any] = dict(_type=process._type, address=process.address)
+        if process.config:
+            process_dict["config"] = process.config
+        if process.inputs:
+            process_dict["inputs"] = process.inputs
+        if process.outputs:
+            process_dict["outputs"] = process.outputs
+        set_value_at_path(doc["state"], process.full_path, value=process_dict)
     return doc
 
 
