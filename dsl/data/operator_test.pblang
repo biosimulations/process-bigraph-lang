@@ -1,0 +1,53 @@
+type float builtin
+type string builtin
+
+step op_step path process_bigraph.tests.OperatorStep
+    param op: string default "+"
+    var a : float default 0.0
+    var b : float default 0.0
+    var c : float default 0.0
+    inputs a b
+    outputs c
+
+proc op_process path process_bigraph.tests.OperatorProcess
+    param op: string default "+"
+    var a : float default 0.0
+    var b : float default 0.0
+    var c : float default 0.0
+    inputs a b
+    outputs c
+
+proc tellurium path process_bigraph.tests.TelluriumProcess
+    param op: string default "+"
+    var a : float default 0.0
+    var b : float default 0.0
+    var c : float default 0.0
+    inputs a b
+    outputs c
+
+store op_plus = "+"
+store op_minus = "-"
+store A = 13.0
+store B = 21.0
+store C: float
+store D: float
+store time: float
+store caravagna_model_path = "models/Caravagna2010.xml"
+store other_model_path = "models/BIOMD000000000232.xml"
+store results {
+    data_array: float = 0.0, 
+    labels: string
+}
+
+sbml model1 
+    file "model1"
+    a: float = 0.0
+    b: float = 0.0
+    c: float = 0.0
+
+
+set (C) = op_step[op_plus](C, B)
+update (D) <= op_process[op_minus](B, C)
+
+update (results) <= tellurium[caravagna_model_path](results,time)
+update (results) <= tellurium[other_model_path](results,time)
