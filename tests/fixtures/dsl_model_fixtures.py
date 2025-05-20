@@ -82,7 +82,17 @@ def simple_parse_data_1() -> Generator[tuple[str, Path, Model], None, None]:
         expr=expr,
     )
     expected_model = Model(
-        definitions=[definition], types=[], units=[], processDefs=[], store_defs=[], compositeDefs=[]
+        definitions=[definition],
+        types=[],
+        units=[],
+        processDefs=[],
+        store_defs=[],
+        compositeDefs=[],
+        stepDefs=[],
+        procDefs=[],
+        storeNodes=[],
+        proc_calls=[],
+        step_calls=[],
     )
 
     with tempfile.TemporaryDirectory() as tmpdir:
@@ -122,7 +132,17 @@ def simple_parse_data_2() -> Generator[tuple[str, Path, Model], None, None]:
         expr=expr2,
     )
     expected_model = Model(
-        definitions=[definition1, definition2], types=[], units=[], processDefs=[], store_defs=[], compositeDefs=[]
+        definitions=[definition1, definition2],
+        types=[],
+        units=[],
+        processDefs=[],
+        store_defs=[],
+        compositeDefs=[],
+        stepDefs=[],
+        procDefs=[],
+        storeNodes=[],
+        proc_calls=[],
+        step_calls=[],
     )
     with tempfile.TemporaryDirectory() as tmpdir:
         tmp_path = Path(tmpdir) / "test.pblang"
@@ -184,6 +204,11 @@ def simple_parse_data_3() -> Generator[tuple[str, Path, Model], None, None]:
         processDefs=[],
         store_defs=[],
         compositeDefs=[],
+        stepDefs=[],
+        procDefs=[],
+        storeNodes=[],
+        proc_calls=[],
+        step_calls=[],
     )
     with tempfile.TemporaryDirectory() as tmpdir:
         tmp_path = Path(tmpdir) / "test.pblang"
@@ -360,6 +385,11 @@ def simple_parse_data_4() -> Generator[tuple[str, Path, Model], None, None]:
         processDefs=[process_MyProcess],
         store_defs=[store_medium, store_cell, store_nucleus],
         compositeDefs=[composite_def],
+        stepDefs=[],
+        procDefs=[],
+        storeNodes=[],
+        proc_calls=[],
+        step_calls=[],
     )
     with tempfile.TemporaryDirectory() as tmpdir:
         tmp_path = Path(tmpdir) / "test.pblang"

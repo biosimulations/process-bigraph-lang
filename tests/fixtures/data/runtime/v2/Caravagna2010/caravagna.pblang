@@ -1,0 +1,29 @@
+type float builtin
+type string builtin
+type integer builtin
+type numpy_array_2d builtin
+type list_string builtin
+
+step ode_solver path process_bigraph.tests.TelluriumStep
+    param model_path: string
+    param num_steps: integer
+    var time : float
+    var run_time : float
+    var results_array: numpy_array_2d
+    var results_labels: list_string
+    inputs time run_time
+    outputs results_array results_labels
+
+// parameters
+store n_steps = 10
+store model = "models/Caravagna2010.xml"
+
+// input variables
+store time: float
+store run_time: float
+
+// output variables
+store res_array: numpy_array_2d
+store res_labels: list_string
+
+set (res_array, res_labels) as ode_solver[model,n_steps](time, run_time)

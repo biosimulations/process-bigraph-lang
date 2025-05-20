@@ -49,3 +49,20 @@ def test_parse_add_with_steps(model_paths_add_floats_steps: tuple[Path, Path]) -
     bind_model(loaded_ast_model)
 
     assert loaded_ast_model == parsed_ast_model
+
+
+def test_parse_caravagna(model_path_caravagna2010: Path) -> None:
+    pblang_path = model_path_caravagna2010
+
+    # create the AST Model by parsing the pblang DSL
+    parsed_ast_model: ASTModel = _generateModelAst(pblang_path)
+
+    ast_model_json = parsed_ast_model.model_dump_json(indent=4)
+
+    print()
+    print(ast_model_json)
+
+    loaded_ast_model: ASTModel = ASTModel.model_validate_json(ast_model_json)
+    bind_model(loaded_ast_model)
+
+    assert loaded_ast_model == parsed_ast_model

@@ -43,4 +43,3 @@ class PBModel:
     steps: List[PBStep]
     stores: List[PBStore]
     types: List[Dict[str, Any]]
-    composite_defs: List[Dict[str, Any]]

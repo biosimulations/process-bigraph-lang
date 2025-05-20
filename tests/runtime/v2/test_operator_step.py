@@ -68,7 +68,6 @@ def test_op_step_generator() -> None:
         steps=[step_step1, step_step2],
         processes=[],
         types=[],
-        composite_defs=[],
     )
     generated_config: dict[str, Any] = generate(pb_model=pb_model)
     assert op_step_expected_config == generated_config

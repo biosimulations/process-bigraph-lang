@@ -116,7 +116,6 @@ def test_generator_tellurium_steps() -> None:
         steps=[step_tellurium, ram_emitter],
         processes=[],
         types=[],
-        composite_defs=[],
     )
     generated_config: dict[str, Any] = generate(pb_model=pb_model)
     assert step_config_template == generated_config

@@ -1,16 +1,16 @@
 grammar ProcessBigraphLanguage
 
 entry Model:
-    ((types+=Type) | 
-     (definitions+=Definition) | 
-     (units+=Unit) | 
-     (processDefs+=ProcessDef) | 
-     (store_defs+=StoreDef) | 
-     (compositeDefs+=CompositeDef) | 
-     (sbmlModels+=SbmlModel) | 
-     (stepDefs+=StepDef) | 
-     (procDefs+=ProcDef) | 
-     (globalStores+=GlobalStore) | 
+    ((types+=Type) |
+     (definitions+=Definition) |
+     (units+=Unit) |
+     (processDefs+=ProcessDef) |
+     (store_defs+=StoreDef) |
+     (compositeDefs+=CompositeDef) |
+     (sbmlModels+=SbmlModel) |
+     (stepDefs+=StepDef) |
+     (procDefs+=ProcDef) |
+     ('store' storeNodes+=StoreNode) |
      (step_calls+=StepCall) |
      (proc_calls+=ProcCall))*;
 
@@ -18,7 +18,7 @@ Type:
     'type' name=ID (builtin='builtin')? ('extends' superType=[Type])? ('default' default=DefaultValue)? ('update' update=[Definition])? (subtypes+=NamedType)*;
 
 NamedType:
-    name=ID ':' (('maybe' "[" optional_type=[Type] "]") | type=[Type])
+    name=ID ':' ((option=('maybe' | 'list' | 'array')  "[" optional_type=[Type] "]") | type=[Type])
     ('default' default=DefaultValue)? ("[" unit_ref=[Unit] "]")?;
 
 DefaultValue:
@@ -53,16 +53,11 @@ ProcessDef:
 Store:
     'store' name=ID ':' store_def=[StoreDef];
 
-GlobalStore:
-    'store' StoreNode;
-    
 StoreNode:
-    name=ID StoreNodeDef;
-    
-StoreNodeDef:
-    ('=' val=DefaultValue) | 
-    (':' type=[Type] ('=' val=DefaultValue)?) |
-    ('{' child_defs+=StoreNode (',' child_defs+=StoreNode)* '}');
+    name=ID (
+        ('=' optional_val=DefaultValue) |
+        (':' optional_type=[Type] ('=' optional_val=DefaultValue)?) |
+        ('{' child_defs+=StoreNode (',' child_defs+=StoreNode)* '}'));
 
 StepDef:
     'step' name=ID python_path=PythonPath?
@@ -84,19 +79,11 @@ StepCall:
     ('[' (config_node_list=StoreNodeList)? ']')
     ('(' (input_node_list=StoreNodeList)? ')');
 
-
 ProcCall:
     ('update' '(' (output_node_list=StoreNodeList)? ')')
     (('using' | '<=') process_def_ref=[ProcDef])
     ('[' (config_node_list=StoreNodeList)? ']')
     ('(' (input_node_list=StoreNodeList)? ')');
-
-// Call:
-//     ('(' (output_node_list=StoreNodeList)? ')')
-//     (('=' step_def_ref=[StepDef]) | ('<=' process_def_ref=[ProcDef]))
-//     ('[' (config_node_list=StoreNodeList)? ']')
-//     ('(' (input_node_list=StoreNodeList)? ')');
-
 
 StoreNodeList:
     (store_node_refs+=[StoreNode]) (',' store_node_refs+=[StoreNode])*;

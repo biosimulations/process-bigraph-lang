@@ -32,6 +32,46 @@ add_floats_step_expected_config_template = {
     },
 }
 
+add_floats_step_pblang = """
+type float builtin
+type string builtin
+type integer builtin
+type numpy_array_2d builtin
+type list_string builtin
+
+step add_nums path tests.fixtures.test_registry.toy_library.AddFloatsStep
+    param model_path: string
+    param num_steps: integer
+    var time : float
+    var run_time : float
+    var results_array: numpy_array_2d
+    var results_labels: list_string
+    inputs time run_time
+    outputs results_array results_labels
+
+step print_result path tests.fixtures.test_registry.toy_library.SaveFloatToFileStep
+    param output_file_path: string
+    var result : float
+    inputs result
+    outputs results_array results_labels
+
+store A: float = 2.07
+store B: float = 3.5
+store C: float
+
+
+// input variables
+store time: float
+store run_time: float
+
+// output variables
+store res_array: numpy_array_2d
+store res_labels: list_string
+
+set (res_array, res_labels) as ode_solver[model,n_steps](time, run_time)
+
+"""
+
 
 add_floats_process_expected_config_template = {
     "composition": {
@@ -102,7 +142,6 @@ def test_add_floats_step_generator() -> None:
             steps=[step_add_nums, step_print_result],
             processes=[],
             types=[],
-            composite_defs=[],
         )
         generated_config: dict[str, Any] = generate(pb_model=pb_model)
         assert add_floats_step_expected_config == generated_config
@@ -163,7 +202,6 @@ def test_add_floats_process_generator() -> None:
             steps=[step_print_result],
             processes=[process_add_nums],
             types=[],
-            composite_defs=[],
         )
         generated_config: dict[str, Any] = generate(pb_model=pb_model)
         assert add_floats_step_expected_config == generated_config

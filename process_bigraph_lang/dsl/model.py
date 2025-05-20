@@ -20,6 +20,9 @@ DefinitionRef = Reference
 StoreDefRef = Reference
 StoreRef = Reference
 ProcessDefRef = Reference
+StoreNodeRef = Reference
+StepDefRef = Reference
+ProcDefRef = Reference
 
 BinaryOp = Literal["+", "-", "*", "/", "^", "%"]
 
@@ -60,6 +63,22 @@ class PythonPath(BaseModel):
     path: list[str]
 
 
+class EdgeDef(NamedObject):
+    params: list[SchemaItem]
+    vars: list[SchemaItem]
+    inputs: list[SchemaItemRef]
+    outputs: list[SchemaItemRef]
+    python_path: PythonPath | None = None
+
+
+class StepDef(EdgeDef):
+    obj_type: Literal["StepDef"] = Field(default="StepDef")
+
+
+class ProcDef(EdgeDef):
+    obj_type: Literal["ProcDef"] = Field(default="ProcDef")
+
+
 class ProcessDef(NamedObject):
     obj_type: Literal["ProcessDef"] = Field(default="ProcessDef")
     params: list[SchemaItem]
@@ -68,6 +87,34 @@ class ProcessDef(NamedObject):
     outputs: list[SchemaItemRef]
     updates: list[Update]
     python_path: PythonPath | None = None
+
+
+class StoreNode(NamedObject):
+    obj_type: Literal["StoreNode"] = Field(default="StoreNode")
+    optional_val: DefaultValue | None = None
+    optional_type: TypeRef | None = None
+    child_defs: list["StoreNode"] | None = None
+
+
+class StoreNodeList(BaseModel):
+    obj_type: Literal["StoreNodeList"] = Field(default="StoreNodeList")
+    store_node_refs: list[StoreNodeRef]
+
+
+class StepCall(BaseModel):
+    obj_type: Literal["StepCall"] = Field(default="StepCall")
+    step_def_ref: StepDefRef
+    output_node_list: StoreNodeList | None = None
+    config_node_list: StoreNodeList | None = None
+    input_node_list: StoreNodeList | None = None
+
+
+class ProcCall(BaseModel):
+    obj_type: Literal["ProcCall"] = Field(default="ProcCall")
+    proc_def_ref: ProcDefRef
+    output_node_list: StoreNodeList | None = None
+    config_node_list: StoreNodeList | None = None
+    input_node_list: StoreNodeList | None = None
 
 
 class SbmlModel(NamedObject):
@@ -147,3 +194,8 @@ class Model(BaseModel):
     processDefs: list[ProcessDef]
     store_defs: list[StoreDef]
     compositeDefs: list[CompositeDef]
+    stepDefs: list[StepDef]
+    procDefs: list[ProcDef]
+    storeNodes: list[StoreNode]
+    step_calls: list[StepCall]
+    proc_calls: list[ProcCall]
