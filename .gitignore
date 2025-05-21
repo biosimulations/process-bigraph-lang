@@ -184,6 +184,9 @@ cython_debug/
 .idea/**/dynamic.xml
 .idea/**/uiDesigner.xml
 .idea/**/dbnavigator.xml
+.idea/misc.xml
+.idea/process-bigraph-lang.iml
+
 
 # File-based project format
 *.iws
