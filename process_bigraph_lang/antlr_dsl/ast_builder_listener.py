@@ -80,6 +80,7 @@ class ASTBuilderListener(pblangListener):
             stepDefs=[],
             procDefs=[],
             storeNodes=[],
+            parameters=[],
             proc_calls=[],
             step_calls=[],
         )
@@ -274,7 +275,7 @@ class ASTBuilderListener(pblangListener):
             DefaultValue(val=float_or_int_or_bool_or_str(ctx.defaultValue().getText())) if ctx.defaultValue() else None
         )
         unit_ref = UnitRef(ref="", ref_text=ctx.ID(2).getText()) if len(ctx.ID()) > 2 else None
-        schema_item = SchemaItem(name=name, type=type_ref, default=default, unit_ref=unit_ref)
+        schema_item = SchemaItem(name=name, type_ref=type_ref, default=default, unit_ref=unit_ref)
         if self.current_process_def:
             if self.current_schema_item_parent_type == SchemaItemParentType.PROCESS_DEF_PARAMETER:
                 self.current_process_def.params.append(schema_item)

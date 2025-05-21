@@ -16,7 +16,7 @@ def process_composite(model: Model, assembler: ProcessBigraphEnv) -> None:
 
             process_config = {}
             for param in process_def.params:
-                param_type = cast(Type, param.type.ref_object)
+                param_type = cast(Type, param.type_ref.ref_object)
                 assert isinstance(param_type, Type)
                 process_config[param.name] = (
                     param.default.val if param.default is not None else _determine_builtin_default(param_type)
@@ -33,7 +33,7 @@ def process_composite(model: Model, assembler: ProcessBigraphEnv) -> None:
 
                 if store_def.states:
                     for state_def in store_def.states:
-                        state_type = cast(Type, state_def.type.ref_object)
+                        state_type = cast(Type, state_def.type_ref.ref_object)
                         assert isinstance(state_type, Type)
                         store_path_to_value_map[store_path_str] = (
                             state_def.default.val

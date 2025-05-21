@@ -23,6 +23,7 @@ ProcessDefRef = Reference
 StoreNodeRef = Reference
 StepDefRef = Reference
 ProcDefRef = Reference
+ParameterRef = Reference
 
 BinaryOp = Literal["+", "-", "*", "/", "^", "%"]
 
@@ -37,7 +38,7 @@ class DeclaredParameter(NamedObject):
 
 class SchemaItem(NamedObject):
     obj_type: Literal["SchemaItem"] = Field(default="SchemaItem")
-    type: TypeRef
+    type_ref: TypeRef
     default: DefaultValue | None = None
     unit_ref: UnitRef | None = None
 
@@ -51,6 +52,13 @@ class StoreDef(NamedObject):
 class Store(NamedObject):
     obj_type: Literal["Store"] = Field(default="Store")
     store_def: StoreDefRef
+
+
+class Parameter(NamedObject):
+    obj_type: Literal["Parameter"] = Field(default="Parameter")
+    default: DefaultValue
+    type_ref: TypeRef | None = None
+    unit_ref: UnitRef | None = None
 
 
 class Update(BaseModel):
@@ -101,11 +109,16 @@ class StoreNodeList(BaseModel):
     store_node_refs: list[StoreNodeRef]
 
 
+class ParameterList(BaseModel):
+    obj_type: Literal["ParameterList"] = Field(default="ParameterList")
+    parameter_refs: list[ParameterRef]
+
+
 class StepCall(BaseModel):
     obj_type: Literal["StepCall"] = Field(default="StepCall")
     step_def_ref: StepDefRef
     output_node_list: StoreNodeList | None = None
-    config_node_list: StoreNodeList | None = None
+    config_node_list: ParameterList | None = None
     input_node_list: StoreNodeList | None = None
 
 
@@ -113,7 +126,7 @@ class ProcCall(BaseModel):
     obj_type: Literal["ProcCall"] = Field(default="ProcCall")
     proc_def_ref: ProcDefRef
     output_node_list: StoreNodeList | None = None
-    config_node_list: StoreNodeList | None = None
+    config_node_list: ParameterList | None = None
     input_node_list: StoreNodeList | None = None
 
 
@@ -197,5 +210,6 @@ class Model(BaseModel):
     stepDefs: list[StepDef]
     procDefs: list[ProcDef]
     storeNodes: list[StoreNode]
+    parameters: list[Parameter]
     step_calls: list[StepCall]
     proc_calls: list[ProcCall]

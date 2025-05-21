@@ -26,7 +26,7 @@
                 {
                     "obj_type": "SchemaItem",
                     "name": "left_hand_addend",
-                    "type": {
+                    "type_ref": {
                         "ref": "#/types@0",
                         "ref_text": "float"
                     }
@@ -34,7 +34,7 @@
                 {
                     "obj_type": "SchemaItem",
                     "name": "right_hand_addend",
-                    "type": {
+                    "type_ref": {
                         "ref": "#/types@0",
                         "ref_text": "float"
                     }
@@ -42,7 +42,7 @@
                 {
                     "obj_type": "SchemaItem",
                     "name": "result",
-                    "type": {
+                    "type_ref": {
                         "ref": "#/types@0",
                         "ref_text": "float"
                     }
@@ -78,7 +78,7 @@
                 {
                     "obj_type": "SchemaItem",
                     "name": "output_file_path",
-                    "type": {
+                    "type_ref": {
                         "ref": "#/types@1",
                         "ref_text": "string"
                     },
@@ -92,7 +92,7 @@
                 {
                     "obj_type": "SchemaItem",
                     "name": "result",
-                    "type": {
+                    "type_ref": {
                         "ref": "#/types@0",
                         "ref_text": "float"
                     }
@@ -116,7 +116,7 @@
                 {
                     "obj_type": "SchemaItem",
                     "name": "left_hand_addend",
-                    "type": {
+                    "type_ref": {
                         "ref": "#/types@0",
                         "ref_text": "float"
                     },
@@ -134,7 +134,7 @@
                 {
                     "obj_type": "SchemaItem",
                     "name": "right_hand_addend",
-                    "type": {
+                    "type_ref": {
                         "ref": "#/types@0",
                         "ref_text": "float"
                     },
@@ -152,7 +152,7 @@
                 {
                     "obj_type": "SchemaItem",
                     "name": "result",
-                    "type": {
+                    "type_ref": {
                         "ref": "#/types@0",
                         "ref_text": "float"
                     }
@@ -231,6 +231,7 @@
         }
     ],
     "definitions": [],
+    "parameters": [],
     "proc_calls": [],
     "procDefs": [],
     "sbmlModels": [],

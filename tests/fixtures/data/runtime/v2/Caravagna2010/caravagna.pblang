@@ -15,8 +15,8 @@ step ode_solver path process_bigraph.tests.TelluriumStep
     outputs results_array results_labels
 
 // parameters
-store n_steps = 10
-store model = "models/Caravagna2010.xml"
+param n_steps = 10
+param model = "models/Caravagna2010.xml"
 
 // input variables
 store time: float

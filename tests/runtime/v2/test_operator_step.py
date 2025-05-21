@@ -50,17 +50,23 @@ def test_op_step_generator() -> None:
         key="step1",
         path=[],
         address="local:!process_bigraph.tests.OperatorStep",
-        config=dict(operator="+"),
-        inputs=dict(a=["A"], b=["B"]),
-        outputs=dict(c=["C"]),
+        config_schema={},
+        input_schema={},
+        output_schema={},
+        config_state=dict(operator="+"),
+        input_state=dict(a=["A"], b=["B"]),
+        output_state=dict(c=["C"]),
     )
     step_step2 = PBStep(
         key="step2",
         path=[],
         address="local:!process_bigraph.tests.OperatorStep",
-        config=dict(operator="*"),
-        inputs=dict(a=["B"], b=["C"]),
-        outputs=dict(c=["D"]),
+        config_schema={},
+        input_schema={},
+        output_schema={},
+        config_state=dict(operator="*"),
+        input_state=dict(a=["B"], b=["C"]),
+        output_state=dict(c=["D"]),
     )
 
     pb_model = PBModel(

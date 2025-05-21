@@ -11,6 +11,7 @@ entry Model:
      (stepDefs+=StepDef) |
      (procDefs+=ProcDef) |
      ('store' storeNodes+=StoreNode) |
+     (parameters+=Parameter) |
      (step_calls+=StepCall) |
      (proc_calls+=ProcCall))*;
 
@@ -25,7 +26,7 @@ DefaultValue:
     val=(INT | FLOAT | STRING | 'true' | 'false');
 
 SchemaItem:
-    name=ID ':' type=[Type] ('default' default=DefaultValue)? ("[" unit_ref=[Unit] "]")?;
+    name=ID ':' type_ref=[Type] ('default' default=DefaultValue)? ("[" unit_ref=[Unit] "]")?;
 
 StoreDef:
     'store_def' name=ID ('parent' parent=[StoreDef])?
@@ -53,6 +54,9 @@ ProcessDef:
 Store:
     'store' name=ID ':' store_def=[StoreDef];
 
+Parameter:
+    'param' name=ID (':' type_ref=[Type])? '=' default=DefaultValue ("[" unit_ref=[Unit] "]")?;
+
 StoreNode:
     name=ID (
         ('=' optional_val=DefaultValue) |
@@ -76,14 +80,17 @@ ProcDef:
 StepCall:
     ('set' '(' (output_node_list=StoreNodeList)? ')')
     (('as' | '=') step_def_ref=[StepDef])
-    ('[' (config_node_list=StoreNodeList)? ']')
+    ('[' (config_node_list=ParameterList)? ']')
     ('(' (input_node_list=StoreNodeList)? ')');
 
 ProcCall:
     ('update' '(' (output_node_list=StoreNodeList)? ')')
     (('using' | '<=') process_def_ref=[ProcDef])
-    ('[' (config_node_list=StoreNodeList)? ']')
+    ('[' (config_node_list=ParameterList)? ']')
     ('(' (input_node_list=StoreNodeList)? ')');
+
+ParameterList:
+    (parameter_refs+=[Parameter]) (',' parameter_refs+=[Parameter])*;
 
 StoreNodeList:
     (store_node_refs+=[StoreNode]) (',' store_node_refs+=[StoreNode])*;

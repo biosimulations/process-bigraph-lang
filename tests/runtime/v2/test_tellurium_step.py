@@ -97,18 +97,24 @@ def test_generator_tellurium_steps() -> None:
         key="tellurium",
         path=[],
         address=f"local:{TELLURIUM_STEP_ADDR}",
-        config=dict(sbml_model_path="", num_steps=10),
-        inputs=dict(time=["start_time_store"], run_time=["run_time_store"]),
-        outputs=dict(results=["results_store"]),
+        config_schema={},
+        input_schema={},
+        output_schema={},
+        config_state=dict(sbml_model_path="", num_steps=10),
+        input_state=dict(time=["start_time_store"], run_time=["run_time_store"]),
+        output_state=dict(results=["results_store"]),
     )
 
     ram_emitter = PBStep(
         key="emitter",
         path=[],
         address="local:ram-emitter",
-        config=dict(emit=dict(floating_species="tree[float]", time="float")),
-        inputs=dict(floating_species=["floating_species_store"], time=["start_time_store"]),
-        outputs={},
+        config_schema={},
+        input_schema={},
+        output_schema={},
+        config_state=dict(emit=dict(floating_species="tree[float]", time="float")),
+        input_state=dict(floating_species=["floating_species_store"], time=["start_time_store"]),
+        output_state={},
     )
 
     pb_model = PBModel(

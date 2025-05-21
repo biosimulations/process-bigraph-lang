@@ -91,6 +91,7 @@ def simple_parse_data_1() -> Generator[tuple[str, Path, Model], None, None]:
         stepDefs=[],
         procDefs=[],
         storeNodes=[],
+        parameters=[],
         proc_calls=[],
         step_calls=[],
     )
@@ -141,6 +142,7 @@ def simple_parse_data_2() -> Generator[tuple[str, Path, Model], None, None]:
         stepDefs=[],
         procDefs=[],
         storeNodes=[],
+        parameters=[],
         proc_calls=[],
         step_calls=[],
     )
@@ -207,6 +209,7 @@ def simple_parse_data_3() -> Generator[tuple[str, Path, Model], None, None]:
         stepDefs=[],
         procDefs=[],
         storeNodes=[],
+        parameters=[],
         proc_calls=[],
         step_calls=[],
     )
@@ -288,26 +291,26 @@ def simple_parse_data_4() -> Generator[tuple[str, Path, Model], None, None]:
         params=[
             SchemaItem(
                 name="glucose_growth",
-                type=TypeRef(ref="#/types@0", ref_text="float"),
+                type_ref=TypeRef(ref="#/types@0", ref_text="float"),
                 default=DefaultValue(val=0.1),
                 unit_ref=UnitRef(ref="#/units@1", ref_text="uM_per_h"),
             ),
             SchemaItem(
                 name="dt",
-                type=TypeRef(ref="#/types@0", ref_text="float"),
+                type_ref=TypeRef(ref="#/types@0", ref_text="float"),
                 default=DefaultValue(val=0.1),
                 unit_ref=UnitRef(ref="#/units@0", ref_text="hour"),
             ),
             SchemaItem(
                 name="dummy_path",
-                type=TypeRef(ref="#/types@1", ref_text="string"),
+                type_ref=TypeRef(ref="#/types@1", ref_text="string"),
                 default=DefaultValue(val="/tmp/file.txt"),
             ),
         ],
         vars=[
             SchemaItem(
                 name="glucose",
-                type=TypeRef(ref="#/types@0", ref_text="float"),
+                type_ref=TypeRef(ref="#/types@0", ref_text="float"),
                 unit_ref=UnitRef(ref="#/units@2", ref_text="uM"),
             ),
         ],
@@ -336,27 +339,37 @@ def simple_parse_data_4() -> Generator[tuple[str, Path, Model], None, None]:
         states=[
             SchemaItem(
                 name="glucose",
-                type=TypeRef(ref="#/types@0", ref_text="float"),
+                type_ref=TypeRef(ref="#/types@0", ref_text="float"),
                 default=DefaultValue(val=3),
                 unit_ref=UnitRef(ref="#/units@2", ref_text="uM"),
             ),
-            SchemaItem(name="calcium", type=TypeRef(ref="#/types@0", ref_text="float"), default=DefaultValue(val=0.5)),
+            SchemaItem(
+                name="calcium", type_ref=TypeRef(ref="#/types@0", ref_text="float"), default=DefaultValue(val=0.5)
+            ),
         ],
     )
     store_cell = StoreDef(
         name="cell",
         parent=Reference(ref="#/store_defs@0", ref_text="medium"),
         states=[
-            SchemaItem(name="glucose", type=TypeRef(ref="#/types@0", ref_text="float"), default=DefaultValue(val=0)),
-            SchemaItem(name="calcium", type=TypeRef(ref="#/types@0", ref_text="float"), default=DefaultValue(val=0)),
+            SchemaItem(
+                name="glucose", type_ref=TypeRef(ref="#/types@0", ref_text="float"), default=DefaultValue(val=0)
+            ),
+            SchemaItem(
+                name="calcium", type_ref=TypeRef(ref="#/types@0", ref_text="float"), default=DefaultValue(val=0)
+            ),
         ],
     )
     store_nucleus = StoreDef(
         name="nucleus",
         parent=Reference(ref="#/store_defs@1", ref_text="cell"),
         states=[
-            SchemaItem(name="glucose", type=TypeRef(ref="#/types@0", ref_text="float"), default=DefaultValue(val=0)),
-            SchemaItem(name="calcium", type=TypeRef(ref="#/types@0", ref_text="float"), default=DefaultValue(val=0)),
+            SchemaItem(
+                name="glucose", type_ref=TypeRef(ref="#/types@0", ref_text="float"), default=DefaultValue(val=0)
+            ),
+            SchemaItem(
+                name="calcium", type_ref=TypeRef(ref="#/types@0", ref_text="float"), default=DefaultValue(val=0)
+            ),
         ],
     )
     composite_def = CompositeDef(
@@ -388,6 +401,7 @@ def simple_parse_data_4() -> Generator[tuple[str, Path, Model], None, None]:
         stepDefs=[],
         procDefs=[],
         storeNodes=[],
+        parameters=[],
         proc_calls=[],
         step_calls=[],
     )

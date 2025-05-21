@@ -11,23 +11,49 @@ def generate(pb_model: PBModel) -> dict[str, Any]:
         if store.data_type:
             set_value_at_path(doc["composition"], store.full_path, value=store.data_type)
     for step in pb_model.steps:
-        step_dict: dict[str, Any] = dict(_type=step._type, address=step.address)
-        if step.config:
-            step_dict["config"] = step.config
-        if step.inputs:
-            step_dict["inputs"] = step.inputs
-        if step.outputs:
-            step_dict["outputs"] = step.outputs
-        set_value_at_path(doc["state"], step.full_path, value=step_dict)
+        address = step.address
+        if not address.startswith("local:"):
+            address = "local:!" + address
+        step_schema_dict: dict[str, Any] = dict(_type=step._type, address=address)
+        if step.config_schema:
+            step_schema_dict["config"] = step.config_schema
+        if step.input_schema:
+            step_schema_dict["inputs"] = step.input_schema
+        if step.output_schema:
+            step_schema_dict["outputs"] = step.output_schema
+        # set_value_at_path(doc["composition"], step.full_path, value=step_schema_dict)
+
+        step_state_dict: dict[str, Any] = dict(_type=step._type, address=address)
+        if step.config_state:
+            step_state_dict["config"] = step.config_state
+        if step.input_state:
+            step_state_dict["inputs"] = step.input_state
+        if step.output_state:
+            step_state_dict["outputs"] = step.output_state
+        set_value_at_path(doc["state"], step.full_path, value=step_state_dict)
+
     for process in pb_model.processes:
-        process_dict: dict[str, Any] = dict(_type=process._type, address=process.address)
-        if process.config:
-            process_dict["config"] = process.config
-        if process.inputs:
-            process_dict["inputs"] = process.inputs
-        if process.outputs:
-            process_dict["outputs"] = process.outputs
-        set_value_at_path(doc["state"], process.full_path, value=process_dict)
+        address = process.address
+        if not address.startswith("local:"):
+            address = "local:!" + address
+        process_schema_dict: dict[str, Any] = dict(_type=process._type, address=address)
+        if process.config_schema:
+            process_schema_dict["config"] = process.config_schema
+        if process.input_schema:
+            process_schema_dict["inputs"] = process.input_schema
+        if process.output_schema:
+            process_schema_dict["outputs"] = process.output_schema
+        # set_value_at_path(doc["composition"], process.full_path, value=process_schema_dict)
+
+        process_state_dict: dict[str, Any] = dict(_type=process._type, address=address)
+        if process.config_state:
+            process_state_dict["config"] = process.config_state
+        if process.input_state:
+            process_state_dict["inputs"] = process.input_state
+        if process.output_state:
+            process_state_dict["outputs"] = process.output_state
+        set_value_at_path(doc["state"], process.full_path, value=process_state_dict)
+
     return doc
 
 

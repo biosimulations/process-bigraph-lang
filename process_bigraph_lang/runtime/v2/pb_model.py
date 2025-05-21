@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from typing import Optional, List, Dict, Any
+from typing import List, Dict, Any
 
 
 @dataclass
@@ -15,16 +15,19 @@ class PBEntity:
 
 @dataclass
 class PBStore(PBEntity):
-    data_type: str
-    value: Optional[Any] = None
+    data_type: str | None = None
+    value: Any | None = None
 
 
 @dataclass
 class PBEdge(PBEntity):
     address: str
-    config: dict[str, Any]
-    inputs: dict[str, Any]
-    outputs: dict[str, Any]
+    config_schema: dict[str, Any]
+    input_schema: dict[str, Any]
+    output_schema: dict[str, Any]
+    config_state: dict[str, Any]
+    input_state: dict[str, Any]
+    output_state: dict[str, Any]
 
 
 @dataclass
