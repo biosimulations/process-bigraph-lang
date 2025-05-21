@@ -28,7 +28,7 @@ from process_bigraph_lang.dsl.ast_model import (
 )
 
 
-class RefType(Enum):
+class _RefType(Enum):
     """
     Enum for reference target types.
     """
@@ -55,10 +55,10 @@ class RefType(Enum):
 
 
 @dataclasses.dataclass
-class SymbolTableEntry:
+class _SymbolTableEntry:
     name: str
     path: str
-    ref_type: RefType
+    ref_type: _RefType
     target_obj: (
         Unit
         | Type
@@ -77,12 +77,12 @@ class SymbolTableEntry:
     )
 
 
-def _append_store_node_symbols(store_node: StoreNode, symbol_table: list[SymbolTableEntry], path: str) -> None:
+def _append_store_node_symbols(store_node: StoreNode, symbol_table: list[_SymbolTableEntry], path: str) -> None:
     symbol_table.append(
-        SymbolTableEntry(
+        _SymbolTableEntry(
             name=store_node.name,
             path=path,
-            ref_type=RefType.STORE_NODE,
+            ref_type=_RefType.STORE_NODE,
             target_obj=store_node,
         )
     )
@@ -91,46 +91,49 @@ def _append_store_node_symbols(store_node: StoreNode, symbol_table: list[SymbolT
             _append_store_node_symbols(child_store_node, symbol_table, f"{path}/{child_store_node.name}")
 
 
-def create_symbol_table(model: ASTModel) -> list[SymbolTableEntry]:
-    symbol_table: list[SymbolTableEntry] = []
+def _create_symbol_table(model: ASTModel) -> list[_SymbolTableEntry]:
+    symbol_table: list[_SymbolTableEntry] = []
     for i, unit in enumerate(model.units):
         symbol_table.append(
-            SymbolTableEntry(name=unit.name, path=f"#/units@{i}", ref_type=RefType.UNIT, target_obj=unit)
+            _SymbolTableEntry(name=unit.name, path=f"#/units@{i}", ref_type=_RefType.UNIT, target_obj=unit)
         )
 
     for i, type in enumerate(model.types):
         symbol_table.append(
-            SymbolTableEntry(name=type.name, path=f"#/types@{i}", ref_type=RefType.TYPE, target_obj=type)
+            _SymbolTableEntry(name=type.name, path=f"#/types@{i}", ref_type=_RefType.TYPE, target_obj=type)
         )
 
     for i, definition in enumerate(model.definitions):
         symbol_table.append(
-            SymbolTableEntry(
-                name=definition.name, path=f"#/definitions@{i}", ref_type=RefType.DEFINITION, target_obj=definition
+            _SymbolTableEntry(
+                name=definition.name, path=f"#/definitions@{i}", ref_type=_RefType.DEFINITION, target_obj=definition
             )
         )
 
         for j, formal_arg in enumerate(definition.args):
             symbol_table.append(
-                SymbolTableEntry(
+                _SymbolTableEntry(
                     name=formal_arg.name,
                     path=f"#/definitions@{i}/args@{j}",
-                    ref_type=RefType.DEFINITION_PARAMETER,
+                    ref_type=_RefType.DEFINITION_PARAMETER,
                     target_obj=formal_arg,
                 )
             )
 
     for i, store_def in enumerate(model.store_defs):
         symbol_table.append(
-            SymbolTableEntry(
-                name=store_def.name, path=f"#/store_defs@{i}", ref_type=RefType.STORE_DEF, target_obj=store_def
+            _SymbolTableEntry(
+                name=store_def.name, path=f"#/store_defs@{i}", ref_type=_RefType.STORE_DEF, target_obj=store_def
             )
         )
         if store_def.states:
             for j, state in enumerate(store_def.states):
                 symbol_table.append(
-                    SymbolTableEntry(
-                        name=state.name, path=f"#/stores@{i}/states@{j}", ref_type=RefType.STORE_STATE, target_obj=state
+                    _SymbolTableEntry(
+                        name=state.name,
+                        path=f"#/stores@{i}/states@{j}",
+                        ref_type=_RefType.STORE_STATE,
+                        target_obj=state,
                     )
                 )
 
@@ -139,88 +142,92 @@ def create_symbol_table(model: ASTModel) -> list[SymbolTableEntry]:
 
     for i, process_def in enumerate(model.processDefs):
         symbol_table.append(
-            SymbolTableEntry(
-                name=process_def.name, path=f"#/processDefs@{i}", ref_type=RefType.PROCESS_DEF, target_obj=process_def
+            _SymbolTableEntry(
+                name=process_def.name, path=f"#/processDefs@{i}", ref_type=_RefType.PROCESS_DEF, target_obj=process_def
             )
         )
         for j, var in enumerate(process_def.vars):
             symbol_table.append(
-                SymbolTableEntry(
+                _SymbolTableEntry(
                     name=var.name,
                     path=f"#/processDefs@{i}/vars@{j}",
-                    ref_type=RefType.PROCESS_DEF_VARIABLE,
+                    ref_type=_RefType.PROCESS_DEF_VARIABLE,
                     target_obj=var,
                 )
             )
         for j, param in enumerate(process_def.params):
             symbol_table.append(
-                SymbolTableEntry(
+                _SymbolTableEntry(
                     name=param.name,
                     path=f"#/processDefs@{i}/params@{j}",
-                    ref_type=RefType.PROCESS_DEF_PARAMETER,
+                    ref_type=_RefType.PROCESS_DEF_PARAMETER,
                     target_obj=param,
                 )
             )
 
     for i, parameter in enumerate(model.parameters):
         symbol_table.append(
-            SymbolTableEntry(
-                name=parameter.name, path=f"#/parameter@{i}", ref_type=RefType.PARAMETER, target_obj=parameter
+            _SymbolTableEntry(
+                name=parameter.name, path=f"#/parameter@{i}", ref_type=_RefType.PARAMETER, target_obj=parameter
             )
         )
 
     for i, proc_def in enumerate(model.procDefs):
         symbol_table.append(
-            SymbolTableEntry(name=proc_def.name, path=f"#/procDefs@{i}", ref_type=RefType.PROC_DEF, target_obj=proc_def)
+            _SymbolTableEntry(
+                name=proc_def.name, path=f"#/procDefs@{i}", ref_type=_RefType.PROC_DEF, target_obj=proc_def
+            )
         )
         for j, var in enumerate(proc_def.vars):
             symbol_table.append(
-                SymbolTableEntry(
+                _SymbolTableEntry(
                     name=var.name,
                     path=f"#/procDefs@{i}/vars@{j}",
-                    ref_type=RefType.PROC_DEF_VARIABLE,
+                    ref_type=_RefType.PROC_DEF_VARIABLE,
                     target_obj=var,
                 )
             )
 
     for i, step_def in enumerate(model.stepDefs):
         symbol_table.append(
-            SymbolTableEntry(name=step_def.name, path=f"#/stepDefs@{i}", ref_type=RefType.STEP_DEF, target_obj=step_def)
+            _SymbolTableEntry(
+                name=step_def.name, path=f"#/stepDefs@{i}", ref_type=_RefType.STEP_DEF, target_obj=step_def
+            )
         )
         for j, var in enumerate(step_def.vars):
             symbol_table.append(
-                SymbolTableEntry(
+                _SymbolTableEntry(
                     name=var.name,
                     path=f"#/stepDefs@{i}/vars@{j}",
-                    ref_type=RefType.STEP_DEF_VARIABLE,
+                    ref_type=_RefType.STEP_DEF_VARIABLE,
                     target_obj=var,
                 )
             )
 
     for i, composite_def in enumerate(model.compositeDefs):
         symbol_table.append(
-            SymbolTableEntry(
+            _SymbolTableEntry(
                 name=composite_def.name,
                 path=f"#/compositeDefs@{i}",
-                ref_type=RefType.COMPOSITE_DEF,
+                ref_type=_RefType.COMPOSITE_DEF,
                 target_obj=composite_def,
             )
         )
         for j, store in enumerate(composite_def.stores):
             symbol_table.append(
-                SymbolTableEntry(
+                _SymbolTableEntry(
                     name=store.name,
                     path=f"#/compositeDefs@{i}/stores@{j}",
-                    ref_type=RefType.STORE,
+                    ref_type=_RefType.STORE,
                     target_obj=store,
                 )
             )
         for j, process in enumerate(composite_def.processes):
             symbol_table.append(
-                SymbolTableEntry(
+                _SymbolTableEntry(
                     name=process.name,
                     path=f"#/compositeDefs@{i}/processes@{j}",
-                    ref_type=RefType.PROCESS,
+                    ref_type=_RefType.PROCESS,
                     target_obj=process,
                 )
             )
@@ -228,7 +235,7 @@ def create_symbol_table(model: ASTModel) -> list[SymbolTableEntry]:
     return symbol_table
 
 
-def _bind_ref(ref: Reference, symbol_table: list[SymbolTableEntry]) -> None:
+def _bind_ref(ref: Reference, symbol_table: list[_SymbolTableEntry]) -> None:
     for entry in symbol_table:
         if entry.name == ref.ref_text:
             ref.ref = entry.path
@@ -237,14 +244,14 @@ def _bind_ref(ref: Reference, symbol_table: list[SymbolTableEntry]) -> None:
     raise ValueError(f"Reference '{ref.ref_text}' not found in symbol table")
 
 
-def _bind_expr(expr: Expression, symbol_table: list[SymbolTableEntry]) -> None:
+def _bind_expr(expr: Expression, symbol_table: list[_SymbolTableEntry]) -> None:
     if isinstance(expr, VariableRef):
         _bind_ref(expr.variable, symbol_table)
     elif isinstance(expr, BinaryExpression):
         _bind_expr(expr.left, symbol_table)
         _bind_expr(expr.right, symbol_table)
     elif isinstance(expr, FunctionCall):
-        def_symbols = [entry for entry in symbol_table if entry.ref_type == RefType.DEFINITION]
+        def_symbols = [entry for entry in symbol_table if entry.ref_type == _RefType.DEFINITION]
         _bind_ref(expr.func, def_symbols)
         for arg in expr.args:
             _bind_expr(arg, symbol_table)
@@ -252,9 +259,9 @@ def _bind_expr(expr: Expression, symbol_table: list[SymbolTableEntry]) -> None:
         pass  # No binding needed for literals
 
 
-def _bind_store_node(store_node: StoreNode, symbol_table: list[SymbolTableEntry]) -> None:
-    type_symbols = [e for e in symbol_table if e.ref_type == RefType.TYPE]
-    store_def_symbols = [e for e in symbol_table if e.ref_type == RefType.STORE_DEF]
+def _bind_store_node(store_node: StoreNode, symbol_table: list[_SymbolTableEntry]) -> None:
+    type_symbols = [e for e in symbol_table if e.ref_type == _RefType.TYPE]
+    store_def_symbols = [e for e in symbol_table if e.ref_type == _RefType.STORE_DEF]
     if store_node.optional_type:
         _bind_ref(store_node.optional_type, type_symbols)
     if store_node.child_defs:
@@ -262,37 +269,37 @@ def _bind_store_node(store_node: StoreNode, symbol_table: list[SymbolTableEntry]
             _bind_store_node(child_store_node, store_def_symbols)
 
 
-def bind_model(model: ASTModel) -> None:
+def bind_ast_model(model: ASTModel) -> None:
     # 1. generate symbol table with paths and objects
-    symbol_table: list[SymbolTableEntry] = create_symbol_table(model)
+    symbol_table: list[_SymbolTableEntry] = _create_symbol_table(model)
 
     # 2. bind all references to objects in the symbol table
     for i, definition in enumerate(model.definitions):
         symbols = [
             e
             for e in symbol_table
-            if (e.ref_type == RefType.DEFINITION_PARAMETER and e.path.startswith(f"#/definitions@{i}/args@"))
-            or (e.ref_type != RefType.DEFINITION_PARAMETER)
+            if (e.ref_type == _RefType.DEFINITION_PARAMETER and e.path.startswith(f"#/definitions@{i}/args@"))
+            or (e.ref_type != _RefType.DEFINITION_PARAMETER)
         ]
         # symbols = symbol_table
         if definition.expr:
             _bind_expr(definition.expr, symbols)
 
     for i, type in enumerate(model.types):
-        symbols = [e for e in symbol_table if e.ref_type == RefType.TYPE and not e.path.startswith(f"#/types@{i}")]
+        symbols = [e for e in symbol_table if e.ref_type == _RefType.TYPE and not e.path.startswith(f"#/types@{i}")]
         if type.superType:
             _bind_ref(type.superType, symbols)
 
     for i, unit in enumerate(model.units):
-        symbols = [e for e in symbol_table if e.ref_type == RefType.UNIT and not e.path.startswith(f"#/units@{i}")]
+        symbols = [e for e in symbol_table if e.ref_type == _RefType.UNIT and not e.path.startswith(f"#/units@{i}")]
         if unit.unit_ref:
             _bind_ref(unit.unit_ref, symbols)
 
     for i, processDef in enumerate(model.processDefs):
-        type_symbols = [e for e in symbol_table if e.ref_type == RefType.TYPE]
-        unit_symbols = [e for e in symbol_table if e.ref_type == RefType.UNIT]
-        process_def_var_symbols = [e for e in symbol_table if e.ref_type == RefType.PROCESS_DEF_VARIABLE]
-        process_def_param_symbols = [e for e in symbol_table if e.ref_type == RefType.PROCESS_DEF_VARIABLE]
+        type_symbols = [e for e in symbol_table if e.ref_type == _RefType.TYPE]
+        unit_symbols = [e for e in symbol_table if e.ref_type == _RefType.UNIT]
+        process_def_var_symbols = [e for e in symbol_table if e.ref_type == _RefType.PROCESS_DEF_VARIABLE]
+        process_def_param_symbols = [e for e in symbol_table if e.ref_type == _RefType.PROCESS_DEF_VARIABLE]
         expr_symbols = process_def_param_symbols + process_def_var_symbols + symbol_table
         for j, param in enumerate(processDef.params):
             if param.unit_ref:
@@ -316,12 +323,12 @@ def bind_model(model: ASTModel) -> None:
     procdef_or_stepdef_list += model.procDefs
     procdef_or_stepdef_list += model.stepDefs
     for i, procDef_or_stepDef in enumerate(procdef_or_stepdef_list):
-        type_symbols = [e for e in symbol_table if e.ref_type == RefType.TYPE]
-        unit_symbols = [e for e in symbol_table if e.ref_type == RefType.UNIT]
+        type_symbols = [e for e in symbol_table if e.ref_type == _RefType.TYPE]
+        unit_symbols = [e for e in symbol_table if e.ref_type == _RefType.UNIT]
         process_def_var_symbols = [
             e
             for e in symbol_table
-            if e.ref_type == RefType.PROC_DEF_VARIABLE or e.ref_type == RefType.STEP_DEF_VARIABLE
+            if e.ref_type == _RefType.PROC_DEF_VARIABLE or e.ref_type == _RefType.STEP_DEF_VARIABLE
         ]
         # process_def_param_symbols = [
         #     e
@@ -351,16 +358,16 @@ def bind_model(model: ASTModel) -> None:
     stepcall_or_proccall_list += model.step_calls
     stepcall_or_proccall_list += model.proc_calls
     for i, stepcall_or_proccall in enumerate(stepcall_or_proccall_list):
-        step_def_symbols = [e for e in symbol_table if e.ref_type == RefType.STEP_DEF]
-        proc_def_symbols = [e for e in symbol_table if e.ref_type == RefType.PROC_DEF]
+        step_def_symbols = [e for e in symbol_table if e.ref_type == _RefType.STEP_DEF]
+        proc_def_symbols = [e for e in symbol_table if e.ref_type == _RefType.PROC_DEF]
         if isinstance(stepcall_or_proccall, ProcCall):
             _bind_ref(stepcall_or_proccall.proc_def_ref, proc_def_symbols)
         elif isinstance(stepcall_or_proccall, StepCall):
             _bind_ref(stepcall_or_proccall.step_def_ref, step_def_symbols)
         else:
             raise ValueError(f"Unknown stepcall or proccall type: {type(stepcall_or_proccall)}")
-        store_node_symbols = [e for e in symbol_table if e.ref_type == RefType.STORE_NODE]
-        parameter_symbols = [e for e in symbol_table if e.ref_type == RefType.PARAMETER]
+        store_node_symbols = [e for e in symbol_table if e.ref_type == _RefType.STORE_NODE]
+        parameter_symbols = [e for e in symbol_table if e.ref_type == _RefType.PARAMETER]
         if stepcall_or_proccall.config_node_list:
             for j, parameter_ref in enumerate(stepcall_or_proccall.config_node_list.parameter_refs):
                 _bind_ref(parameter_ref, parameter_symbols)
@@ -372,9 +379,9 @@ def bind_model(model: ASTModel) -> None:
                 _bind_ref(store_ref, store_node_symbols)
 
     for i, store_def in enumerate(model.store_defs):
-        type_symbols = [e for e in symbol_table if e.ref_type == RefType.TYPE]
-        unit_symbols = [e for e in symbol_table if e.ref_type == RefType.UNIT]
-        store_def_symbols = [e for e in symbol_table if e.ref_type == RefType.STORE_DEF]
+        type_symbols = [e for e in symbol_table if e.ref_type == _RefType.TYPE]
+        unit_symbols = [e for e in symbol_table if e.ref_type == _RefType.UNIT]
+        store_def_symbols = [e for e in symbol_table if e.ref_type == _RefType.STORE_DEF]
         if store_def.states:
             for j, state in enumerate(store_def.states):
                 if state.unit_ref:
@@ -388,9 +395,9 @@ def bind_model(model: ASTModel) -> None:
         _bind_store_node(store_node, symbol_table)
 
     for i, composite_def in enumerate(model.compositeDefs):
-        process_def_symbols = [e for e in symbol_table if e.ref_type == RefType.PROCESS_DEF]
-        store_def_symbols = [e for e in symbol_table if e.ref_type == RefType.STORE_DEF]
-        store_symbols = [e for e in symbol_table if e.ref_type == RefType.STORE]
+        process_def_symbols = [e for e in symbol_table if e.ref_type == _RefType.PROCESS_DEF]
+        store_def_symbols = [e for e in symbol_table if e.ref_type == _RefType.STORE_DEF]
+        store_symbols = [e for e in symbol_table if e.ref_type == _RefType.STORE]
         for j, store in enumerate(composite_def.stores):
             if store.store_def:
                 _bind_ref(store.store_def, store_def_symbols)

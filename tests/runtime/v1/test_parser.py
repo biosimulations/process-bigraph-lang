@@ -1,15 +1,15 @@
 import os
 from pathlib import Path
 
-from process_bigraph_lang.antlr_dsl.antlr_pblang_parser import bind_model
-from process_bigraph_lang.dsl import generate
 from process_bigraph_lang.dsl.ast_model import ASTModel
+from process_bigraph_lang.dsl.bind_ast import bind_ast_model
+from process_bigraph_lang.dsl.langium_pblang import parse_pblang_file
 
 
 def _generateModelAst(pblang_file: os.PathLike[str]) -> ASTModel:
-    model_json: str = generate.generate_model(pblang_file)
+    model_json: str = parse_pblang_file(pblang_file)
     model: ASTModel = ASTModel.model_validate_json(model_json)
-    bind_model(model)
+    bind_ast_model(model)
     # result: str = model.model_dump_json(indent=4)
     # rich.print(result)
     return model
@@ -27,7 +27,7 @@ def test_parse_add_floats_with_process(model_paths_add_floats_processes: tuple[P
         ast_model_json = file.read()
 
     loaded_ast_model: ASTModel = ASTModel.model_validate_json(ast_model_json)
-    bind_model(loaded_ast_model)
+    bind_ast_model(loaded_ast_model)
 
     assert loaded_ast_model == parsed_ast_model
 
@@ -44,7 +44,7 @@ def test_parse_add_with_steps(model_paths_add_floats_steps: tuple[Path, Path]) -
         ast_model_json = file.read()
 
     loaded_ast_model: ASTModel = ASTModel.model_validate_json(ast_model_json)
-    bind_model(loaded_ast_model)
+    bind_ast_model(loaded_ast_model)
 
     assert loaded_ast_model == parsed_ast_model
 
@@ -61,6 +61,6 @@ def test_parse_caravagna(model_path_caravagna2010: Path) -> None:
     print(ast_model_json)
 
     loaded_ast_model: ASTModel = ASTModel.model_validate_json(ast_model_json)
-    bind_model(loaded_ast_model)
+    bind_ast_model(loaded_ast_model)
 
     assert loaded_ast_model == parsed_ast_model

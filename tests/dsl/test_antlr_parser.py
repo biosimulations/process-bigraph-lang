@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from process_bigraph_lang.antlr_dsl.antlr_pblang_parser import parse_pblang_str
+from process_bigraph_lang.dsl.antlr_pblang import parse_pblang_str
 from process_bigraph_lang.dsl.ast_model import ASTModel
 
 

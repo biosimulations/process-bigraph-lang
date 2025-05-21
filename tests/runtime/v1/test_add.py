@@ -1,15 +1,14 @@
 import tempfile
 from pathlib import Path
 
-from process_bigraph_lang.antlr_dsl.antlr_pblang_parser import bind_model
+from process_bigraph_lang.dsl.antlr_pblang import bind_ast_model
 from process_bigraph_lang.dsl.ast_model import ASTModel
-
-from tests.fixtures.test_registry.toy_library import register as register_toy_library
-from process_bigraph_lang.runtime.v1.process_bigraph_env import ProcessBigraphEnv
 from process_bigraph_lang.runtime.v1.composite_generator import process_composite
+from process_bigraph_lang.runtime.v1.process_bigraph_env import ProcessBigraphEnv
 from process_bigraph_lang.runtime.v1.process_generator import register_process_defs
 from process_bigraph_lang.runtime.v1.type_generator import register_types
 from process_bigraph_lang.runtime.v1.unit_generator import register_units
+from tests.fixtures.test_registry.toy_library import register as register_toy_library
 
 
 def test_add_floats_with_process(model_paths_add_floats_processes: tuple[Path, Path]) -> None:
@@ -20,7 +19,7 @@ def test_add_floats_with_process(model_paths_add_floats_processes: tuple[Path, P
             model_json = file.read()
 
         ast_model: ASTModel = ASTModel.model_validate_json(model_json)
-        bind_model(ast_model)
+        bind_ast_model(ast_model)
 
         # set the output file path
         output_file_path = Path(tmp_dirname) / "output.txt"
@@ -59,7 +58,7 @@ def test_add_floats_with_step(model_paths_add_floats_steps: tuple[Path, Path]) -
             model_json = file.read()
 
         ast_model: ASTModel = ASTModel.model_validate_json(model_json)
-        bind_model(ast_model)
+        bind_ast_model(ast_model)
 
         model_json = ast_model.model_dump_json(indent=2)
         # specify the python path for the processes

@@ -7,9 +7,9 @@ from antlr4.error.ErrorListener import ErrorListener
 
 from process_bigraph_lang.antlr.pblangLexer import pblangLexer
 from process_bigraph_lang.antlr.pblangParser import pblangParser
-from process_bigraph_lang.antlr_dsl.antlr_ast_builder import ASTBuilderListener
-from process_bigraph_lang.antlr_dsl.bind_ast import bind_model
+from process_bigraph_lang.dsl.antlr_ast_builder import ASTBuilderListener
 from process_bigraph_lang.dsl.ast_model import ASTModel
+from process_bigraph_lang.dsl.bind_ast import bind_ast_model
 
 
 class CustomErrorListener(ErrorListener):
@@ -49,7 +49,7 @@ def parse_pblang_file(filename: PathLike[str]) -> ASTModel:
     walker = ParseTreeWalker()
     walker.walk(listener, tree)
     model = listener.model
-    bind_model(model)
+    bind_ast_model(model)
     return model
 
 

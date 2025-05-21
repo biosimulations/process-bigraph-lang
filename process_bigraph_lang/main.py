@@ -7,9 +7,9 @@ from bigraph_viz import plot_bigraph  # type: ignore[import-untyped]
 from process_bigraph import Composite, ProcessTypes  # type: ignore[import-untyped]
 from typing_extensions import Annotated
 
-from process_bigraph_lang.antlr_dsl.antlr_pblang_parser import bind_model
-from process_bigraph_lang.dsl import generate
 from process_bigraph_lang.dsl.ast_model import ASTModel
+from process_bigraph_lang.dsl.bind_ast import bind_ast_model
+from process_bigraph_lang.dsl.langium_pblang import parse_pblang_file
 from process_bigraph_lang.runtime.v1.composite_generator import process_composite
 from process_bigraph_lang.runtime.v1.process_bigraph_env import ProcessBigraphEnv
 from process_bigraph_lang.runtime.v1.process_generator import register_process_defs
@@ -49,9 +49,9 @@ def execute(
 
 
 def generate_model_ast(pblang_file: os.PathLike[str]) -> ASTModel:
-    model_json: str = generate.generate_model(pblang_file)
+    model_json: str = parse_pblang_file(pblang_file)
     model: ASTModel = ASTModel.model_validate_json(model_json)
-    bind_model(model)
+    bind_ast_model(model)
     # result: str = model.model_dump_json(indent=4)
     # rich.print(result)
     return model
