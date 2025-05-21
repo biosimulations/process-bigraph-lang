@@ -8,8 +8,8 @@ else:
 
 from process_bigraph_lang.antlr.pblangListener import pblangListener
 from process_bigraph_lang.antlr.pblangParser import pblangParser
-from process_bigraph_lang.dsl.model import (
-    Model,
+from process_bigraph_lang.dsl.ast_model import (
+    ASTModel,
     Definition,
     DeclaredParameter,
     BinaryExpression,
@@ -70,7 +70,7 @@ class ASTBuilderListener(pblangListener):
 
     def __init__(self) -> None:
         super().__init__()
-        self.model = Model(
+        self.model = ASTModel(
             definitions=[],
             types=[],
             units=[],

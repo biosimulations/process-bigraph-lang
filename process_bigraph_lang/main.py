@@ -9,7 +9,7 @@ from typing_extensions import Annotated
 
 from process_bigraph_lang.antlr_dsl.antlr_pblang_parser import bind_model
 from process_bigraph_lang.dsl import generate
-from process_bigraph_lang.dsl.model import Model
+from process_bigraph_lang.dsl.ast_model import ASTModel
 from process_bigraph_lang.runtime.v1.composite_generator import process_composite
 from process_bigraph_lang.runtime.v1.process_bigraph_env import ProcessBigraphEnv
 from process_bigraph_lang.runtime.v1.process_generator import register_process_defs
@@ -24,7 +24,7 @@ def validate(
     pblang_path: Annotated[str, typer.Argument(help="Path to the pblang file to validate")],
     diagram_path: Annotated[str, typer.Argument(help="Path for diagram file")],
 ) -> None:
-    ast_model: Model = generate_model_ast(Path(pblang_path))
+    ast_model: ASTModel = generate_model_ast(Path(pblang_path))
     _, pb_doc, pb_core = performConversion(ast_model)
     plot_bigraph(
         state=pb_doc["state"],
@@ -41,16 +41,16 @@ def validate(
 def execute(
     duration: float, pblang_path: Annotated[str, typer.Argument(help="Path to the pblang file to validate")]
 ) -> None:
-    ast_model: Model = generate_model_ast(Path(pblang_path))
+    ast_model: ASTModel = generate_model_ast(Path(pblang_path))
     pb_composite, _0, _1 = performConversion(ast_model)
 
     pb_composite.run(duration)
     print("Execution complete")
 
 
-def generate_model_ast(pblang_file: os.PathLike[str]) -> Model:
+def generate_model_ast(pblang_file: os.PathLike[str]) -> ASTModel:
     model_json: str = generate.generate_model(pblang_file)
-    model: Model = Model.model_validate_json(model_json)
+    model: ASTModel = ASTModel.model_validate_json(model_json)
     bind_model(model)
     # result: str = model.model_dump_json(indent=4)
     # rich.print(result)
@@ -72,7 +72,7 @@ def validate_pb_absolute_path(absolute_path: str) -> str:
     return absolute_path
 
 
-def performConversion(ast_model: Model) -> tuple[Composite, dict, ProcessTypes]:
+def performConversion(ast_model: ASTModel) -> tuple[Composite, dict, ProcessTypes]:
     assembler = ProcessBigraphEnv()
 
     # # register the libraries

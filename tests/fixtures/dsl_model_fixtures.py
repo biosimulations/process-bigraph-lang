@@ -4,8 +4,8 @@ from typing import Generator
 
 import pytest
 
-from process_bigraph_lang.dsl.model import (
-    Model,
+from process_bigraph_lang.dsl.ast_model import (
+    ASTModel,
     BinaryExpression,
     VariableRef,
     Reference,
@@ -67,7 +67,7 @@ def model_dfba_single() -> Path:
 
 
 @pytest.fixture
-def simple_parse_data_1() -> Generator[tuple[str, Path, Model], None, None]:
+def simple_parse_data_1() -> Generator[tuple[str, Path, ASTModel], None, None]:
     dsl_str = """
         def test(a):  a + 1;
     """
@@ -81,7 +81,7 @@ def simple_parse_data_1() -> Generator[tuple[str, Path, Model], None, None]:
         args=[DeclaredParameter(name="a")],
         expr=expr,
     )
-    expected_model = Model(
+    expected_model = ASTModel(
         definitions=[definition],
         types=[],
         units=[],
@@ -105,7 +105,7 @@ def simple_parse_data_1() -> Generator[tuple[str, Path, Model], None, None]:
 
 
 @pytest.fixture
-def simple_parse_data_2() -> Generator[tuple[str, Path, Model], None, None]:
+def simple_parse_data_2() -> Generator[tuple[str, Path, ASTModel], None, None]:
     dsl_str = """
         def mult(a, b):  a * b;
         def square(a) : mult(a, a);
@@ -132,7 +132,7 @@ def simple_parse_data_2() -> Generator[tuple[str, Path, Model], None, None]:
         args=[DeclaredParameter(name="a")],
         expr=expr2,
     )
-    expected_model = Model(
+    expected_model = ASTModel(
         definitions=[definition1, definition2],
         types=[],
         units=[],
@@ -155,7 +155,7 @@ def simple_parse_data_2() -> Generator[tuple[str, Path, Model], None, None]:
 
 
 @pytest.fixture
-def simple_parse_data_3() -> Generator[tuple[str, Path, Model], None, None]:
+def simple_parse_data_3() -> Generator[tuple[str, Path, ASTModel], None, None]:
     dsl_str = """
     // imported definitions from standard library (or other files)
     type float default 0.0
@@ -199,7 +199,7 @@ def simple_parse_data_3() -> Generator[tuple[str, Path, Model], None, None]:
     unit_conc = Unit(name="conc", unit_ref=Reference(ref="#/units@0", ref_text="uM_per_h"))
     unit_hour = Unit(name="hour", symbol="h")
     unit_dimensionless = Unit(name="dimensionless", symbol="1")
-    expected_model = Model(
+    expected_model = ASTModel(
         units=[unit_uM_per_h, unit_uM, unit_conc, unit_hour, unit_dimensionless],
         definitions=[def_exp, def_my_update],
         types=[type_float, type_concentration],
@@ -222,7 +222,7 @@ def simple_parse_data_3() -> Generator[tuple[str, Path, Model], None, None]:
 
 
 @pytest.fixture
-def simple_parse_data_4() -> Generator[tuple[str, Path, Model], None, None]:
+def simple_parse_data_4() -> Generator[tuple[str, Path, ASTModel], None, None]:
     dsl_str = """
     type float builtin
     type string builtin
@@ -391,7 +391,7 @@ def simple_parse_data_4() -> Generator[tuple[str, Path, Model], None, None]:
             ),
         ],
     )
-    expected_model = Model(
+    expected_model = ASTModel(
         units=[unit_hour, unit_uM_per_h, unit_uM],
         definitions=[def_my_update],
         types=[type_float, type_string],

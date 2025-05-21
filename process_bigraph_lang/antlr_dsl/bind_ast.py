@@ -1,8 +1,8 @@
 import dataclasses
 from enum import Enum
 
-from process_bigraph_lang.dsl.model import (
-    Model,
+from process_bigraph_lang.dsl.ast_model import (
+    ASTModel,
     Reference,
     Unit,
     Type,
@@ -91,7 +91,7 @@ def _append_store_node_symbols(store_node: StoreNode, symbol_table: list[SymbolT
             _append_store_node_symbols(child_store_node, symbol_table, f"{path}/{child_store_node.name}")
 
 
-def create_symbol_table(model: Model) -> list[SymbolTableEntry]:
+def create_symbol_table(model: ASTModel) -> list[SymbolTableEntry]:
     symbol_table: list[SymbolTableEntry] = []
     for i, unit in enumerate(model.units):
         symbol_table.append(
@@ -262,7 +262,7 @@ def _bind_store_node(store_node: StoreNode, symbol_table: list[SymbolTableEntry]
             _bind_store_node(child_store_node, store_def_symbols)
 
 
-def bind_model(model: Model) -> None:
+def bind_model(model: ASTModel) -> None:
     # 1. generate symbol table with paths and objects
     symbol_table: list[SymbolTableEntry] = create_symbol_table(model)
 

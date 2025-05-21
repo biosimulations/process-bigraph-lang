@@ -199,7 +199,7 @@ class CompositeDef(NamedObject):
     processes: list[Process] = []
 
 
-class Model(BaseModel):
+class ASTModel(BaseModel):
     obj_type: Literal["Model"] = Field(default="Model")
     definitions: list[Definition]
     types: list[Type]

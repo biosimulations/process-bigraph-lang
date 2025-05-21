@@ -1,4 +1,4 @@
-from process_bigraph_lang.dsl.model import Unit
+from process_bigraph_lang.dsl.ast_model import Unit
 from process_bigraph_lang.runtime.v1.process_bigraph_env import ProcessBigraphEnv
 
 

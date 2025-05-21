@@ -2,7 +2,7 @@ import tempfile
 from pathlib import Path
 
 from process_bigraph_lang.antlr_dsl.antlr_pblang_parser import bind_model
-from process_bigraph_lang.dsl.model import Model as ASTModel
+from process_bigraph_lang.dsl.ast_model import ASTModel
 
 from tests.fixtures.test_registry.toy_library import register as register_toy_library
 from process_bigraph_lang.runtime.v1.process_bigraph_env import ProcessBigraphEnv

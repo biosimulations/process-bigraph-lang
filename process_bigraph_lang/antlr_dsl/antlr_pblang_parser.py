@@ -9,9 +9,7 @@ from process_bigraph_lang.antlr.pblangLexer import pblangLexer
 from process_bigraph_lang.antlr.pblangParser import pblangParser
 from process_bigraph_lang.antlr_dsl.antlr_ast_builder import ASTBuilderListener
 from process_bigraph_lang.antlr_dsl.bind_ast import bind_model
-from process_bigraph_lang.dsl.model import (
-    Model,
-)
+from process_bigraph_lang.dsl.ast_model import ASTModel
 
 
 class CustomErrorListener(ErrorListener):
@@ -27,7 +25,7 @@ class CustomErrorListener(ErrorListener):
         raise ValueError(f"Syntax error at line {str(line)}, column {str(column)}: {msg}")
 
 
-def parse_pblang_file(filename: PathLike[str]) -> Model:
+def parse_pblang_file(filename: PathLike[str]) -> ASTModel:
     file_path = Path(filename)
     if not file_path.exists():
         raise FileNotFoundError(filename)
@@ -55,8 +53,8 @@ def parse_pblang_file(filename: PathLike[str]) -> Model:
     return model
 
 
-def parse_pblang_str(pblang_str: str) -> Model:
-     with tempfile.TemporaryDirectory() as tmpdir:
+def parse_pblang_str(pblang_str: str) -> ASTModel:
+    with tempfile.TemporaryDirectory() as tmpdir:
         tmp_path = Path(tmpdir) / "test.pblang"
         with open(tmp_path, "w") as f:
             f.write(pblang_str)

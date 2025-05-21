@@ -1,8 +1,8 @@
 from typing import cast, Any
 
-from process_bigraph_lang.dsl.model import (
+from process_bigraph_lang.dsl.ast_model import (
     Type,
-    Model as ASTModel,
+    ASTModel,
     StoreNode,
     DefaultValue,
     ProcDef,

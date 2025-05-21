@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Any
 
 import process_bigraph as pg  # type: ignore[import-untyped]
-from process_bigraph_lang.dsl.model import Model as ASTModel
+from process_bigraph_lang.dsl.ast_model import ASTModel
 from process_bigraph_lang.main import generate_model_ast
 from process_bigraph_lang.runtime.v2.generator import generate
 from process_bigraph_lang.runtime.v2.pb_model import PBStore, PBStep, PBModel, PBProcess

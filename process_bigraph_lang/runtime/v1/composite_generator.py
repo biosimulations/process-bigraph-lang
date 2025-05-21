@@ -1,10 +1,10 @@
 from typing import Any, cast
 
-from process_bigraph_lang.dsl.model import Model, StoreDef, ProcessDef, Store, Type
+from process_bigraph_lang.dsl.ast_model import ASTModel, StoreDef, ProcessDef, Store, Type
 from process_bigraph_lang.runtime.v1.process_bigraph_env import ProcessBigraphEnv
 
 
-def process_composite(model: Model, assembler: ProcessBigraphEnv) -> None:
+def process_composite(model: ASTModel, assembler: ProcessBigraphEnv) -> None:
     for composite_def in model.compositeDefs:
         store_path_to_value_map: dict[str, Any] = {}
         for process in composite_def.processes:
