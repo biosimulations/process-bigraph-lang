@@ -7,7 +7,7 @@ from process_bigraph_lang.dsl.model import (
     BinaryExpression,
     VariableRef,
 )
-from process_bigraph_lang.antlr_dsl.generate import bind_model
+from process_bigraph_lang.antlr_dsl.antlr_pblang_parser import bind_model
 
 
 def test_simple(simple_parse_data_1: tuple[str, Path, Model]) -> None:

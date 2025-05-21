@@ -7,7 +7,7 @@ from bigraph_viz import plot_bigraph  # type: ignore[import-untyped]
 from process_bigraph import Composite, ProcessTypes  # type: ignore[import-untyped]
 from typing_extensions import Annotated
 
-from process_bigraph_lang.antlr_dsl.generate import bind_model
+from process_bigraph_lang.antlr_dsl.antlr_pblang_parser import bind_model
 from process_bigraph_lang.dsl import generate
 from process_bigraph_lang.dsl.model import Model
 from process_bigraph_lang.runtime.v1.composite_generator import process_composite

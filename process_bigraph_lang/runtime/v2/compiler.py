@@ -1,7 +1,17 @@
 from typing import cast, Any
 
-from process_bigraph_lang.dsl.model import ProcessDef, Type, Store, StoreDef, Model as ASTModel, StoreNode, \
-    DefaultValue, ProcDef, StepDef, SchemaItem, EdgeDef, SchemaItemRef, StoreNodeRef, Parameter
+from process_bigraph_lang.dsl.model import (
+    Type,
+    Model as ASTModel,
+    StoreNode,
+    DefaultValue,
+    ProcDef,
+    StepDef,
+    SchemaItem,
+    EdgeDef,
+    StoreNodeRef,
+    Parameter,
+)
 from process_bigraph_lang.runtime.v2.pb_model import PBModel, PBStep, PBProcess, PBStore
 
 
@@ -84,21 +94,29 @@ def compile(ast_model: ASTModel) -> PBModel:
                 assert parameter.default
                 config_state[param.name] = parameter.default.val
 
-        input_state: dict[str,Any] = {}
+        input_state: dict[str, Any] = {}
         if proc_call.input_node_list:
             for store_node_ref, proc_def_ref in zip(proc_call.input_node_list.store_node_refs, proc_def.inputs):
                 store_node, pb_store = retrieve_store_nodes(store_node_ref, pb_model)
                 input_state[proc_def_ref.ref_text] = pb_store.path
 
-        output_state: dict[str,Any] = {}
+        output_state: dict[str, Any] = {}
         if proc_call.output_node_list:
             for store_node_ref, proc_def_ref in zip(proc_call.output_node_list.store_node_refs, proc_def.outputs):
                 store_node, pb_store = retrieve_store_nodes(store_node_ref, pb_model)
                 output_state[proc_def_ref.ref_text] = pb_store.path
 
-        pb_process = PBProcess(key=key, path=proc_path, address=address,
-                               config_schema=config_schema, input_schema=input_schema, output_schema=output_schema,
-                               config_state=config_state, input_state=input_state, output_state=output_state)
+        pb_process = PBProcess(
+            key=key,
+            path=proc_path,
+            address=address,
+            config_schema=config_schema,
+            input_schema=input_schema,
+            output_schema=output_schema,
+            config_state=config_state,
+            input_state=input_state,
+            output_state=output_state,
+        )
         pb_model.processes.append(pb_process)
 
     # every step_call is a new step instance
@@ -132,11 +150,18 @@ def compile(ast_model: ASTModel) -> PBModel:
                 store_node, pb_store = retrieve_store_nodes(store_node_ref, pb_model)
                 step_output_state[step_def_ref.ref_text] = pb_store.full_path
 
-        pb_step = PBStep(key=key, path=step_path, address=address,
-                               config_schema=config_schema, input_schema=input_schema, output_schema=output_schema,
-                               config_state=step_config_state, input_state=step_input_state, output_state=step_output_state)
+        pb_step = PBStep(
+            key=key,
+            path=step_path,
+            address=address,
+            config_schema=config_schema,
+            input_schema=input_schema,
+            output_schema=output_schema,
+            config_state=step_config_state,
+            input_state=step_input_state,
+            output_state=step_output_state,
+        )
         pb_model.steps.append(pb_step)
-
 
     # emitter_step = PBStep()
     # pb_model.steps.append(emitter_step)
@@ -144,16 +169,18 @@ def compile(ast_model: ASTModel) -> PBModel:
 
 
 def retrieve_store_nodes(store_node_ref: StoreNodeRef, pb_model: PBModel) -> tuple[StoreNode, PBStore]:
-        store_node = cast(StoreNode, store_node_ref.ref_object)
-        assert isinstance(store_node, StoreNode)
-        pb_store: PBStore | None = next((store for store in pb_model.stores if store.key == store_node.name), None)
-        if not pb_store:
-            raise ValueError(f"Store definition {store_node.name} not found in model")
-        return store_node, pb_store
+    store_node = cast(StoreNode, store_node_ref.ref_object)
+    assert isinstance(store_node, StoreNode)
+    pb_store: PBStore | None = next((store for store in pb_model.stores if store.key == store_node.name), None)
+    if not pb_store:
+        raise ValueError(f"Store definition {store_node.name} not found in model")
+    return store_node, pb_store
+
 
 class SchemaAndState:
     schema_type: Type | None
     state_val: DefaultValue | None
+
     def __init__(self, schema_type: Type | None, state_val: DefaultValue | None):
         self.schema_type = schema_type
         self.state_val = state_val
@@ -168,11 +195,13 @@ class SchemaAndState:
             raise ValueError("SchemaAndState has no schema type or state value")
 
 
-def retrieve_edge_def_fields(edge_def: EdgeDef) -> tuple[str, str, dict[str, SchemaAndState], dict[str, SchemaAndState], dict[str, SchemaAndState]]:
+def retrieve_edge_def_fields(
+    edge_def: EdgeDef,
+) -> tuple[str, str, dict[str, SchemaAndState], dict[str, SchemaAndState], dict[str, SchemaAndState]]:
     key: str = edge_def.name
     if not edge_def.python_path:
         raise ValueError(f"Process or Step definition {edge_def.name} has no python path")
-    address: str = '.'.join(edge_def.python_path.path)
+    address: str = ".".join(edge_def.python_path.path)
     config_schema_and_state: dict[str, SchemaAndState] = {}
     input_schema_and_state: dict[str, SchemaAndState] = {}
     output_schema_and_state: dict[str, SchemaAndState] = {}
@@ -193,7 +222,7 @@ def retrieve_edge_def_fields(edge_def: EdgeDef) -> tuple[str, str, dict[str, Sch
     return key, address, config_schema_and_state, input_schema_and_state, output_schema_and_state
 
 
-def get_schema_item_schema_and_state(proc_or_step_def: EdgeDef, schema_item: SchemaItem) ->  SchemaAndState:
+def get_schema_item_schema_and_state(proc_or_step_def: EdgeDef, schema_item: SchemaItem) -> SchemaAndState:
     opt_type: Type | None = None
     if schema_item.type_ref is not None:
         opt_type = cast(Type, schema_item.type_ref.ref_object)
