@@ -24,8 +24,8 @@ store B = 21.0
 store C: float
 store D: float
 store time: float
-store caravagna_model_path = "models/Caravagna2010.xml"
-store other_model_path = "models/BIOMD000000000232.xml"
+param caravagna_model_path = "models/Caravagna2010.xml"
+param other_model_path = "models/BIOMD000000000232.xml"
 store results {
     data_array: float = 0.0,
     labels: string
@@ -39,7 +39,6 @@ sbml model1
 
 
 set (C) = op_step[op_plus](C, B)
-update (D) <= op_process[op_minus](B, C)
 
 update (results) <= tellurium[caravagna_model_path](results,time)
 update (results) <= tellurium[other_model_path](results,time)

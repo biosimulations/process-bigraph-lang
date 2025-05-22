@@ -11,36 +11,30 @@ unit conc: uM_per_h
 unit hour: ["h"]
 unit dimensionless: ["1"]
 
-process_def MyProcess path my_processes.Process1
+proc MyProcess path my_processes.Process1
     param calcium_growth: float default 0.1 [uM_per_h]
     param glucose_growth: float default 0.1 [uM_per_h]
     param dt: float default 0.1 [hour]
     param alpha: float default 0.1 [dimensionless]
-
     var glucose: float
     var calcium: float [conc]
-
     inputs glucose calcium
     outputs glucose calcium
 
-    updates
-        glucose := my_update(glucose, glucose_growth, dt);
-        calcium := calcium * (1-exp(dt)) + alpha * calcium_growth * dt;
+param ca_growth: float = 0.1 [uM_per_h]
+param gl_growth: float = 0.1 [uM_per_h]
+param dt: float = 0.1 [hour]
+param alpha: float = 0.1 [dimensionless]
 
-store_def medium
-    state_def glucose: float default 3.0 [uM]
-    state_def calcium: float default 0.5
+store med_glucose: float = 3.0
+store med_calcium: float = 0.5
 
-store_def cell parent medium
-    state_def glucose: float default 0.0
-    state_def calcium: float default 0.0
+store cell_glucose: float = 0.0
+store cell_calcium: float = 0.0
 
-store_def nucleus parent cell
-    state_def glucose: float default 0.0
-    state_def calcium: float default 0.0
+store nuc_glucose: float = 0.0
+store nuc_calcium: float = 0.0
 
-composite_def CellComposite
-    store cell1: cell
-    store nuc1: nucleus
-    process p1: MyProcess stores cell1
-    process p2: MyProcess stores nuc1
+update (med_glucose, med_calcium) using MyProcess[ca_growth,gl_growth,dt,alpha](med_glucose, med_calcium)
+update (cell_glucose, cell_calcium) using MyProcess[ca_growth,gl_growth,dt,alpha](cell_glucose, cell_calcium)
+update (nuc_glucose, nuc_calcium) using MyProcess[ca_growth,gl_growth,dt,alpha](nuc_glucose, nuc_calcium)
