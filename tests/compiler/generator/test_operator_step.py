@@ -3,7 +3,7 @@ from typing import Any
 
 import process_bigraph as pg  # type: ignore[import-untyped]
 
-from process_bigraph_lang.compiler.generator import assemble_pb
+from process_bigraph_lang.compiler.converter import assemble_pb
 from process_bigraph_lang.compiler.pb_model import PBStore, PBStep, PBModel
 
 op_step_expected_config = {

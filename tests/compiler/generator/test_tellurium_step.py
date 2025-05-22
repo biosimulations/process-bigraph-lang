@@ -5,7 +5,7 @@ from typing import Any
 import numpy as np
 import process_bigraph as pg  # type: ignore[import-untyped]
 
-from process_bigraph_lang.compiler.generator import assemble_pb
+from process_bigraph_lang.compiler.converter import assemble_pb
 from process_bigraph_lang.compiler.pb_model import PBStore, PBStep, PBModel
 from tests.fixtures.test_registry.tellurium import TelluriumStep
 
