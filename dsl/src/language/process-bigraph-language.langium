@@ -4,9 +4,6 @@ entry Model:
     ((types+=Type) |
      (definitions+=Definition) |
      (units+=Unit) |
-     (processDefs+=ProcessDef) |
-     (store_defs+=StoreDef) |
-     (compositeDefs+=CompositeDef) |
      (sbmlModels+=SbmlModel) |
      (stepDefs+=StepDef) |
      (procDefs+=ProcDef) |
@@ -28,10 +25,6 @@ DefaultValue:
 SchemaItem:
     name=ID ':' type_ref=[Type] ('default' default=DefaultValue)? ("[" unit_ref=[Unit] "]")?;
 
-StoreDef:
-    'store_def' name=ID ('parent' parent=[StoreDef])?
-        ('state_def' states+=SchemaItem)*;
-
 Unit:
     "unit" name=ID ":" (('[' symbol=STRING ']') | (unit_ref=[Unit]));
 
@@ -42,17 +35,6 @@ SbmlModel:
 
 PythonPath:
     'path' path+=ID ("." path+=ID)*;
-
-ProcessDef:
-    'process_def' name=ID python_path=PythonPath?
-        ('param' params+=SchemaItem)*
-        ('var' vars+=SchemaItem)*
-        ('inputs' inputs+=[SchemaItem]*)?
-        ('outputs' outputs+=[SchemaItem]*)?
-        ('updates' updates+=Update*)?;
-
-Store:
-    'store' name=ID ':' store_def=[StoreDef];
 
 Parameter:
     'param' name=ID (':' type_ref=[Type])? '=' default=DefaultValue ("[" unit_ref=[Unit] "]")?;
@@ -94,17 +76,6 @@ ParameterList:
 
 StoreNodeList:
     (store_node_refs+=[StoreNode]) (',' store_node_refs+=[StoreNode])*;
-
-Process:
-    'process' name=ID ':' process_def=[ProcessDef] ('stores' stores+=[Store]*);
-
-CompositeDef:
-    'composite_def' name=ID
-        stores+=Store*
-        processes+=Process*;
-
-Update:
-    (lhs=[SchemaItem]) ':=' (rhs=Expression) ';';
 
 Definition:
     'def' name=ID ('(' args+=DeclaredParameter (',' args+=DeclaredParameter)* ')')?

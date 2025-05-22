@@ -32,10 +32,3 @@ def test_types_units_defs(simple_parse_data_3: tuple[str, Path, ASTModel]) -> No
     generated_json = _langium_generate(dsl_path)
     model = ASTModel.model_validate_json(generated_json)
     assert model.model_dump_json(indent=2) == expected_model.model_dump_json(indent=2)
-
-
-def test_processes(simple_parse_data_4: tuple[str, Path, ASTModel]) -> None:
-    _dsl_lang, dsl_path, expected_model = simple_parse_data_4
-    generated_json = _langium_generate(dsl_path)
-    model = ASTModel.model_validate_json(generated_json)
-    assert model.model_dump_json(indent=2) == expected_model.model_dump_json(indent=2)

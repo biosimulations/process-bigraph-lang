@@ -17,9 +17,6 @@ SchemaItemRef = Reference
 TypeRef = Reference
 UnitRef = Reference
 DefinitionRef = Reference
-StoreDefRef = Reference
-StoreRef = Reference
-ProcessDefRef = Reference
 StoreNodeRef = Reference
 StepDefRef = Reference
 ProcDefRef = Reference
@@ -43,27 +40,11 @@ class SchemaItem(NamedObject):
     unit_ref: UnitRef | None = None
 
 
-class StoreDef(NamedObject):
-    obj_type: Literal["StoreDef"] = Field(default="StoreDef")
-    parent: StoreDefRef | None = None
-    states: list[SchemaItem] | None = None
-
-
-class Store(NamedObject):
-    obj_type: Literal["Store"] = Field(default="Store")
-    store_def: StoreDefRef
-
-
 class Parameter(NamedObject):
     obj_type: Literal["Parameter"] = Field(default="Parameter")
     default: DefaultValue
     type_ref: TypeRef | None = None
     unit_ref: UnitRef | None = None
-
-
-class Update(BaseModel):
-    lhs: SchemaItemRef
-    rhs: "Expression"
 
 
 class PythonPath(BaseModel):
@@ -85,16 +66,6 @@ class StepDef(EdgeDef):
 
 class ProcDef(EdgeDef):
     obj_type: Literal["ProcDef"] = Field(default="ProcDef")
-
-
-class ProcessDef(NamedObject):
-    obj_type: Literal["ProcessDef"] = Field(default="ProcessDef")
-    params: list[SchemaItem]
-    vars: list[SchemaItem]
-    inputs: list[SchemaItemRef]
-    outputs: list[SchemaItemRef]
-    updates: list[Update]
-    python_path: PythonPath | None = None
 
 
 class StoreNode(NamedObject):
@@ -187,26 +158,11 @@ class Unit(NamedObject):
     unit_ref: UnitRef | None = None
 
 
-class Process(NamedObject):
-    obj_type: Literal["Process"] = Field(default="Process")
-    process_def: ProcessDefRef
-    stores: list[StoreRef] = []
-
-
-class CompositeDef(NamedObject):
-    obj_type: Literal["CompositeDef"] = Field(default="CompositeDef")
-    stores: list[Store] = []
-    processes: list[Process] = []
-
-
 class ASTModel(BaseModel):
     obj_type: Literal["Model"] = Field(default="Model")
     definitions: list[Definition]
     types: list[Type]
     units: list[Unit]
-    processDefs: list[ProcessDef]
-    store_defs: list[StoreDef]
-    compositeDefs: list[CompositeDef]
     stepDefs: list[StepDef]
     procDefs: list[ProcDef]
     storeNodes: list[StoreNode]

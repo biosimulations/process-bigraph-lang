@@ -14,7 +14,7 @@ def test_validate_abc_should_fail(model_path_abc_error: Path) -> None:
     stdout, stderr = _langium_validate(model_path_abc_error)
     assert stderr == (
         "There are validation errors:\n"
-        "line 25: Could not resolve reference to SchemaItem named 'calciumaaa'. "
+        "line 22: Could not resolve reference to SchemaItem named 'calciumaaa'. "
         "[calciumaaa]"
     )
     assert stdout == ""
