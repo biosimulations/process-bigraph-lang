@@ -2,8 +2,9 @@ from copy import deepcopy
 from typing import Any
 
 import process_bigraph as pg  # type: ignore[import-untyped]
-from process_bigraph_lang.runtime.v2.generator import generate
-from process_bigraph_lang.runtime.v2.pb_model import PBStore, PBStep, PBModel
+
+from process_bigraph_lang.compiler.generator import assemble_pb
+from process_bigraph_lang.compiler.pb_model import PBStore, PBStep, PBModel
 
 op_step_expected_config = {
     "composition": {
@@ -50,17 +51,23 @@ def test_op_step_generator() -> None:
         key="step1",
         path=[],
         address="local:!process_bigraph.tests.OperatorStep",
-        config=dict(operator="+"),
-        inputs=dict(a=["A"], b=["B"]),
-        outputs=dict(c=["C"]),
+        config_schema={},
+        input_schema={},
+        output_schema={},
+        config_state=dict(operator="+"),
+        input_state=dict(a=["A"], b=["B"]),
+        output_state=dict(c=["C"]),
     )
     step_step2 = PBStep(
         key="step2",
         path=[],
         address="local:!process_bigraph.tests.OperatorStep",
-        config=dict(operator="*"),
-        inputs=dict(a=["B"], b=["C"]),
-        outputs=dict(c=["D"]),
+        config_schema={},
+        input_schema={},
+        output_schema={},
+        config_state=dict(operator="*"),
+        input_state=dict(a=["B"], b=["C"]),
+        output_state=dict(c=["D"]),
     )
 
     pb_model = PBModel(
@@ -68,9 +75,8 @@ def test_op_step_generator() -> None:
         steps=[step_step1, step_step2],
         processes=[],
         types=[],
-        composite_defs=[],
     )
-    generated_config: dict[str, Any] = generate(pb_model=pb_model)
+    generated_config: dict[str, Any] = assemble_pb(pb_model=pb_model)
     assert op_step_expected_config == generated_config
 
     core = pg.ProcessTypes()
