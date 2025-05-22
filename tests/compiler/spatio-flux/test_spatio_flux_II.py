@@ -19,7 +19,7 @@ substrate_values: dict[str, list[list[float]]] = { substrate:
 step_config_template = {
     "composition": {
         "fields": {
-            "acetate": f"array[({rows}|{columns}),positive_float],",
+            "acetate": f"array[({rows}|{columns}),positive_float]",
             "biomass": f"array[({rows}|{columns}),positive_float]",
             "glucose": f"array[({rows}|{columns}),positive_float]"},
     },
@@ -193,9 +193,9 @@ step_config_template = {
             "inputs": {"fields": ["fields"], "global_time": ["global_time"]},
             "outputs": None,
         },
-        "fields": {"acetate": np.array([[0.3, 0.3, 0.3],[0.3, 0.3, 0.3]], dtype=np.float64),
-                   "biomass": np.array([[0.0, 0.0, 0.0],[0.0, 0.0, 0.0]], dtype=np.float64),
-                   "glucose": np.array([[10.0, 10.0, 10.0],[10.0, 10.0, 10.0]], dtype=np.float64)},
+        "fields": {"acetate": np.array([np.array([0.3, 0.3, 0.3], dtype=np.float64),np.array([0.3, 0.3, 0.3], dtype=np.float64)], dtype=np.float64),
+                   "biomass": np.array([np.array([0.1, 0.1, 0.1], dtype=np.float64),np.array([0.1, 0.1, 0.1], dtype=np.float64)], dtype=np.float64),
+                   "glucose": np.array([np.array([10.0, 10.0, 10.0], dtype=np.float64),np.array([10.0, 10.0, 10.0], dtype=np.float64)], dtype=np.float64)},
     },
 }
 
@@ -207,12 +207,13 @@ def test_spatio_flux_two(sbml_path_caravagna2010: Path) -> None:
 
     config: dict[str, Any] = deepcopy(step_config_template)
 
-    # construct and run the Step network (don't need to call composite.run(), executes in composite.initialize())
     composite = pg.Composite(config=config, core=core)
     composite.run(interval=60)
 
     # compare results
     results: dict = composite.state["fields"]
-    assert float(results["acetate"]) == 0.0
-    assert float(results["biomass"]) == 0.987918808708276
-    assert float(results["glucose"]) == 0.0
+    for row in range(rows):
+        for col in range(columns):
+            assert float(results["acetate"][row][col]) == 0.0
+            assert float(results["biomass"][row][col]) == 0.9683019927155062
+            assert float(results["glucose"][row][col]) == 0.0
