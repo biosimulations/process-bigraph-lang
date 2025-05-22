@@ -12,7 +12,7 @@ from process_bigraph_lang.dsl.ast_model import ASTModel
 from process_bigraph_lang.dsl.bind_ast import bind_ast_model
 
 
-class CustomErrorListener(ErrorListener):
+class _CustomErrorListener(ErrorListener):
     def syntaxError(
         self,
         recognizer: pblangParser | pblangLexer,
@@ -25,7 +25,7 @@ class CustomErrorListener(ErrorListener):
         raise ValueError(f"Syntax error at line {str(line)}, column {str(column)}: {msg}")
 
 
-def parse_pblang_file(filename: PathLike[str]) -> ASTModel:
+def antlr_parse_pblang_file(filename: PathLike[str]) -> ASTModel:
     file_path = Path(filename)
     if not file_path.exists():
         raise FileNotFoundError(filename)
@@ -39,11 +39,11 @@ def parse_pblang_file(filename: PathLike[str]) -> ASTModel:
     input_stream = FileStream(fileName=str(file_path))
     lexer = pblangLexer(input_stream)
     lexer.removeErrorListeners()  # remove default ConsoleErrorListener
-    lexer.addErrorListener(CustomErrorListener())  # add custom error listener
+    lexer.addErrorListener(_CustomErrorListener())  # add custom error listener
     stream = CommonTokenStream(lexer)
     parser = pblangParser(stream)
     parser.removeErrorListeners()  # remove default ConsoleErrorListener
-    parser.addErrorListener(CustomErrorListener())  # add custom error listener
+    parser.addErrorListener(_CustomErrorListener())  # add custom error listener
     tree = parser.model()
     listener = ASTBuilderListener()
     walker = ParseTreeWalker()
@@ -53,10 +53,10 @@ def parse_pblang_file(filename: PathLike[str]) -> ASTModel:
     return model
 
 
-def parse_pblang_str(pblang_str: str) -> ASTModel:
+def antlr_parse_pblang_str(pblang_str: str) -> ASTModel:
     with tempfile.TemporaryDirectory() as tmpdir:
         tmp_path = Path(tmpdir) / "test.pblang"
         with open(tmp_path, "w") as f:
             f.write(pblang_str)
             f.flush()
-            return parse_pblang_file(tmp_path)
+            return antlr_parse_pblang_file(tmp_path)

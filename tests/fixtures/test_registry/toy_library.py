@@ -1,7 +1,6 @@
 import os.path
 from typing import Any
 
-from process_bigraph_lang.runtime.v1.process_bigraph_env import ProcessBigraphEnv
 from tests.fixtures.test_registry.utils import TypedStep, TypedProcess
 from typing_extensions import override
 
@@ -93,10 +92,3 @@ PROCESS_DICT = {
     "AddComplexNumbersStep": AddComplexNumbersStep,
     "GetRealFromComplexNumberStep": GetRealFromComplexNumberStep,
 }
-
-
-def register(assembler: ProcessBigraphEnv) -> None:
-    for type_name, type_schema in TYPES_DICT.items():
-        assembler.core.register("toy.type." + type_name, type_schema)
-    for process_name, process in PROCESS_DICT.items():
-        assembler.core.register_process("toy." + process_name, process)

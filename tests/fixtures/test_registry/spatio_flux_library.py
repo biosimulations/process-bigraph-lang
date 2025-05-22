@@ -4,8 +4,6 @@ from bigraph_schema import default  # type: ignore[import-untyped]
 from process_bigraph import ProcessTypes  # type: ignore[import-untyped]
 from spatio_flux import processes  # type: ignore[import-untyped]
 
-from process_bigraph_lang.runtime.v1.process_bigraph_env import ProcessBigraphEnv
-
 
 def apply_non_negative(
     _schema: dict[str, Any],
@@ -52,10 +50,3 @@ TYPES_DICT = {
 }
 
 PROCESS_DICT = processes.PROCESS_DICT.copy()
-
-
-def register(assembler: ProcessBigraphEnv) -> None:
-    for type_name, type_schema in TYPES_DICT.items():
-        assembler.core.register(type_name, type_schema)
-    for process_name, process in PROCESS_DICT.items():
-        assembler.core.register_process(process_name, process)

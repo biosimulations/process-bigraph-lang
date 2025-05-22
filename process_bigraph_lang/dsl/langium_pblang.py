@@ -4,11 +4,32 @@ import tempfile
 from os import PathLike
 from pathlib import Path
 
+from process_bigraph_lang.dsl.ast_model import ASTModel
+from process_bigraph_lang.dsl.bind_ast import bind_ast_model
+
 bin_dir = Path(os.path.abspath(__file__)).parent.parent / "bin"
 
 
+def langium_parse_pblang_file(filename: PathLike[str]) -> ASTModel:
+    json_str = _langium_generate(filename)
+    ast_model = ASTModel.model_validate_json(json_str)
+    bind_ast_model(ast_model)
+    return ast_model
+
+
+def langium_parse_pblang_str(pblang_str: str) -> ASTModel:
+    with tempfile.TemporaryDirectory() as tmpdir:
+        tmp_path = Path(tmpdir) / "test.pblang"
+        with open(tmp_path, "w") as f:
+            f.write(pblang_str)
+        json_str = _langium_generate(tmp_path)
+        ast_model = ASTModel.model_validate_json(json_str)
+        bind_ast_model(ast_model)
+        return ast_model
+
+
 # run cli-native with a filename of a .pblang file
-def parse_pblang_file(filename: PathLike[str]) -> str:
+def _langium_generate(filename: PathLike[str]) -> str:
     if not bin_dir.exists():
         raise FileNotFoundError(bin_dir)
     if not bin_dir.is_dir():
@@ -51,7 +72,7 @@ def parse_pblang_file(filename: PathLike[str]) -> str:
         )
 
 
-def validate_pblang_file(filename: PathLike[str]) -> tuple[str, str]:
+def _langium_validate(filename: PathLike[str]) -> tuple[str, str]:
     if not bin_dir.exists():
         raise FileNotFoundError(bin_dir)
     if not bin_dir.is_dir():

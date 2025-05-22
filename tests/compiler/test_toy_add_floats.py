@@ -4,12 +4,13 @@ from pathlib import Path
 from typing import Any
 
 import process_bigraph as pg  # type: ignore[import-untyped]
+
+from process_bigraph_lang.compiler.compiler import compile_ast
+from process_bigraph_lang.compiler.generator import assemble_pb
+from process_bigraph_lang.compiler.pb_model import PBStore, PBStep, PBModel, PBProcess
 from process_bigraph_lang.dsl.ast_model import ASTModel
-from process_bigraph_lang.main import generate_model_ast
-from process_bigraph_lang.runtime.v2.generator import generate
-from process_bigraph_lang.runtime.v2.pb_model import PBStore, PBStep, PBModel, PBProcess
+from process_bigraph_lang.dsl.langium_pblang import langium_parse_pblang_file
 from tests.fixtures.test_registry.toy_library import AddFloatsStep, SaveFloatToFileStep
-from process_bigraph_lang.runtime.v2.compiler import compile as pblang_compiler
 
 add_floats_step_expected_config_template = {
     "composition": {
@@ -136,7 +137,7 @@ def test_add_floats_step_generator() -> None:
             processes=[],
             types=[],
         )
-        generated_config: dict[str, Any] = generate(pb_model=pb_model)
+        generated_config: dict[str, Any] = assemble_pb(pb_model=pb_model)
         assert add_floats_step_expected_config == generated_config
 
         core = pg.ProcessTypes()
@@ -202,7 +203,7 @@ def test_add_floats_process_generator() -> None:
             processes=[process_add_nums],
             types=[],
         )
-        generated_config: dict[str, Any] = generate(pb_model=pb_model)
+        generated_config: dict[str, Any] = assemble_pb(pb_model=pb_model)
         assert add_floats_step_expected_config == generated_config
 
         core = pg.ProcessTypes()
@@ -248,7 +249,7 @@ def test_add_floats_parser() -> None:
         model_pblang_path = Path(tmp_dirname) / "model.pblang"
         with open(model_pblang_path, "w") as file:
             file.write(add_floats_step_pblang)
-        ast_model: ASTModel = generate_model_ast(model_pblang_path)
-        pb_model: PBModel = pblang_compiler(ast_model)  # remove reference to process instance
-        pb_dict = generate(pb_model)
+        ast_model: ASTModel = langium_parse_pblang_file(model_pblang_path)
+        pb_model: PBModel = compile_ast(ast_model)  # remove reference to process instance
+        pb_dict = assemble_pb(pb_model)
         assert add_floats_step_expected_config_template == pb_dict

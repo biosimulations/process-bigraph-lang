@@ -1,13 +1,13 @@
 from copy import deepcopy
 from pathlib import Path
 from typing import Any
+
 import numpy as np
-
 import process_bigraph as pg  # type: ignore[import-untyped]
-from process_bigraph_lang.runtime.v2.generator import generate
-from process_bigraph_lang.runtime.v2.pb_model import PBStore, PBStep, PBModel
-from tests.fixtures.test_registry.tellurium import TelluriumStep
 
+from process_bigraph_lang.compiler.generator import assemble_pb
+from process_bigraph_lang.compiler.pb_model import PBStore, PBStep, PBModel
+from tests.fixtures.test_registry.tellurium import TelluriumStep
 
 TELLURIUM_STEP_ADDR = f"{TelluriumStep.__module__}.{TelluriumStep.__qualname__}"
 step_config_template = {
@@ -123,5 +123,5 @@ def test_generator_tellurium_steps() -> None:
         processes=[],
         types=[],
     )
-    generated_config: dict[str, Any] = generate(pb_model=pb_model)
+    generated_config: dict[str, Any] = assemble_pb(pb_model=pb_model)
     assert step_config_template == generated_config

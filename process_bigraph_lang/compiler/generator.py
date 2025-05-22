@@ -1,9 +1,9 @@
 from typing import Any
 
-from process_bigraph_lang.runtime.v2.pb_model import PBModel
+from process_bigraph_lang.compiler.pb_model import PBModel
 
 
-def generate(pb_model: PBModel) -> dict[str, Any]:
+def assemble_pb(pb_model: PBModel) -> dict[str, Any]:
     doc: dict[str, Any] = dict(composition={}, state={})
     for store in pb_model.stores:
         if store.value is not None:

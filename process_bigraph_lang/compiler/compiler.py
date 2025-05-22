@@ -12,7 +12,7 @@ from process_bigraph_lang.dsl.ast_model import (
     StoreNodeRef,
     Parameter,
 )
-from process_bigraph_lang.runtime.v2.pb_model import PBModel, PBStep, PBProcess, PBStore
+from process_bigraph_lang.compiler.pb_model import PBModel, PBStep, PBProcess, PBStore
 
 
 def retrieve_stores_by_path(store_node: StoreNode, path: list[str], pb_stores: list[PBStore]) -> None:
@@ -39,7 +39,7 @@ def retrieve_stores_by_path(store_node: StoreNode, path: list[str], pb_stores: l
             retrieve_stores_by_path(child_node, child_path, pb_stores)
 
 
-def compile(ast_model: ASTModel) -> PBModel:
+def compile_ast(ast_model: ASTModel) -> PBModel:
     pb_model = PBModel(processes=[], stores=[], types=[], steps=[])
     for type_def in ast_model.types:
         if type_def.builtin:
