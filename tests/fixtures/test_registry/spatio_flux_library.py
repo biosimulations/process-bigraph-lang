@@ -51,6 +51,7 @@ TYPES_DICT = {
 
 PROCESS_DICT = processes.PROCESS_DICT.copy()
 
+
 def apply_to_core(core: ProcessTypes) -> None:
     for type_name, type_schema in TYPES_DICT.items():
         core.register(type_name, type_schema)
