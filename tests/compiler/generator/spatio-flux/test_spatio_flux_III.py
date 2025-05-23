@@ -60,7 +60,7 @@ step_config_template = {
 }
 
 
-def test_spatio_flux_three(sbml_path_caravagna2010: Path) -> None:
+def test_spatio_flux_three() -> None:
     core = pg.ProcessTypes()
     core = pg.register_types(core)
     apply_spatio_types_and_processes_to_core(core)
