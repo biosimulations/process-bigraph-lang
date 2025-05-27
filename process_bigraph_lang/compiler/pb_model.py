@@ -33,6 +33,7 @@ class PBEdge(PBEntity):
 @dataclass
 class PBProcess(PBEdge):
     _type: str = "process"
+    interval: float | None = None
 
 
 @dataclass

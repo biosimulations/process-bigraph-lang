@@ -57,6 +57,8 @@ def assemble_pb(pb_model: PBModel) -> dict[str, Any]:
             process_state_dict["inputs"] = process.input_state
         if process.output_state:
             process_state_dict["outputs"] = process.output_state
+        if process.interval is not None:
+            process_state_dict["interval"] = process.interval
         set_value_at_path(doc["state"], process.full_path, value=process_state_dict)
 
     return doc
