@@ -20,17 +20,22 @@ step_config_template = {
                     },
                     "_config": {
                         "_type": "map[reaction]",
-                        "_default": {
-                            "grow": {
-                                "biomass": {"vmax": 0.01, "kcat": 0.01, "role": "reactant"},
-                                "detritus": {"vmax": 0.001, "kcat": 0.001, "role": "product"},
+                    },
+                    'config': {
+                        '_type': 'quote',
+                        '_default': {
+                            'reactions': {
+                                'grow': {
+                                    'biomass': {'vmax': 0.01,'kcat': 0.01,'role': 'reactant'},
+                                    'detritus': {'vmax': 0.001,'kcat': 0.001,'role': 'product'}
+                                }
                             }
-                        },
+                        }
                     },
                     "_inputs": {"mass": "float", "substrates": "map[positive_float]"},
                     "_outputs": {"mass": "float", "substrates": "map[float]"},
-                    # "inputs": {"_type": "tree[wires]", "_default": {"mass": ["mass"], "substrates": ["local"]}},
-                    # "outputs": {"_type": "tree[wires]", "_default": {"mass": ["mass"], "substrates": ["exchange"]}},
+                    "inputs": {"_type": "tree[wires]", "_default": {"mass": ["mass"], "substrates": ["local"]}},
+                    "outputs": {"_type": "tree[wires]", "_default": {"mass": ["mass"], "substrates": ["exchange"]}},
                 }
             },
         },
