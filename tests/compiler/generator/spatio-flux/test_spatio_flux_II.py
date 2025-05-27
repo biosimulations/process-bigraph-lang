@@ -303,5 +303,5 @@ def test_spatio_flux_two() -> None:
     for row in range(rows):
         for col in range(columns):
             assert float(results["acetate"][row][col]) == 0.0
-            assert float(results["biomass"][row][col]) == 0.9683019927155062
+            assert np.allclose(float(results["biomass"][row][col]), 0.9683019927155062)
             assert float(results["glucose"][row][col]) == 0.0

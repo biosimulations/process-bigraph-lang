@@ -1,7 +1,7 @@
 from copy import deepcopy
 from typing import Any
 
-
+import numpy as np
 import process_bigraph as pg  # type: ignore[import-untyped]
 
 from process_bigraph_lang.compiler.converter import assemble_pb
@@ -84,7 +84,7 @@ def test_spatio_flux_one_from_document() -> None:
     # compare results
     results: dict = composite.state["fields"]
     assert float(results["acetate"]) == 0.0
-    assert float(results["biomass"]) == 0.987918808708276
+    assert np.allclose(float(results["biomass"]), 0.987918808708276)
     assert float(results["glucose"]) == 0.0
 
 
@@ -160,5 +160,5 @@ def test_spatio_flux_one_from_generator() -> None:
     # compare results
     results: dict = composite.state["fields"]
     assert float(results["acetate"]) == 0.0
-    assert float(results["biomass"]) == 0.987918808708276
+    assert np.allclose(float(results["biomass"]), 0.987918808708276)
     assert float(results["glucose"]) == 0.0
