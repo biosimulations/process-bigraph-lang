@@ -1,5 +1,4 @@
 from copy import deepcopy
-from pathlib import Path
 from typing import Any
 
 
@@ -10,11 +9,29 @@ D_FBA_PROCESS_ADDR = "spatio_flux.processes.DynamicFBA"
 step_config_template = {
     "composition": {
         "fields": {"acetate": "positive_float", "biomass": "positive_float", "glucose": "positive_float"},
+        "dFBA": {
+            "_type": "process",
+            "address": {"_type": "quote", "_default": f"local:!{D_FBA_PROCESS_ADDR}"},
+            "_config": {
+                "model_file": "string",
+                "kinetic_params": "map[tuple[float,float]]",
+                "substrate_update_reactions": "map[string]",
+                "biomass_identifier": "string",
+                "bounds": "map[bounds]",
+            },
+            "_inputs": {"substrates": {"_type": "map", "_value": "positive_float"}},
+            "_outputs": {"substrates": {"_type": "map", "_value": "positive_float"}},
+        },
+        "emitter": {
+            "_type": "step",
+            "address": {"_type": "quote", "_default": "local:ram-emitter"},
+            "_config": {"emit": {"_type": "map", "_value": "any"}},
+            "_inputs": {"_type": "map", "_value": "any"},
+        },
     },
     "state": {
         "dFBA": {
             "_type": "process",
-            "address": f"local:!{D_FBA_PROCESS_ADDR}",
             "config": {
                 "biomass_identifier": "biomass",
                 "bounds": {"ATPM": {"lower": 1.0, "upper": 1.0}, "EX_o2_e": {"lower": -2.0, "upper": None}},
@@ -40,8 +57,7 @@ step_config_template = {
             "shared": None,
         },
         "emitter": {
-            "_type": "process",
-            "address": "local:ram-emitter",
+            "_type": "step",
             "config": {"emit": {"fields": "any", "global_time": "any"}},
             "inputs": {"fields": ["fields"], "global_time": ["global_time"]},
             "outputs": None,

@@ -34,6 +34,7 @@ spatio-flux = {git = "https://github.com/vivarium-collective/spatio-flux.git"}
 tellurium = "^2.2.10"
 bigraph-schema = "^0.0.59"
 process-bigraph = "^0.0.38"
+optlang = "^1.8.3"
 
 [tool.poetry.group.docs.dependencies]
 mkdocs = "^1.4.2"
