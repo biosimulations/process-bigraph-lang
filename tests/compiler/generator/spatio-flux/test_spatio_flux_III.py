@@ -25,8 +25,8 @@ step_config_template = {
             "_config": {
                 "n_bins": "tuple[integer,integer]",
                 "bounds": "tuple[float,float]",
-                "default_diffusion_rate": { "_type": "float", "_default": 1e-1 },
-                "default_diffusion_dt": { "_type": "float", "_default": 1e-1 },
+                "default_diffusion_rate": {"_type": "float", "_default": 1e-1},
+                "default_diffusion_dt": {"_type": "float", "_default": 1e-1},
                 "diffusion_coeffs": "map[float]",
                 "advection_coeffs": "map[tuple[float,float]]",
             },

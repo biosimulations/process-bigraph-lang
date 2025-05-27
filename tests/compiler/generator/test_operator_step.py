@@ -32,7 +32,6 @@ op_step_expected_config = {
             "_inputs": {"a": "float", "b": "float"},
             "_outputs": {"c": "float"},
         },
-
     },
     "state": {
         "A": 13,

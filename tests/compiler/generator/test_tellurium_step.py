@@ -17,9 +17,9 @@ step_config_template = {
         "start_time_store": "float",
         "tellurium": {
             "_type": "step",
-            "address": {"_type" : "quote","_default" : f"local:{TELLURIUM_STEP_ADDR}"},
-            "_config": {"sbml_model_path": "string","antimony_string": "string", "num_steps": "integer"},
-            "_inputs": { "time": "float", "run_time": "float"},
+            "address": {"_type": "quote", "_default": f"local:{TELLURIUM_STEP_ADDR}"},
+            "_config": {"sbml_model_path": "string", "antimony_string": "string", "num_steps": "integer"},
+            "_inputs": {"time": "float", "run_time": "float"},
             "_outputs": {
                 "results": {
                     "result_array": "array[(10|4),float]",
@@ -33,7 +33,6 @@ step_config_template = {
             "_config": {"emit": {"_type": "map", "_value": "any"}},
             "_inputs": {"_type": "map", "_value": "any"},
         },
-
     },
     "state": {
         "start_time_store": 0.0,
@@ -116,7 +115,7 @@ def test_generator_tellurium_steps() -> None:
         address=f"local:{TELLURIUM_STEP_ADDR}",
         config_schema=dict(sbml_model_path="string", antimony_string="string", num_steps="integer"),
         input_schema=dict(time="float", run_time="float"),
-        output_schema=dict(results=dict(result_array="array[(10|4),float]",result_labels="list[string]")),
+        output_schema=dict(results=dict(result_array="array[(10|4),float]", result_labels="list[string]")),
         config_state=dict(sbml_model_path="", num_steps=10),
         input_state=dict(time=["start_time_store"], run_time=["run_time_store"]),
         output_state=dict(results=["results_store"]),
@@ -128,7 +127,7 @@ def test_generator_tellurium_steps() -> None:
         config_schema=dict(emit=dict(_type="map", _value="any")),
         input_schema=dict(_type="map", _value="any"),
         output_schema={},
-        config_state=dict(emit=dict(floating_species="tree[float]",time="float")),
+        config_state=dict(emit=dict(floating_species="tree[float]", time="float")),
         input_state=dict(floating_species=["floating_species_store"], time=["start_time_store"]),
         output_state={},
     )

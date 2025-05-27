@@ -14,23 +14,20 @@ step_config_template = {
             "_value": {
                 "minimal_particle": {
                     "_type": "process",
-                    "address": {
-                        "_type": "quote",
-                        "_default": "local:MinimalParticle"
-                    },
+                    "address": {"_type": "quote", "_default": "local:MinimalParticle"},
                     "_config": {
                         "_type": "map[reaction]",
                     },
-                    'config': {
-                        '_type': 'quote',
-                        '_default': {
-                            'reactions': {
-                                'grow': {
-                                    'biomass': {'vmax': 0.01,'kcat': 0.01,'role': 'reactant'},
-                                    'detritus': {'vmax': 0.001,'kcat': 0.001,'role': 'product'}
+                    "config": {
+                        "_type": "quote",
+                        "_default": {
+                            "reactions": {
+                                "grow": {
+                                    "biomass": {"vmax": 0.01, "kcat": 0.01, "role": "reactant"},
+                                    "detritus": {"vmax": 0.001, "kcat": 0.001, "role": "product"},
                                 }
                             }
-                        }
+                        },
                     },
                     "_inputs": {"mass": "float", "substrates": "map[positive_float]"},
                     "_outputs": {"mass": "float", "substrates": "map[float]"},
@@ -46,13 +43,13 @@ step_config_template = {
                 "_default": "local:Particles",
             },
             "_config": {
-                'bounds': 'tuple[float,float]',
-                "n_bins": 'tuple[float,float]',
-                'diffusion_rate': {"_type": 'float', "_default": 1e-1 },
-                'advection_rate': {"_type": 'tuple[float,float]', "_default": (0, 0) },
+                "bounds": "tuple[float,float]",
+                "n_bins": "tuple[float,float]",
+                "diffusion_rate": {"_type": "float", "_default": 1e-1},
+                "advection_rate": {"_type": "tuple[float,float]", "_default": (0, 0)},
                 "add_probability": "float",
-                "boundary_to_add": { "_type": "list[boundary_side]", "_default": ["left","right"] },
-                "boundary_to_remove": { "_type": "list[boundary_side]", "_default": ["left", "right", "top", "bottom"] },
+                "boundary_to_add": {"_type": "list[boundary_side]", "_default": ["left", "right"]},
+                "boundary_to_remove": {"_type": "list[boundary_side]", "_default": ["left", "right", "top", "bottom"]},
             },
             "_inputs": {
                 "particles": "map[particle]",
