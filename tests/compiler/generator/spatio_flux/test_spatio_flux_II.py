@@ -6,9 +6,9 @@ import process_bigraph as pg  # type: ignore[import-untyped]
 
 from process_bigraph_lang.compiler.converter import assemble_pb
 from process_bigraph_lang.compiler.pb_model import PBStore, PBModel, PBProcess, PBStep
-from tests.fixtures.test_registry.spatio_flux_library import apply_to_core as apply_spatio_types_and_processes_to_core
+from tests.fixtures.test_registry.spatio_flux import register_types as apply_spatio_types_and_processes_to_core
 
-D_FBA_PROCESS_ADDR = "spatio_flux.processes.DynamicFBA"
+D_FBA_PROCESS_ADDR = "tests.fixtures.test_registry.spatio_flux.processes.DynamicFBA"
 
 rows: int = 2
 columns: int = 3
@@ -342,7 +342,7 @@ def test_spatio_flux_two_from_generator() -> None:
     process_dFBA_0_0 = PBProcess(
         key="dFBA[0,0]",
         path=[],
-        address="spatio_flux.processes.DynamicFBA",
+        address="tests.fixtures.test_registry.spatio_flux.processes.DynamicFBA",
         config_schema=dict(
             model_file="string",
             kinetic_params="map[tuple[float,float]]",
@@ -378,7 +378,7 @@ def test_spatio_flux_two_from_generator() -> None:
     process_dFBA_0_1 = PBProcess(
         key="dFBA[0,1]",
         path=[],
-        address="spatio_flux.processes.DynamicFBA",
+        address="tests.fixtures.test_registry.spatio_flux.processes.DynamicFBA",
         config_schema=dict(
             model_file="string",
             kinetic_params="map[tuple[float,float]]",
@@ -414,7 +414,7 @@ def test_spatio_flux_two_from_generator() -> None:
     process_dFBA_0_2 = PBProcess(
         key="dFBA[0,2]",
         path=[],
-        address="spatio_flux.processes.DynamicFBA",
+        address="tests.fixtures.test_registry.spatio_flux.processes.DynamicFBA",
         config_schema=dict(
             model_file="string",
             kinetic_params="map[tuple[float,float]]",
@@ -450,7 +450,7 @@ def test_spatio_flux_two_from_generator() -> None:
     process_dFBA_1_0 = PBProcess(
         key="dFBA[1,0]",
         path=[],
-        address="spatio_flux.processes.DynamicFBA",
+        address="tests.fixtures.test_registry.spatio_flux.processes.DynamicFBA",
         config_schema=dict(
             model_file="string",
             kinetic_params="map[tuple[float,float]]",
@@ -486,7 +486,7 @@ def test_spatio_flux_two_from_generator() -> None:
     process_dFBA_1_1 = PBProcess(
         key="dFBA[1,1]",
         path=[],
-        address="spatio_flux.processes.DynamicFBA",
+        address="tests.fixtures.test_registry.spatio_flux.processes.DynamicFBA",
         config_schema=dict(
             model_file="string",
             kinetic_params="map[tuple[float,float]]",
@@ -522,7 +522,7 @@ def test_spatio_flux_two_from_generator() -> None:
     process_dFBA_1_2 = PBProcess(
         key="dFBA[1,2]",
         path=[],
-        address="spatio_flux.processes.DynamicFBA",
+        address="tests.fixtures.test_registry.spatio_flux.processes.DynamicFBA",
         config_schema=dict(
             model_file="string",
             kinetic_params="map[tuple[float,float]]",

@@ -6,9 +6,9 @@ import process_bigraph as pg  # type: ignore[import-untyped]
 
 from process_bigraph_lang.compiler.converter import assemble_pb
 from process_bigraph_lang.compiler.pb_model import PBStore, PBModel, PBProcess, PBStep
-from tests.fixtures.test_registry.spatio_flux_library import apply_to_core as apply_spatio_types_and_processes_to_core
+from tests.fixtures.test_registry.spatio_flux import register_types as apply_spatio_types_and_processes_to_core
 
-D_FBA_PROCESS_ADDR = "spatio_flux.processes.DynamicFBA"
+D_FBA_PROCESS_ADDR = "tests.fixtures.test_registry.spatio_flux.processes.DynamicFBA"
 step_config_template = {
     "composition": {
         "fields": {"acetate": "positive_float", "biomass": "positive_float", "glucose": "positive_float"},
@@ -106,7 +106,7 @@ def test_spatio_flux_one_from_generator() -> None:
     process_dFBA = PBProcess(
         key="dFBA",
         path=[],
-        address="spatio_flux.processes.DynamicFBA",
+        address="tests.fixtures.test_registry.spatio_flux.processes.DynamicFBA",
         config_schema=dict(
             model_file="string",
             kinetic_params="map[tuple[float,float]]",

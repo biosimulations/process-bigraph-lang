@@ -15,7 +15,7 @@ class PBEntity:
 
 @dataclass
 class PBStore(PBEntity):
-    data_type: str | None = None
+    data_type: str | dict[str, Any] | None = None
     value: Any | None = None
 
 

@@ -3,10 +3,11 @@ from typing import Any
 
 import numpy as np
 import process_bigraph as pg  # type: ignore[import-untyped]
-from tests.fixtures.test_registry.spatio_flux_library import apply_to_core as apply_spatio_types_and_processes_to_core
+from tests.fixtures.test_registry.spatio_flux import register_types as apply_spatio_types_and_processes_to_core
 
 n_bins = (4, 4)
-PARTICLES_PROCESS_ADDR = "spatio_flux.processes.Particles"
+PARTICLES_PROCESS_ADDR = "tests.fixtures.test_registry.spatio_flux.processes.Particles"
+MINIMAL_PARTICLE_PROCESS_ADDR = "tests.fixtures.test_registry.spatio_flux.processes.MinimalParticle"
 step_config_template = {
     "composition": {
         "particles": {
@@ -14,7 +15,7 @@ step_config_template = {
             "_value": {
                 "minimal_particle": {
                     "_type": "process",
-                    "address": {"_type": "quote", "_default": "local:MinimalParticle"},
+                    "address": {"_type": "quote", "_default": f"local:!{MINIMAL_PARTICLE_PROCESS_ADDR}"},
                     "_config": {
                         "_type": "map[reaction]",
                     },
@@ -40,7 +41,7 @@ step_config_template = {
             "_type": "process",
             "address": {
                 "_type": "quote",
-                "_default": "local:Particles",
+                "_default": f"local:!{PARTICLES_PROCESS_ADDR}",
             },
             "_config": {
                 "bounds": "tuple[float,float]",
@@ -108,7 +109,7 @@ step_config_template = {
         },
         "particles_process": {
             "_type": "process",
-            "address": "local:Particles",
+            "address": f"local:!{PARTICLES_PROCESS_ADDR}",
             "config": {
                 "n_bins": n_bins,
                 "bounds": (10.0, 20.0),
