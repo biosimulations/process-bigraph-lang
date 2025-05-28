@@ -6,18 +6,17 @@ Process for a pluggable dFBA simulation.
 """
 
 import warnings
+from typing import Any
 
 import numpy as np
-import cobra
-from cobra.io import load_model
-from process_bigraph import Process, Composite
-from spatio_flux.viz.plot import plot_time_series, plot_species_distributions_to_gif
+import cobra  # type: ignore[import-untyped]
+from cobra.io import load_model  # type: ignore[import-untyped]
+from process_bigraph import Process, ProcessTypes  # type: ignore[import-untyped]
 
 # Suppress warnings
 warnings.filterwarnings("ignore", category=UserWarning, module="cobra.util.solver")
-warnings.filterwarnings(
-    "ignore", category=FutureWarning, module="cobra.medium.boundary_types"
-)
+warnings.filterwarnings("ignore", category=FutureWarning, module="cobra.medium.boundary_types")
+
 
 class DynamicFBA(Process):
     """
@@ -41,10 +40,10 @@ class DynamicFBA(Process):
         "bounds": "map[bounds]",
     }
 
-    def __init__(self, config, core):
+    def __init__(self, config: dict[str, Any], core: ProcessTypes) -> None:
         super().__init__(config, core)
 
-        if not "xml" in self.config["model_file"]:
+        if "xml" not in self.config["model_file"]:
             # use the textbook model if no model file is provided
             # TODO: Also handle JSON or .mat model files
             self.model = load_model(self.config["model_file"])
@@ -60,19 +59,17 @@ class DynamicFBA(Process):
             if bounds["upper"] is not None:
                 self.model.reactions.get_by_id(reaction_id).upper_bound = bounds["upper"]
 
-    def inputs(self):
+    def inputs(self) -> dict[str, Any]:
         return {
             "substrates": "map[positive_float]"  # TODO this should be map[concentration]
             # "enzymes": "map[positive_float]"  # TODO this should be map[concentration]
         }
 
-    def outputs(self):
-        return {
-            "substrates": "map[positive_float]"
-        }
+    def outputs(self) -> dict[str, Any]:
+        return {"substrates": "map[positive_float]"}
 
     # TODO -- can we just put the inputs/outputs directly in the function?
-    def update(self, inputs, interval):
+    def update(self, inputs: dict[str, Any], interval: float) -> dict[str, Any]:
         substrates_input = inputs["substrates"]
 
         for substrate, reaction_id in self.config["substrate_update_reactions"].items():
@@ -108,33 +105,28 @@ class DynamicFBA(Process):
 
 # Helper functions to get specs and states
 def dfba_config(
-        model_file="textbook",
-        kinetic_params=None,
-        substrate_update_reactions=None,
-        biomass_identifier="biomass",
-        bounds=None
-):
+    model_file: str = "textbook",
+    kinetic_params: dict[str, tuple[float, float]] | None = None,
+    substrate_update_reactions: dict[str, str] | None = None,
+    biomass_identifier: str = "biomass",
+    bounds: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     if substrate_update_reactions is None:
-        substrate_update_reactions = {
-            "glucose": "EX_glc__D_e",
-            "acetate": "EX_ac_e"}
+        substrate_update_reactions = {"glucose": "EX_glc__D_e", "acetate": "EX_ac_e"}
     if bounds is None:
-        bounds = {
-            "EX_o2_e": {"lower": -2, "upper": None},
-            "ATPM": {"lower": 1, "upper": 1}}
+        bounds = {"EX_o2_e": {"lower": -2, "upper": None}, "ATPM": {"lower": 1, "upper": 1}}
     if kinetic_params is None:
-        kinetic_params = {
-            "glucose": (0.5, 1),
-            "acetate": (0.5, 2)}
+        kinetic_params = {"glucose": (0.5, 1), "acetate": (0.5, 2)}
     return {
         "model_file": model_file,
         "kinetic_params": kinetic_params,
         "substrate_update_reactions": substrate_update_reactions,
         "biomass_identifier": biomass_identifier,
-        "bounds": bounds
+        "bounds": bounds,
     }
 
-def build_path(base_path, mol_id, i=None, j=None):
+
+def build_path(base_path: list[str | int], mol_id: str, i: int | None = None, j: int | None = None) -> list[str | int]:
     """
     Constructs a path list for a molecule, optionally appending indices.
 
@@ -156,12 +148,12 @@ def build_path(base_path, mol_id, i=None, j=None):
 
 
 def get_single_dfba_spec(
-        model_file="textbook",
-        mol_ids=None,
-        path=None,
-        i=None,
-        j=None,
-):
+    model_file: str = "textbook",
+    mol_ids: list[str] | None = None,
+    path: list[str | int] | None = None,
+    i: int | None = None,
+    j: int | None = None,
+) -> dict[str, Any]:
     """
     Constructs a configuration dictionary for a dynamic FBA process with optional path indices.
     """
@@ -174,16 +166,12 @@ def get_single_dfba_spec(
         "_type": "process",
         "address": "local:DynamicFBA",
         "config": dfba_config(model_file=model_file),
-        "inputs": {
-            "substrates": {mol_id: build_path(path, mol_id, i, j) for mol_id in mol_ids}
-        },
-        "outputs": {
-            "substrates": {mol_id: build_path(path, mol_id, i, j) for mol_id in mol_ids}
-        }
+        "inputs": {"substrates": {mol_id: build_path(path, mol_id, i, j) for mol_id in mol_ids}},
+        "outputs": {"substrates": {mol_id: build_path(path, mol_id, i, j) for mol_id in mol_ids}},
     }
 
 
-def get_spatial_dfba_spec(n_bins=(5, 5), mol_ids=None):
+def get_spatial_dfba_spec(n_bins: tuple[int, int] = (5, 5), mol_ids: list[str] | None = None) -> dict[str, Any]:
     if mol_ids is None:
         mol_ids = ["glucose", "acetate", "biomass"]
     dfba_processes_dict = {}
@@ -194,131 +182,25 @@ def get_spatial_dfba_spec(n_bins=(5, 5), mol_ids=None):
 
 
 def get_spatial_dfba_state(
-        n_bins=(5, 5),
-        mol_ids=None,
-        initial_min_max=None,  # {mol_id: (min, max)}
-):
+    n_bins: tuple[int, int] = (5, 5),
+    mol_ids: list[str] | None = None,
+    initial_min_max: dict[str, tuple[float, float]] | None = None,  # {mol_id: (min, max)}
+) -> dict[str, Any]:
     if mol_ids is None:
         mol_ids = ["glucose", "acetate", "biomass"]
     if initial_min_max is None:
-        initial_min_max = {"glucose": (0, 20), "acetate": (0,0 ), "biomass": (0, 0.1)}
+        initial_min_max = {"glucose": (0, 20), "acetate": (0, 0), "biomass": (0, 0.1)}
 
     initial_fields = {
-        mol_id: np.random.uniform(low=initial_min_max[mol_id][0],
-                                  high=initial_min_max[mol_id][1],
-                                  size=n_bins)
-        for mol_id in mol_ids}
+        mol_id: np.random.uniform(low=initial_min_max[mol_id][0], high=initial_min_max[mol_id][1], size=n_bins)
+        for mol_id in mol_ids
+    }
 
     return {
         "fields": {
             "_type": "map",
-            "_value": {
-                "_type": "array",
-                "_shape": n_bins,
-                "_data": "positive_float"
-            },
+            "_value": {"_type": "array", "_shape": n_bins, "_data": "positive_float"},
             **initial_fields,
         },
-        "spatial_dfba": get_spatial_dfba_spec(n_bins=n_bins, mol_ids=mol_ids)
+        "spatial_dfba": get_spatial_dfba_spec(n_bins=n_bins, mol_ids=mol_ids),
     }
-
-
-def run_dfba_single(
-        total_time=60,
-        mol_ids=None,
-):
-    single_dfba_config = {
-        "dfba": get_single_dfba_spec(path=["fields"]),
-        "fields": {
-            "glucose": 10,
-            "acetate": 0,
-            "biomass": 0.1
-        }
-    }
-
-    # make the simulation
-    sim = Composite({
-        "state": single_dfba_config,
-        "emitter": {"mode": "all"}
-    }, core=core)
-
-    # save the document
-    sim.save(filename="single_dfba.json", outdir="out")
-
-    # simulate
-    print("Simulating...")
-    sim.update({}, total_time)
-
-    # gather results
-    dfba_results = sim.gather_results()
-
-    print("Plotting results...")
-    # plot timeseries
-    plot_time_series(
-        dfba_results,
-        # coordinates=[(0, 0), (1, 1), (2, 2)],
-        out_dir="out",
-        filename="dfba_single_timeseries.png",
-    )
-
-
-def run_dfba_spatial(
-        total_time=60,
-        n_bins=(3, 3),  # TODO -- why can"t do (5, 10)??
-        mol_ids=None,
-):
-    if mol_ids is None:
-        mol_ids = ["glucose", "acetate", "biomass"]
-    composite_state = get_spatial_dfba_state(
-        n_bins=n_bins,
-        mol_ids=mol_ids,
-    )
-
-    # make the composite
-    print("Making the composite...")
-    sim = Composite({
-        "state": composite_state,
-        "emitter": {"mode": "all"}
-    }, core=core)
-
-    # save the document
-    sim.save(filename="spatial_dfba.json", outdir="out")
-
-    # # save a viz figure of the initial state
-    # plot_bigraph(
-    #     state=sim.state,
-    #     schema=sim.composition,
-    #     core=core,
-    #     out_dir="out",
-    #     filename="dfba_spatial_viz"
-    # )
-
-    # simulate
-    print("Simulating...")
-    sim.update({}, total_time)
-
-    # gather results
-    dfba_results = sim.gather_results()
-
-    print("Plotting results...")
-    # plot timeseries
-    plot_time_series(
-        dfba_results,
-        coordinates=[(0, 0), (1, 1), (2, 2)],
-        out_dir="out",
-        filename="dfba_timeseries.png",
-    )
-
-    # make video
-    plot_species_distributions_to_gif(
-        dfba_results,
-        out_dir="out",
-        filename="dfba_results.gif",
-        title="",
-        skip_frames=1
-    )
-
-
-if __name__ == "__main__":
-    run_dfba_single()
-    run_dfba_spatial(n_bins=(8,8))
