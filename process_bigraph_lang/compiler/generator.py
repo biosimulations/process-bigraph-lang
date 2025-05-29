@@ -12,10 +12,20 @@ from process_bigraph_lang.dsl.ast_model import (
     StoreNodeRef,
     Parameter,
 )
-from process_bigraph_lang.compiler.pb_model import PBModel, PBStep, PBProcess, PBStore
+from process_bigraph_lang.compiler.pb_model import (
+    PBModel,
+    PBStepSchema,
+    PBStepState,
+    PBProcessSchema,
+    PBProcessState,
+    PBStoreSchema,
+    PBStoreState,
+)
 
 
-def retrieve_stores_by_path(store_node: StoreNode, path: list[str], pb_stores: list[PBStore]) -> None:
+def retrieve_stores_by_path(
+    store_node: StoreNode, path: list[str], pb_store_schemas: list[PBStoreSchema], pb_store_states: list[PBStoreState]
+) -> None:
     opt_type: Type | None = None
     if store_node.optional_type:
         opt_type = cast(Type, store_node.optional_type.ref_object)
@@ -23,24 +33,43 @@ def retrieve_stores_by_path(store_node: StoreNode, path: list[str], pb_stores: l
 
     opt_val: DefaultValue | None = store_node.optional_val
     if opt_val is not None or opt_type is not None:
-        # this is a leaf, add a PBStore object
-        pb_stores.append(
-            PBStore(
+        # this is a leaf, add a PBStoreSchema and/or a PBStoreState object
+        pb_store_schema: PBStoreSchema | None = None
+        if opt_type is not None:
+            pb_store_schema = PBStoreSchema(
                 key=store_node.name,
                 path=path,
                 data_type=opt_type.name if opt_type is not None else None,
-                value=opt_val.val if opt_val is not None else None,
+                default_value=None,
+                collection_type=None,
             )
-        )
+            pb_store_schemas.append(pb_store_schema)
+        if opt_val is not None:
+            pb_store_states.append(
+                PBStoreState(
+                    key=store_node.name,
+                    path=path,
+                    store_schema=pb_store_schema,
+                    value=opt_val.val,
+                )
+            )
     else:
         assert store_node.child_defs
         for child_node in store_node.child_defs:
             child_path = path + [child_node.name]
-            retrieve_stores_by_path(child_node, child_path, pb_stores)
+            retrieve_stores_by_path(child_node, child_path, pb_store_schemas, pb_store_states)
 
 
 def compile_ast(ast_model: ASTModel) -> PBModel:
-    pb_model = PBModel(processes=[], stores=[], types=[], steps=[])
+    pb_model = PBModel(
+        process_schemas=[],
+        process_states=[],
+        store_schemas=[],
+        store_states=[],
+        step_schemas=[],
+        step_states=[],
+        types=[],
+    )
     for type_def in ast_model.types:
         if type_def.builtin:
             continue
@@ -51,11 +80,14 @@ def compile_ast(ast_model: ASTModel) -> PBModel:
             pass
 
     for store_node in ast_model.storeNodes:
-        pb_stores: list[PBStore] = []
+        pb_store_schemas: list[PBStoreSchema] = []
+        pb_store_states: list[PBStoreState] = []
         store_node_path: list[str] = []
-        retrieve_stores_by_path(store_node, store_node_path, pb_stores)
-        for pb_store in pb_stores:
-            pb_model.stores.append(pb_store)
+        retrieve_stores_by_path(store_node, store_node_path, pb_store_schemas, pb_store_states)
+        for pb_store_schema in pb_store_schemas:
+            pb_model.store_schemas.append(pb_store_schema)
+        for pb_store_state in pb_store_states:
+            pb_model.store_states.append(pb_store_state)
 
     # for proc_def in ast_model.procDefs:
     #     key, address, config_schema_and_state, input_schema_and_state, output_schema_and_state = retrieve_edge_def_fields(proc_def)
@@ -86,38 +118,52 @@ def compile_ast(ast_model: ASTModel) -> PBModel:
         input_schema = {key: val.schema_dict_val for key, val in input_schema_info.items()}
         output_schema = {key: val.schema_dict_val for key, val in output_schema_info.items()}
 
-        config_state: dict[str, int | float | str | bool] = {}
+        proc_config_state: dict[str, int | float | str | bool] = {}
         if proc_call.config_node_list:
             for parameter_ref, param in zip(proc_call.config_node_list.parameter_refs, proc_def.params):
                 parameter: Parameter = cast(Parameter, parameter_ref.ref_object)
                 assert isinstance(parameter, Parameter)
                 assert parameter.default
-                config_state[param.name] = parameter.default.val
+                proc_config_state[param.name] = parameter.default.val
 
-        input_state: dict[str, Any] = {}
+        proc_input_state: dict[str, Any] = {}
         if proc_call.input_node_list:
             for store_node_ref, proc_def_ref in zip(proc_call.input_node_list.store_node_refs, proc_def.inputs):
-                store_node, pb_store = retrieve_store_nodes(store_node_ref, pb_model)
-                input_state[proc_def_ref.ref_text] = pb_store.path
+                _, _pb_store_schema, _ = retrieve_store_nodes(store_node_ref, pb_model)
+                if _pb_store_schema:
+                    proc_input_state[proc_def_ref.ref_text] = _pb_store_schema.full_path
 
-        output_state: dict[str, Any] = {}
+        proc_output_state: dict[str, Any] = {}
         if proc_call.output_node_list:
             for store_node_ref, proc_def_ref in zip(proc_call.output_node_list.store_node_refs, proc_def.outputs):
-                store_node, pb_store = retrieve_store_nodes(store_node_ref, pb_model)
-                output_state[proc_def_ref.ref_text] = pb_store.path
+                _, _pb_store_schema, _ = retrieve_store_nodes(store_node_ref, pb_model)
+                if _pb_store_schema:
+                    proc_output_state[proc_def_ref.ref_text] = _pb_store_schema.full_path
 
-        pb_process = PBProcess(
+        pb_process_schema = PBProcessSchema(
             key=key,
             path=proc_path,
             address=address,
             config_schema=config_schema,
             input_schema=input_schema,
             output_schema=output_schema,
-            config_state=config_state,
-            input_state=input_state,
-            output_state=output_state,
+            default_config_state={},
+            default_input_state={},
+            default_output_state={},
+            collection_info=None,
         )
-        pb_model.processes.append(pb_process)
+        pb_model.process_schemas.append(pb_process_schema)
+
+        pb_process_state = PBProcessState(
+            key=key,
+            path=proc_path,
+            address=address,
+            config_state=proc_config_state,
+            input_state=proc_input_state,
+            output_state=proc_output_state,
+            process_schema=pb_process_schema,
+        )
+        pb_model.process_states.append(pb_process_state)
 
     # every step_call is a new step instance
     for step_call in ast_model.step_calls:
@@ -141,40 +187,61 @@ def compile_ast(ast_model: ASTModel) -> PBModel:
         step_input_state: dict[str, list[str]] = {}
         if step_call.input_node_list:
             for store_node_ref, step_def_ref in zip(step_call.input_node_list.store_node_refs, step_def.inputs):
-                store_node, pb_store = retrieve_store_nodes(store_node_ref, pb_model)
-                step_input_state[step_def_ref.ref_text] = pb_store.full_path
+                _, _pb_store_schema, _ = retrieve_store_nodes(store_node_ref, pb_model)
+                if _pb_store_schema:
+                    step_input_state[step_def_ref.ref_text] = _pb_store_schema.full_path
 
         step_output_state: dict[str, list[str]] = {}
         if step_call.output_node_list:
             for store_node_ref, step_def_ref in zip(step_call.output_node_list.store_node_refs, step_def.outputs):
-                store_node, pb_store = retrieve_store_nodes(store_node_ref, pb_model)
-                step_output_state[step_def_ref.ref_text] = pb_store.full_path
+                _, _pb_store_schema, _ = retrieve_store_nodes(store_node_ref, pb_model)
+                if _pb_store_schema:
+                    step_output_state[step_def_ref.ref_text] = _pb_store_schema.full_path
 
-        pb_step = PBStep(
+        pb_step_schema = PBStepSchema(
             key=key,
             path=step_path,
             address=address,
             config_schema=config_schema,
             input_schema=input_schema,
             output_schema=output_schema,
+            default_config_state={},
+            default_input_state={},
+            default_output_state={},
+            collection_info=None,
+        )
+        pb_model.step_schemas.append(pb_step_schema)
+
+        pb_step_state = PBStepState(
+            key=key,
+            path=step_path,
+            address=address,
             config_state=step_config_state,
             input_state=step_input_state,
             output_state=step_output_state,
+            step_schema=pb_step_schema,
         )
-        pb_model.steps.append(pb_step)
+        pb_model.step_states.append(pb_step_state)
 
     # emitter_step = PBStep()
     # pb_model.steps.append(emitter_step)
     return pb_model
 
 
-def retrieve_store_nodes(store_node_ref: StoreNodeRef, pb_model: PBModel) -> tuple[StoreNode, PBStore]:
+def retrieve_store_nodes(
+    store_node_ref: StoreNodeRef, pb_model: PBModel
+) -> tuple[StoreNode, PBStoreSchema | None, PBStoreState | None]:
     store_node = cast(StoreNode, store_node_ref.ref_object)
     assert isinstance(store_node, StoreNode)
-    pb_store: PBStore | None = next((store for store in pb_model.stores if store.key == store_node.name), None)
-    if not pb_store:
+    pb_store_schema: PBStoreSchema | None = next(
+        (store_schema for store_schema in pb_model.store_schemas if store_schema.key == store_node.name), None
+    )
+    pb_store_state: PBStoreState | None = next(
+        (store_state for store_state in pb_model.store_states if store_state.key == store_node.name), None
+    )
+    if not pb_store_schema and not pb_store_state:
         raise ValueError(f"Store definition {store_node.name} not found in model")
-    return store_node, pb_store
+    return store_node, pb_store_schema, pb_store_state
 
 
 class SchemaAndState:

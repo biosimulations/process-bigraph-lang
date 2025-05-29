@@ -5,7 +5,15 @@ import numpy as np
 import process_bigraph as pg  # type: ignore[import-untyped]
 
 from process_bigraph_lang.compiler.converter import assemble_pb
-from process_bigraph_lang.compiler.pb_model import PBStore, PBModel, PBProcess, PBStep
+from process_bigraph_lang.compiler.pb_model import (
+    PBStoreSchema,
+    PBStoreState,
+    PBModel,
+    PBProcessSchema,
+    PBProcessState,
+    PBStepSchema,
+    PBStepState,
+)
 from tests.fixtures.test_registry.spatio_flux import register_types as spatio_flux_register_types
 
 
@@ -139,7 +147,13 @@ def test_from_document() -> None:
 
 
 def test_from_generator() -> None:
-    store_fields_acetate = PBStore(
+    store_schema_fields_acetate = PBStoreSchema(
+        key="acetate",
+        path=["fields"],
+        default_value=None,
+        data_type=dict(_type="array", _shape=n_bins, _data="positive_float"),
+    )
+    store_state_fields_acetate = PBStoreState(
         key="acetate",
         path=["fields"],
         value=np.array(
@@ -149,9 +163,15 @@ def test_from_generator() -> None:
             ],
             dtype=np.float64,
         ),
+        store_schema=store_schema_fields_acetate,
+    )
+    store_schema_fields_biomass = PBStoreSchema(
+        key="biomass",
+        path=["fields"],
+        default_value=None,
         data_type=dict(_type="array", _shape=n_bins, _data="positive_float"),
     )
-    store_fields_biomass = PBStore(
+    store_state_fields_biomass = PBStoreState(
         key="biomass",
         path=["fields"],
         value=np.array(
@@ -161,9 +181,15 @@ def test_from_generator() -> None:
             ],
             dtype=np.float64,
         ),
+        store_schema=store_schema_fields_biomass,
+    )
+    store_schema_fields_glucose = PBStoreSchema(
+        key="glucose",
+        path=["fields"],
+        default_value=None,
         data_type=dict(_type="array", _shape=n_bins, _data="positive_float"),
     )
-    store_fields_glucose = PBStore(
+    store_state_fields_glucose = PBStoreState(
         key="glucose",
         path=["fields"],
         value=np.array(
@@ -173,9 +199,9 @@ def test_from_generator() -> None:
             ],
             dtype=np.float64,
         ),
-        data_type=dict(_type="array", _shape=n_bins, _data="positive_float"),
+        store_schema=store_schema_fields_glucose,
     )
-    process_diffusion_advection = PBProcess(
+    process_schema_diffusion_advection = PBProcessSchema(
         key="diffusion_advection",
         path=[],
         address=f"local:!{DIFF_ADVEC_PROCESS_ADDR}",
@@ -189,6 +215,16 @@ def test_from_generator() -> None:
         ),
         input_schema=dict(fields=dict(_type="map", _value=dict(_type="array", _shape=n_bins, _data="positive_float"))),
         output_schema=dict(fields=dict(_type="map", _value=dict(_type="array", _shape=n_bins, _data="positive_float"))),
+        default_config_state={},
+        default_input_state={},
+        default_output_state={},
+        default_interval=1.0,
+        collection_info=None,
+    )
+    process_state_diffusion_advection = PBProcessState(
+        key="diffusion_advection",
+        path=[],
+        address=f"local:!{DIFF_ADVEC_PROCESS_ADDR}",
         config_state=dict(
             n_bins=n_bins_as_str,
             bounds=bounds,
@@ -199,22 +235,36 @@ def test_from_generator() -> None:
         input_state=dict(fields=["fields"]),
         output_state=dict(fields=["fields"]),
         interval=1.0,
+        process_schema=process_schema_diffusion_advection,
     )
-    step_emitter = PBStep(
+    step_emitter_schema = PBStepSchema(
         key="emitter",
         path=[],
         address="local:ram-emitter",
         config_schema=dict(emit=dict(_type="map", _value="any")),
         input_schema=dict(_type="map", _value="any"),
         output_schema={},
+        default_config_state={},
+        default_input_state={},
+        default_output_state={},
+        collection_info=None,
+    )
+    step_emitter_state = PBStepState(
+        key="emitter",
+        path=[],
+        address="local:ram-emitter",
         config_state=dict(emit=dict(fields="any", global_time="any")),
         input_state=dict(fields=["fields"], global_time=["global_time"]),
         output_state={},
+        step_schema=step_emitter_schema,
     )
     pb_model = PBModel(
-        stores=[store_fields_acetate, store_fields_biomass, store_fields_glucose],
-        steps=[step_emitter],
-        processes=[process_diffusion_advection],
+        store_schemas=[store_schema_fields_acetate, store_schema_fields_biomass, store_schema_fields_glucose],
+        store_states=[store_state_fields_acetate, store_state_fields_biomass, store_state_fields_glucose],
+        step_schemas=[step_emitter_schema],
+        step_states=[step_emitter_state],
+        process_schemas=[process_schema_diffusion_advection],
+        process_states=[process_state_diffusion_advection],
         types=[],
     )
     generated_config: dict[str, Any] = assemble_pb(pb_model=pb_model)

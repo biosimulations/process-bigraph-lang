@@ -6,7 +6,7 @@ import numpy as np
 import process_bigraph as pg  # type: ignore[import-untyped]
 
 from process_bigraph_lang.compiler.converter import assemble_pb
-from process_bigraph_lang.compiler.pb_model import PBStore, PBStep, PBModel
+from process_bigraph_lang.compiler.pb_model import PBStoreSchema, PBStoreState, PBStepSchema, PBStepState, PBModel
 from tests.fixtures.test_registry.tellurium import TelluriumStep
 
 TELLURIUM_STEP_ADDR = f"{TelluriumStep.__module__}.{TelluriumStep.__qualname__}"
@@ -103,39 +103,84 @@ def test_tellurium_step(sbml_path_caravagna2010: Path) -> None:
 
 
 def test_generator_tellurium_steps() -> None:
-    store_start_time = PBStore(key="start_time_store", path=[], value=0.0, data_type="float")
-    store_run_time = PBStore(key="run_time_store", path=[], value=10.0, data_type="float")
-    store_result_array = PBStore(
-        key="result_array", path=["results_store"], value=None, data_type="array[(10|4),float]"
+    store_schema_start_time = PBStoreSchema(key="start_time_store", path=[], default_value=None, data_type="float")
+    store_state_start_time = PBStoreState(
+        key="start_time_store", path=[], value=0.0, store_schema=store_schema_start_time
     )
-    store_result_labels = PBStore(key="result_labels", path=["results_store"], value=None, data_type="list[string]")
-    step_tellurium = PBStep(
+    store_schema_run_time = PBStoreSchema(key="run_time_store", path=[], default_value=None, data_type="float")
+    store_state_run_time = PBStoreState(key="run_time_store", path=[], value=10.0, store_schema=store_schema_run_time)
+    store_schema_result_array = PBStoreSchema(
+        key="result_array", path=["results_store"], default_value=None, data_type="array[(10|4),float]"
+    )
+    store_state_result_array = PBStoreState(
+        key="result_array", path=["results_store"], value=None, store_schema=store_schema_result_array
+    )
+    store_schema_result_labels = PBStoreSchema(
+        key="result_labels", path=["results_store"], default_value=None, data_type="list[string]"
+    )
+    store_state_result_labels = PBStoreState(
+        key="result_labels", path=["results_store"], value=None, store_schema=store_schema_result_labels
+    )
+    step_schema_tellurium = PBStepSchema(
         key="tellurium",
         path=[],
         address=f"local:{TELLURIUM_STEP_ADDR}",
         config_schema=dict(sbml_model_path="string", antimony_string="string", num_steps="integer"),
         input_schema=dict(time="float", run_time="float"),
         output_schema=dict(results=dict(result_array="array[(10|4),float]", result_labels="list[string]")),
+        default_config_state={},
+        default_input_state={},
+        default_output_state={},
+        collection_info=None,
+    )
+    step_state_tellurium = PBStepState(
+        key="tellurium",
+        path=[],
+        address=f"local:{TELLURIUM_STEP_ADDR}",
         config_state=dict(sbml_model_path="", num_steps=10),
         input_state=dict(time=["start_time_store"], run_time=["run_time_store"]),
         output_state=dict(results=["results_store"]),
+        step_schema=step_schema_tellurium,
     )
-    ram_emitter = PBStep(
+    ram_emitter_schema = PBStepSchema(
         key="emitter",
         path=[],
         address="local:ram-emitter",
         config_schema=dict(emit=dict(_type="map", _value="any")),
         input_schema=dict(_type="map", _value="any"),
         output_schema={},
+        default_config_state={},
+        default_input_state={},
+        default_output_state={},
+        collection_info=None,
+    )
+    ram_emitter_state = PBStepState(
+        key="emitter",
+        path=[],
+        address="local:ram-emitter",
         config_state=dict(emit=dict(floating_species="tree[float]", time="float")),
         input_state=dict(floating_species=["floating_species_store"], time=["start_time_store"]),
         output_state={},
+        step_schema=ram_emitter_schema,
     )
 
     pb_model = PBModel(
-        stores=[store_start_time, store_run_time, store_result_array, store_result_labels],
-        steps=[step_tellurium, ram_emitter],
-        processes=[],
+        store_schemas=[
+            store_schema_start_time,
+            store_schema_run_time,
+            store_schema_result_array,
+            store_schema_result_labels,
+        ],
+        store_states=[
+            store_state_start_time,
+            store_state_run_time,
+            store_state_result_array,
+            store_state_result_labels,
+        ],
+        step_schemas=[step_schema_tellurium, ram_emitter_schema],
+        step_states=[step_state_tellurium, ram_emitter_state],
+        process_schemas=[],
+        process_states=[],
         types=[],
     )
     generated_config: dict[str, Any] = assemble_pb(pb_model=pb_model)
