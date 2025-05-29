@@ -67,7 +67,7 @@ StepCall:
 
 ProcCall:
     ('update' '(' (output_node_list=StoreNodeList)? ')')
-    (('using' | '<=') process_def_ref=[ProcDef])
+    (('using' | '<=') proc_def_ref=[ProcDef])
     ('[' (config_node_list=ParameterList)? ']')
     ('(' (input_node_list=StoreNodeList)? ')');
 
