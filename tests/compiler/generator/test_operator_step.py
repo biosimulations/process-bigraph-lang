@@ -3,7 +3,7 @@ from typing import Any
 
 import process_bigraph as pg  # type: ignore[import-untyped]
 
-from process_bigraph_lang.compiler.generator import assemble_pb
+from process_bigraph_lang.compiler.converter import assemble_pb
 from process_bigraph_lang.compiler.pb_model import PBStore, PBStep, PBModel
 
 op_step_expected_config = {
@@ -12,20 +12,38 @@ op_step_expected_config = {
         "B": "float",
         "C": "float",
         "D": "float",
+        "step1": {
+            "_type": "step",
+            "address": {
+                "_type": "quote",
+                "_default": "local:!process_bigraph.tests.OperatorStep",
+            },
+            "_config": {"operator": "string"},
+            "_inputs": {"a": "float", "b": "float"},
+            "_outputs": {"c": "float"},
+        },
+        "step2": {
+            "_type": "step",
+            "address": {
+                "_type": "quote",
+                "_default": "local:!process_bigraph.tests.OperatorStep",
+            },
+            "_config": {"operator": "string"},
+            "_inputs": {"a": "float", "b": "float"},
+            "_outputs": {"c": "float"},
+        },
     },
     "state": {
         "A": 13,
         "B": 21,
         "step1": {
             "_type": "step",
-            "address": "local:!process_bigraph.tests.OperatorStep",
             "config": {"operator": "+"},
             "inputs": {"a": ["A"], "b": ["B"]},
             "outputs": {"c": ["C"]},
         },
         "step2": {
             "_type": "step",
-            "address": "local:!process_bigraph.tests.OperatorStep",
             "config": {"operator": "*"},
             "inputs": {"a": ["B"], "b": ["C"]},
             "outputs": {"c": ["D"]},
@@ -51,9 +69,9 @@ def test_op_step_generator() -> None:
         key="step1",
         path=[],
         address="local:!process_bigraph.tests.OperatorStep",
-        config_schema={},
-        input_schema={},
-        output_schema={},
+        config_schema=dict(operator="string"),
+        input_schema=dict(a="float", b="float"),
+        output_schema=dict(c="float"),
         config_state=dict(operator="+"),
         input_state=dict(a=["A"], b=["B"]),
         output_state=dict(c=["C"]),
@@ -62,9 +80,9 @@ def test_op_step_generator() -> None:
         key="step2",
         path=[],
         address="local:!process_bigraph.tests.OperatorStep",
-        config_schema={},
-        input_schema={},
-        output_schema={},
+        config_schema=dict(operator="string"),
+        input_schema=dict(a="float", b="float"),
+        output_schema=dict(c="float"),
         config_state=dict(operator="*"),
         input_state=dict(a=["B"], b=["C"]),
         output_state=dict(c=["D"]),

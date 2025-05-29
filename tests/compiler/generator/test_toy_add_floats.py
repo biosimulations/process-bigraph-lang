@@ -5,8 +5,8 @@ from typing import Any
 
 import process_bigraph as pg  # type: ignore[import-untyped]
 
-from process_bigraph_lang.compiler.compiler import compile_ast
-from process_bigraph_lang.compiler.generator import assemble_pb
+from process_bigraph_lang.compiler.generator import compile_ast
+from process_bigraph_lang.compiler.converter import assemble_pb
 from process_bigraph_lang.compiler.pb_model import PBStore, PBStep, PBModel, PBProcess
 from process_bigraph_lang.dsl.ast_model import ASTModel
 from process_bigraph_lang.dsl.langium_pblang import langium_parse_pblang_file
@@ -17,32 +17,32 @@ add_floats_step_expected_config_template = {
         "A": "float",
         "B": "float",
         "C": "float",
-        # "out_path": "path",
-        # "add_nums": {
-        #     "_type": "step",
-        #     "address": "local:!tests.fixtures.test_registry.toy_library.AddFloatsStep",
-        #     "inputs": {"left_hand_addend": "float", "right_hand_addend": "float"},
-        #     "outputs": {"result": "float"},
-        # },
-        # "print_result": {
-        #     "_type": "step",
-        #     "address": "local:!tests.fixtures.test_registry.toy_library.SaveFloatToFileStep",
-        #     "config": {"output_file_path": "string"},
-        #     "inputs": {"result": "float"},
-        # },
+        "add_nums": {
+            "_type": "step",
+            "address": {"_type": "quote", "_default": "local:!tests.fixtures.test_registry.toy_library.AddFloatsStep"},
+            "_inputs": {"left_hand_addend": "float", "right_hand_addend": "float"},
+            "_outputs": {"result": "float"},
+        },
+        "print_result": {
+            "_type": "step",
+            "address": {
+                "_type": "quote",
+                "_default": "local:!tests.fixtures.test_registry.toy_library.SaveFloatToFileStep",
+            },
+            "_config": {"output_file_path": "string"},
+            "_inputs": {"result": "float"},
+        },
     },
     "state": {
         "A": 2.07,
         "B": 3.5,
         "add_nums": {
             "_type": "step",
-            "address": "local:!tests.fixtures.test_registry.toy_library.AddFloatsStep",
             "inputs": {"left_hand_addend": ["A"], "right_hand_addend": ["B"]},
             "outputs": {"result": ["C"]},
         },
         "print_result": {
             "_type": "step",
-            "address": "local:!tests.fixtures.test_registry.toy_library.SaveFloatToFileStep",
             "config": {"output_file_path": "output.txt"},
             "inputs": {"result": ["C"]},
         },
@@ -54,31 +54,35 @@ add_floats_process_expected_config_template = {
         "A": "float",
         "B": "float",
         "C": "float",
-        # "add_nums": {
-        #     "_type": "process",
-        #     "address": "local:!tests.fixtures.test_registry.toy_library.AddFloatsProcess",
-        #     "inputs": {"left_hand_addend": "float", "right_hand_addend": "float"},
-        #     "outputs": {"result": "float"},
-        # },
-        # "print_result": {
-        #     "_type": "step",
-        #     "address": "local:!tests.fixtures.test_registry.toy_library.SaveFloatToFileStep",
-        #     "config": {"output_file_path": "string"},
-        #     "inputs": {"result": "float"},
-        # },
+        "add_nums": {
+            "_type": "process",
+            "address": {
+                "_type": "quote",
+                "_default": "local:!tests.fixtures.test_registry.toy_library.AddFloatsProcess",
+            },
+            "_inputs": {"left_hand_addend": "float", "right_hand_addend": "float"},
+            "_outputs": {"result": "float"},
+        },
+        "print_result": {
+            "_type": "step",
+            "address": {
+                "_type": "quote",
+                "_default": "local:!tests.fixtures.test_registry.toy_library.SaveFloatToFileStep",
+            },
+            "_config": {"output_file_path": "string"},
+            "_inputs": {"result": "float"},
+        },
     },
     "state": {
         "A": 2.07,
         "B": 3.5,
         "add_nums": {
             "_type": "process",
-            "address": "local:!tests.fixtures.test_registry.toy_library.AddFloatsProcess",
             "inputs": {"left_hand_addend": ["A"], "right_hand_addend": ["B"]},
             "outputs": {"result": ["C"]},
         },
         "print_result": {
             "_type": "step",
-            "address": "local:!tests.fixtures.test_registry.toy_library.SaveFloatToFileStep",
             "config": {"output_file_path": "output.txt"},
             "inputs": {"result": ["C"]},
         },
@@ -114,8 +118,8 @@ def test_add_floats_step_generator() -> None:
             path=[],
             address="local:!tests.fixtures.test_registry.toy_library.AddFloatsStep",
             config_schema={},
-            input_schema={},
-            output_schema={},
+            input_schema=dict(left_hand_addend="float", right_hand_addend="float"),
+            output_schema=dict(result="float"),
             config_state={},
             input_state=dict(left_hand_addend=["A"], right_hand_addend=["B"]),
             output_state=dict(result=["C"]),
@@ -124,8 +128,8 @@ def test_add_floats_step_generator() -> None:
             key="print_result",
             path=[],
             address="local:!tests.fixtures.test_registry.toy_library.SaveFloatToFileStep",
-            config_schema={},
-            input_schema={},
+            config_schema=dict(output_file_path="string"),
+            input_schema=dict(result="float"),
             output_schema={},
             config_state=dict(output_file_path=str(output_file_path)),
             input_state=dict(result=["C"]),
@@ -180,8 +184,8 @@ def test_add_floats_process_generator() -> None:
             path=[],
             address="tests.fixtures.test_registry.toy_library.AddFloatsProcess",
             config_schema={},
-            input_schema={},
-            output_schema={},
+            input_schema=dict(left_hand_addend="float", right_hand_addend="float"),
+            output_schema=dict(result="float"),
             config_state={},
             input_state=dict(left_hand_addend=["A"], right_hand_addend=["B"]),
             output_state=dict(result=["C"]),
@@ -190,8 +194,8 @@ def test_add_floats_process_generator() -> None:
             key="print_result",
             path=[],
             address="tests.fixtures.test_registry.toy_library.SaveFloatToFileStep",
-            config_schema={},
-            input_schema={},
+            config_schema=dict(output_file_path="string"),
+            input_schema=dict(result="float"),
             output_schema={},
             config_state=dict(output_file_path=str(output_file_path)),
             input_state=dict(result=["C"]),

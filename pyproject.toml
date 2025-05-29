@@ -30,15 +30,19 @@ mypy = "^1.5.1"
 pre-commit = "^3.4.0"
 tox = "^4.11.1"
 types-antlr4-python3-runtime = "^4.13.0.20240519"
-spatio-flux = {git = "https://github.com/vivarium-collective/spatio-flux.git"}
 tellurium = "^2.2.10"
 bigraph-schema = "^0.0.59"
 process-bigraph = "^0.0.38"
+optlang = "^1.8.3"
 
 [tool.poetry.group.docs.dependencies]
 mkdocs = "^1.4.2"
 mkdocs-material = "^9.2.7"
 mkdocstrings = {extras = ["python"], version = "^0.26.1"}
+
+
+[tool.poetry.group.test.dependencies]
+cobra = "^0.29.1"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

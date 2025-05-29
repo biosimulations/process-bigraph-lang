@@ -15,7 +15,7 @@ class PBEntity:
 
 @dataclass
 class PBStore(PBEntity):
-    data_type: str | None = None
+    data_type: str | dict[str, Any] | None = None
     value: Any | None = None
 
 
@@ -33,6 +33,7 @@ class PBEdge(PBEntity):
 @dataclass
 class PBProcess(PBEdge):
     _type: str = "process"
+    interval: float | None = None
 
 
 @dataclass
