@@ -7,7 +7,7 @@ def assemble_pb(pb_model: PBModel) -> dict[str, Any]:
     doc: dict[str, Any] = dict(composition={}, state={})
     for store_schema in pb_model.store_schemas:
         # TODO: handle collection_type properly
-        if store_schema.default_value is not None:
+        if store_schema.default_value is not None or store_schema.collection_type is not None:
             if store_schema.collection_type is None:
                 set_value_at_path(
                     doc["composition"], store_schema.full_path + ["_default"], value=store_schema.default_value
@@ -22,6 +22,11 @@ def assemble_pb(pb_model: PBModel) -> dict[str, Any]:
                     set_value_at_path(
                         doc["composition"], store_schema.full_path + ["_value"], value=store_schema.data_type
                     )
+            else:
+                raise ValueError(
+                    f"Unsupported collection type '{store_schema.collection_type}' for store schema '{store_schema.full_path}'"
+                )
+
         elif store_schema.data_type:
             set_value_at_path(doc["composition"], store_schema.full_path, value=store_schema.data_type)
 
@@ -41,7 +46,16 @@ def assemble_pb(pb_model: PBModel) -> dict[str, Any]:
             step_schema_dict["_inputs"] = step_schema.input_schema
         if step_schema.output_schema:
             step_schema_dict["_outputs"] = step_schema.output_schema
-        set_value_at_path(doc["composition"], step_schema.full_path, value=step_schema_dict)
+        if step_schema.collection_info is not None:
+            if step_schema.collection_info.coll_type == "map":
+                set_value_at_path(doc["composition"], step_schema.full_path + ["_type"], value="map")
+                set_value_at_path(doc["composition"], step_schema.full_path + ["_value"], value=step_schema_dict)
+            else:
+                raise ValueError(
+                     f"Unsupported collection type '{step_schema.collection_info}' for step schema '{step_schema.full_path}'"
+                )
+        else:
+            set_value_at_path(doc["composition"], step_schema.full_path, value=step_schema_dict)
 
     for step_state in pb_model.step_states:
         step_state_dict: dict[str, Any] = dict(_type=step_state._type)
@@ -67,7 +81,16 @@ def assemble_pb(pb_model: PBModel) -> dict[str, Any]:
             process_schema_dict["_outputs"] = process_schema.output_schema
         # if process_schema.default_interval is not None:
         #     process_schema_dict["_interval"] = process_schema.default_interval
-        set_value_at_path(doc["composition"], process_schema.full_path, value=process_schema_dict)
+        if process_schema.collection_info is not None:
+            if process_schema.collection_info.coll_type == "map":
+                set_value_at_path(doc["composition"], process_schema.full_path + ["_type"], value="map")
+                set_value_at_path(doc["composition"], process_schema.full_path + ["_value"], value=process_schema_dict)
+            else:
+                raise ValueError(
+                    f"Unsupported collection type '{process_schema.collection_info}' for process schema '{process_schema.full_path}'"
+                )
+        else:
+            set_value_at_path(doc["composition"], process_schema.full_path, value=process_schema_dict)
 
     for process_state in pb_model.process_states:
         process_state_dict: dict[str, Any] = dict(_type=process_state._type)
