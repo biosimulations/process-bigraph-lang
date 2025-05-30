@@ -74,8 +74,6 @@ def simple_parse_data_1() -> Generator[tuple[str, Path, ASTModel], None, None]:
         procDefs=[],
         storeNodes=[],
         parameters=[],
-        proc_calls=[],
-        step_calls=[],
     )
 
     with tempfile.TemporaryDirectory() as tmpdir:
@@ -122,8 +120,6 @@ def simple_parse_data_2() -> Generator[tuple[str, Path, ASTModel], None, None]:
         procDefs=[],
         storeNodes=[],
         parameters=[],
-        proc_calls=[],
-        step_calls=[],
     )
     with tempfile.TemporaryDirectory() as tmpdir:
         tmp_path = Path(tmpdir) / "test.pblang"
@@ -186,8 +182,6 @@ def simple_parse_data_3() -> Generator[tuple[str, Path, ASTModel], None, None]:
         procDefs=[],
         storeNodes=[],
         parameters=[],
-        proc_calls=[],
-        step_calls=[],
     )
     with tempfile.TemporaryDirectory() as tmpdir:
         tmp_path = Path(tmpdir) / "test.pblang"

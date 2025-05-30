@@ -286,14 +286,14 @@ add_floats_step_pblang = """
     type float builtin
     type string builtin
 
-    step add_nums path tests.fixtures.test_registry.toy_library.AddFloatsStep
+    step AddNums path tests.fixtures.test_registry.toy_library.AddFloatsStep
         var left_hand_addend : float
         var right_hand_addend : float
         var result : float
         inputs left_hand_addend right_hand_addend
         outputs result
 
-    step print_result path tests.fixtures.test_registry.toy_library.SaveFloatToFileStep
+    step PrintResult path tests.fixtures.test_registry.toy_library.SaveFloatToFileStep
         param output_file_path: string
         var result : float
         inputs result
@@ -303,8 +303,8 @@ add_floats_step_pblang = """
     store B: float = 3.5
     store C: float
 
-    set (C) as add_nums[](A, B)
-    set () as print_result[out_path](C)
+    store add_nums: set (C) as AddNums[](A, B)
+    store print_result: set () as PrintResult[out_path](C)
 """
 
 

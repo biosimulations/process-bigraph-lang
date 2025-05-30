@@ -13,11 +13,15 @@ def assemble_pb(pb_model: PBModel) -> dict[str, Any]:
                     doc["composition"], store_schema.full_path + ["_default"], value=store_schema.default_value
                 )
                 if store_schema.data_type:
-                    set_value_at_path(doc["composition"], store_schema.full_path + ["_type"], value=store_schema.data_type)
+                    set_value_at_path(
+                        doc["composition"], store_schema.full_path + ["_type"], value=store_schema.data_type
+                    )
             elif store_schema.collection_type == "map":
                 if store_schema.data_type:
                     set_value_at_path(doc["composition"], store_schema.full_path + ["_type"], value="map")
-                    set_value_at_path(doc["composition"], store_schema.full_path + ["_value"], value=store_schema.data_type)
+                    set_value_at_path(
+                        doc["composition"], store_schema.full_path + ["_value"], value=store_schema.data_type
+                    )
         elif store_schema.data_type:
             set_value_at_path(doc["composition"], store_schema.full_path, value=store_schema.data_type)
 

@@ -12,7 +12,8 @@ from process_bigraph_lang.compiler.pb_model import (
     PBProcessSchema,
     PBProcessState,
     PBStepSchema,
-    PBStepState, PBCollectionType,
+    PBStepState,
+    PBCollectionType,
 )
 from tests.fixtures.test_registry.spatio_flux import register_types as apply_spatio_types_and_processes_to_core
 
@@ -194,7 +195,7 @@ def test_five_from_generator() -> None:
         path=["particles"],
         default_value=None,
         data_type=dict(_type="tuple", _data="float"),
-        collection_type=PBCollectionType(coll_type="map")
+        collection_type=PBCollectionType(coll_type="map"),
     )
     store_state_position = PBStoreState(
         key="position",
@@ -203,7 +204,11 @@ def test_five_from_generator() -> None:
         store_schema=store_schema_position,
     )
     store_schema_size = PBStoreSchema(
-        key="size", path=["particles"], default_value=None, data_type="float", collection_type=PBCollectionType(coll_type="map")
+        key="size",
+        path=["particles"],
+        default_value=None,
+        data_type="float",
+        collection_type=PBCollectionType(coll_type="map"),
     )
     store_state_size = PBStoreState(
         key="size",
@@ -387,7 +392,7 @@ def test_five_from_generator() -> None:
     )
     pb_model = PBModel(
         process_schemas=[process_schema_particles, process_schema_minimal_particle],
-        process_states=[process_state_particles], #, process_state_minimal_particle],
+        process_states=[process_state_particles, process_state_minimal_particle],
         step_schemas=[step_emitter_schema],
         step_states=[step_emitter_state],
         store_schemas=[

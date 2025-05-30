@@ -44,5 +44,5 @@ unit conc: uM_per_h
 unit hour: ["h"]
 unit dimensionless: ["1"]
 
-store particle1 {id="particle1", size=1.0, mass=1.0}
-store particle2 {id="particle2", size=1.0, mass=1.0}
+store particle1: {id="particle1", size=1.0, mass=1.0}
+store particle2: {id="particle2", size=1.0, mass=1.0}
