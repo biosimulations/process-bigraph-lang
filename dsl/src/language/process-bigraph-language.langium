@@ -43,6 +43,7 @@ StoreNode:
         (':' optional_type=[Type] ('=' optional_val=DefaultValue)?) |
         (':' proc_call=ProcCall) |
         (':' step_call=StepCall) |
+        (':' collection_type=CollectionType) |
         (':' '{' child_defs+=StoreNode (',' child_defs+=StoreNode)* '}'));
 
 StepDef:
@@ -51,6 +52,18 @@ StepDef:
         ('var' vars+=SchemaItem)*
         ('inputs' inputs+=[SchemaItem]*)?
         ('outputs' outputs+=[SchemaItem]*)?;
+
+CollectionType:
+    (coll_type='map' '[' element_type=ElementType ']') |
+    (coll_type='array' '<' shape+=INT (',' shape+=INT)* '>' '[' element_type=ElementType ']') |
+    (coll_type='maybe' '[' element_type=ElementType ']');
+
+ElementType:
+    (type_ref=[Type]) |
+    (proc_call=ProcCall) |
+    (step_call=StepCall) |
+    (collection_type=CollectionType) |
+    ('{' child_defs+=StoreNode (',' child_defs+=StoreNode)* '}');
 
 ProcDef:
     'proc' name=ID python_path=PythonPath?
@@ -104,14 +117,14 @@ Modulo infers Expression:
 
 PrimaryExpression infers Expression:
     '(' Expression ')' |
-    {infer NumberLiteral} value=FLOAT |
+    {infer NumberLiteral} value=(FLOAT|INT) |
     {infer FunctionCall} func=[Definition] ('(' args+=Expression (',' args+=Expression)* ')') |
     {infer VariableRef} variable=[VariableDefinition:ID];
 
 hidden terminal WS: /\s+/;
-terminal FLOAT returns number: /[0-9]+(\.[0-9]+)?/;
+terminal FLOAT returns number: /(\d*\.)\d+/;
+terminal INT returns number: /\d+/;
 terminal ID: /[_a-zA-Z][\w_]*/;
-terminal INT returns number: /[0-9]+/;
 terminal STRING: /"(\\.|[^"\\])*"|'(\\.|[^'\\])*'/;
 
 hidden terminal ML_COMMENT: /\/\*[\s\S]*?\*\//;
