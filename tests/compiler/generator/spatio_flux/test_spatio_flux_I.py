@@ -122,8 +122,8 @@ def test_spatio_flux_one_from_generator() -> None:
         config_schema=dict(emit=dict(_type="map", _value="any")),
         input_schema=dict(_type="map", _value="any"),
         output_schema={},
-        default_config_state=dict(emit=dict(fields="any", global_time="any")),
-        default_input_state=dict(fields=["fields"], global_time=["global_time"]),
+        default_config_state={},
+        default_input_state={},
         default_output_state={},
         collection_info=None,
     )

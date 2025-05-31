@@ -1,4 +1,3 @@
-import tempfile
 from copy import deepcopy
 from typing import Any
 
@@ -12,7 +11,8 @@ from process_bigraph_lang.compiler.pb_model import (
     PBStoreState,
     PBModel,
     PBProcessSchema,
-    PBProcessState, PBCollectionType,
+    PBProcessState,
+    PBCollectionType,
 )
 from process_bigraph_lang.dsl.ast_model import ASTModel
 from process_bigraph_lang.dsl.langium_pblang import langium_parse_pblang_str

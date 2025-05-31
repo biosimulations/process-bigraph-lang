@@ -1,6 +1,6 @@
 from typing import Any
 
-from process_bigraph_lang.compiler.pb_model import PBModel
+from process_bigraph_lang.compiler.pb_model import PBModel, PBCollectionType
 
 
 def assemble_pb(pb_model: PBModel) -> dict[str, Any]:
@@ -16,12 +16,10 @@ def assemble_pb(pb_model: PBModel) -> dict[str, Any]:
                     set_value_at_path(
                         doc["composition"], store_schema.full_path + ["_type"], value=store_schema.data_type
                     )
-            elif store_schema.collection_type == "map":
+            elif store_schema.collection_type == PBCollectionType(coll_type="map"):
                 if store_schema.data_type:
-                    set_value_at_path(doc["composition"], store_schema.full_path + ["_type"], value="map")
-                    set_value_at_path(
-                        doc["composition"], store_schema.full_path + ["_value"], value=store_schema.data_type
-                    )
+                    set_value_at_path(doc["composition"], store_schema.path + ["_type"], value="map")
+                    set_value_at_path(doc["composition"], store_schema.path + ["_value"], value=store_schema.data_type)
             else:
                 raise ValueError(
                     f"Unsupported collection type '{store_schema.collection_type}' for store schema '{store_schema.full_path}'"
@@ -33,6 +31,7 @@ def assemble_pb(pb_model: PBModel) -> dict[str, Any]:
     for store_state in pb_model.store_states:
         if store_state.value is not None:
             set_value_at_path(doc["state"], store_state.full_path, value=store_state.value)
+
     for step_schema in pb_model.step_schemas:
         # TODO: handle collection_type properly
         address = step_schema.address
@@ -46,13 +45,19 @@ def assemble_pb(pb_model: PBModel) -> dict[str, Any]:
             step_schema_dict["_inputs"] = step_schema.input_schema
         if step_schema.output_schema:
             step_schema_dict["_outputs"] = step_schema.output_schema
+        if step_schema.default_config_state:
+            step_schema_dict["config"] = step_schema.default_config_state
+        if step_schema.default_input_state:
+            step_schema_dict["inputs"] = step_schema.default_input_state
+        if step_schema.default_output_state:
+            step_schema_dict["outputs"] = step_schema.default_output_state
         if step_schema.collection_info is not None:
             if step_schema.collection_info.coll_type == "map":
                 set_value_at_path(doc["composition"], step_schema.full_path + ["_type"], value="map")
                 set_value_at_path(doc["composition"], step_schema.full_path + ["_value"], value=step_schema_dict)
             else:
                 raise ValueError(
-                     f"Unsupported collection type '{step_schema.collection_info}' for step schema '{step_schema.full_path}'"
+                    f"Unsupported collection type '{step_schema.collection_info}' for step schema '{step_schema.full_path}'"
                 )
         else:
             set_value_at_path(doc["composition"], step_schema.full_path, value=step_schema_dict)
@@ -79,6 +84,12 @@ def assemble_pb(pb_model: PBModel) -> dict[str, Any]:
             process_schema_dict["_inputs"] = process_schema.input_schema
         if process_schema.output_schema:
             process_schema_dict["_outputs"] = process_schema.output_schema
+        if process_schema.default_config_state:
+            process_schema_dict["config"] = process_schema.default_config_state
+        if process_schema.default_input_state:
+            process_schema_dict["inputs"] = process_schema.default_input_state
+        if process_schema.default_output_state:
+            process_schema_dict["outputs"] = process_schema.default_output_state
         # if process_schema.default_interval is not None:
         #     process_schema_dict["_interval"] = process_schema.default_interval
         if process_schema.collection_info is not None:
