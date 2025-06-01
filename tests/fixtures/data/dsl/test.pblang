@@ -21,7 +21,7 @@
     //     param emit: map[any]
     //     var in: map[any]
     //     inputs in
-     
+
     // param biomass_id = "biomass"
     // store bounds: {ATPM: {lower: 1.0, upper: 1.0}, EX_o2_e: {lower: -2.0, upper: None}}
     // param kinetics = {"acetate": (0.5, 2.0),"glucose": (0.5, 1.0)}
@@ -36,7 +36,7 @@
     // }
 
     // store dFBA: update (fields) using DynamicFBA[biomass_id,bounds,kinetics,model_f,reactions](fields)
-    // store emitter: set () as Emitter[](fields, global_time)   
+    // store emitter: set () as Emitter[](fields, global_time)
 
 type int builtin
 // type string builtin
@@ -45,7 +45,7 @@ struct User {
     id: float = 5;
     name: string;
 }
-let t: (a: float, b: float) = (a = 5, b = 3.14); 
+let t: (a: int, b: float) = (a = 5, b = 3.14);
 let t: (a: float, b: float) = (a = 5);         // missing 'b'
 let t: (a: float) = (a = 5, a = 6);            // duplicate field 'a'
 let t: (a: float) = (x = 5);                   // unknown field 'x'
@@ -65,13 +65,13 @@ remote FetchUser {
 let user_array: array<User> = [
     {id=1, name="Alice"},
     {id=2, name="Bob"},
-    {id=3, name="Charlie"}, 
+    {id=3, name="Charlie"},
 ];
 let numbers: float = 4; // This should be an error, as "acb" is not a float
 type bool builtin
-let numbers: array<float> = [1, 2, 3, 4, 5]; 
+let numbers: array<float> = [1, 2, 3, 4, 5];
 let user_map: map<string, User> = {
-    "bob" = { id = 1, name = "Bob", }, 
+    "bob" = { id = 1, name = "Bob", },
     "eve" = { id = 2, name = "eve" }
 };
 
@@ -106,5 +106,3 @@ let C: float;
 //     add_nums_1: update (C) using Grow[](A, B),
 //     add_nums_2: update (C) using Grow[](A, B)
 // }
-
-
