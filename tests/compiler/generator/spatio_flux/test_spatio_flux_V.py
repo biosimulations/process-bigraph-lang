@@ -13,7 +13,6 @@ from process_bigraph_lang.compiler.pb_model import (
     PBProcessState,
     PBStepSchema,
     PBStepState,
-    PBCollectionType,
 )
 from tests.fixtures.test_registry.spatio_flux import register_types as apply_spatio_types_and_processes_to_core
 
