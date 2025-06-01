@@ -1,0 +1,110 @@
+    // type float builtin
+    // type positive_float builtin
+    // type string builtin
+    // type any builtin
+    // type bounds_type {
+    //     lower: float,
+    //     upper: float | None
+    // } builtin
+
+    // proc DynamicFBA path tests.fixtures.test_registry.spatio_flux.processes.DynamicFBA
+    //     param biomass_identifier: string default "biomass"
+    //     param bounds: map[bounds_type]
+    //     param kinetic_params = map[tuple[float,float]]
+    //     param model_file: string
+    //     param substrate_update_reactions: map[string]
+    //     var substrates: map[positive_float]
+    //     inputs substrates
+    //     outputs substrates
+
+    // step Emitter path local.ram_emitter
+    //     param emit: map[any]
+    //     var in: map[any]
+    //     inputs in
+     
+    // param biomass_id = "biomass"
+    // store bounds: {ATPM: {lower: 1.0, upper: 1.0}, EX_o2_e: {lower: -2.0, upper: None}}
+    // param kinetics = {"acetate": (0.5, 2.0),"glucose": (0.5, 1.0)}
+    // param model_f: string = "textbook"
+    // param reactions: {"acetate": "EX_ac_e", "glucose": "EX_glc__D_e"}
+
+    // store global_time: float = 0.0
+    // store fields: {
+    //     acetate: positive_float = 0.807561836566412,
+    //     biomass: positive_float = 0.1,
+    //     glucose: positive_float = 10
+    // }
+
+    // store dFBA: update (fields) using DynamicFBA[biomass_id,bounds,kinetics,model_f,reactions](fields)
+    // store emitter: set () as Emitter[](fields, global_time)   
+
+type int builtin
+// type string builtin
+
+struct User {
+    id: float = 5;
+    name: string;
+}
+let t: (a: float, b: float) = (a = 5, b = 3.14); 
+let t: (a: float, b: float) = (a = 5);         // missing 'b'
+let t: (a: float) = (a = 5, a = 6);            // duplicate field 'a'
+let t: (a: float) = (x = 5);                   // unknown field 'x'
+struct MyConfig {
+    url: string = "https://api.example.com/data";
+    method: string = "GET";
+    timeout: float = 30.0;
+}
+remote FetchUser {
+    call (
+        userId: int
+    ) -> (
+        name: string,
+        email: string
+    )
+}
+let user_array: array<User> = [
+    {id=1, name="Alice"},
+    {id=2, name="Bob"},
+    {id=3, name="Charlie"}, 
+];
+let numbers: float = 4; // This should be an error, as "acb" is not a float
+type bool builtin
+let numbers: array<float> = [1, 2, 3, 4, 5]; 
+let user_map: map<string, User> = {
+    "bob" = { id = 1, name = "Bob", }, 
+    "eve" = { id = 2, name = "eve" }
+};
+
+unit test: ["micrometer^2"]
+
+struct Users {
+    id: float;
+    name: string;
+    age: float; // optional field
+}
+
+let a: float = 5;
+let b: string = "hello";
+let c: bool = true;
+let d: float = 6;
+
+
+type float builtin
+type string builtin
+
+// proc Grow path tests.fixtures.test_registry.toy_library.AddFloatsProcess
+//     var left_hand_addend : float
+//     var right_hand_addend : float
+//     var result : float
+//     inputs left_hand_addend right_hand_addend
+//     outputs result
+
+let A: float = 2.07;
+let B: float = 3.5;
+let C: float;
+// struct adders {
+//     add_nums_1: update (C) using Grow[](A, B),
+//     add_nums_2: update (C) using Grow[](A, B)
+// }
+
+

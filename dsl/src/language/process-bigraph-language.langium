@@ -1,112 +1,108 @@
 grammar ProcessBigraphLanguage
 
 entry Model:
-    ((types+=Type) |
-     (definitions+=Definition) |
-     (units+=Unit) |
-     (sbmlModels+=SbmlModel) |
-     (stepDefs+=StepDef) |
-     (procDefs+=ProcDef) |
-     ('store' storeNodes+=StoreNode) |
-     (parameters+=Parameter))*;
+    elements+=ModelElement*;
 
-Type:
-    'type' name=ID (builtin='builtin')? ('extends' superType=[Type])? ('default' default=DefaultValue)? ('update' update=[Definition])? (subtypes+=NamedType)*;
+ModelElement:
+    TypeDef | VarDef | Unit | RemoteDef;
 
-NamedType:
-    name=ID ':' ((option=('maybe' | 'list' | 'array')  "[" optional_type=[Type] "]") | type=[Type])
-    ('default' default=DefaultValue)? ("[" unit_ref=[Unit] "]")?;
+RemoteDef:
+    'remote' name=ID '{'
+        ('config' config=StructType)?
+        'call' signature=CallableSignature
+    '}';
 
-DefaultValue:
-    val=(INT | FLOAT | STRING | 'true' | 'false');
+CallableSignature:
+    '(' params+=ParamDecl (',' params+=ParamDecl)* ')' '->'
+    '(' results+=ParamDecl (',' results+=ParamDecl)* ')';
 
-SchemaItem:
-    name=ID ':' type_ref=[Type] ('default' default=DefaultValue)? ("[" unit_ref=[Unit] "]")?;
+ParamDecl:
+    name=ID ':' type=TypeRef;
+
+TypeDef:
+    PrimitiveType | StructType | TypeAlias;
+
+PrimitiveType:
+    'type' name=ID 'builtin';
+
+StructType:
+    'struct' name=ID '{'
+        fields+=Field*
+    '}';
+
+TypeAlias:
+    'type' name=ID '=' type=TypeRef;
+
+Field:
+    name=ID ':' type=TypeRef ('=' default=Value)? ';';
+
+TypeRef:
+    ArrayType | MapType | TupleType | SimpleTypeRef;
+
+ArrayType:
+    'array' '<' elementType=TypeRef '>';
+
+MapType:
+    'map' '<' keyType=TypeRef ',' valueType=TypeRef '>';
+
+TupleType:
+    '(' elements+=ParamDecl (',' elements+=ParamDecl)* ')';
+
+SimpleTypeRef:
+    type=[TypeDef:ID];
+
+VarDef:
+    'let' name=ID ':' type=TypeRef ('=' value=Value)? ';';
+
+Value:
+    IntLiteral |
+    FloatLiteral |
+    StringLiteral |
+    BoolLiteral |
+    VarRef |
+    StructLiteral |
+    ArrayLiteral |
+    MapLiteral |
+    TupleLiteral;
+
+StructLiteral:
+    '{' (fields+=StructFieldValue (',' fields+=StructFieldValue)* ','?)? '}';
+
+StructFieldValue:
+    name=ID '=' value=Value;
+
+ArrayLiteral:
+    '[' (elements+=Value (',' elements+=Value)* ','?)? ']';
+
+MapLiteral:
+    '{' (entries+=MapEntry (',' entries+=MapEntry)* ','?)? '}';
+
+MapEntry:
+    key=Value '=' value=Value;
+
+TupleLiteral:
+    '(' (fields+=TupleFieldValue (',' fields+=TupleFieldValue)* ','?)? ')';
+
+TupleFieldValue:
+    name=ID '=' value=Value;
+
+IntLiteral:
+    value=INT;
+
+FloatLiteral:
+    value=FLOAT;
+
+StringLiteral:
+    value=STRING;
+
+BoolLiteral:
+    value=('true' | 'false');
+
+VarRef:
+    ref=[VarDef];
 
 Unit:
     "unit" name=ID ":" (('[' symbol=STRING ']') | (unit_ref=[Unit]));
-
-SbmlModel:
-    'sbml' name=ID 'file' filepath=STRING
-        ('param' params+=SchemaItem)*
-        ('var' vars+=SchemaItem)*;
-
-PythonPath:
-    'path' path+=ID ("." path+=ID)*;
-
-Parameter:
-    'param' name=ID (':' type_ref=[Type])? '=' default=DefaultValue ("[" unit_ref=[Unit] "]")?;
-
-StoreNode:
-    name=ID (
-        ('=' optional_val=DefaultValue) |
-        (':' optional_type=[Type] ('=' optional_val=DefaultValue)?) |
-        (':' proc_call=ProcCall) |
-        (':' step_call=StepCall) |
-        (':' '{' child_defs+=StoreNode (',' child_defs+=StoreNode)* '}'));
-
-StepDef:
-    'step' name=ID python_path=PythonPath?
-        ('param' params+=SchemaItem)*
-        ('var' vars+=SchemaItem)*
-        ('inputs' inputs+=[SchemaItem]*)?
-        ('outputs' outputs+=[SchemaItem]*)?;
-
-ProcDef:
-    'proc' name=ID python_path=PythonPath?
-        ('param' params+=SchemaItem)*
-        ('var' vars+=SchemaItem)*
-        ('inputs' inputs+=[SchemaItem]*)?
-        ('outputs' outputs+=[SchemaItem]*)?;
-
-StepCall:
-    ('set' '(' (output_node_list=StoreNodeList)? ')')
-    (('as' | '=') step_def_ref=[StepDef])
-    ('[' (config_node_list=ParameterList)? ']')
-    ('(' (input_node_list=StoreNodeList)? ')');
-
-ProcCall:
-    ('update' '(' (output_node_list=StoreNodeList)? ')')
-    (('using' | '<=') proc_def_ref=[ProcDef])
-    ('[' (config_node_list=ParameterList)? ']')
-    ('(' (input_node_list=StoreNodeList)? ')');
-
-ParameterList:
-    (parameter_refs+=[Parameter]) (',' parameter_refs+=[Parameter])*;
-
-StoreNodeList:
-    (store_node_refs+=[StoreNode]) (',' store_node_refs+=[StoreNode])*;
-
-Definition:
-    'def' name=ID ('(' args+=DeclaredParameter (',' args+=DeclaredParameter)* ')')?
-    ':' (builtin='builtin' | (expr=Expression ';'));
-
-DeclaredParameter:
-    name=ID;
-
-type VariableDefinition = DeclaredParameter | SchemaItem;
-
-
-Expression:
-    Addition;
-
-Addition infers Expression:
-    Multiplication ({infer BinaryExpression.left=current} operator=('+' | '-') right=Multiplication)*;
-
-Multiplication infers Expression:
-    Exponentiation ({infer BinaryExpression.left=current} operator=('*' | '/') right=Exponentiation)*;
-
-Exponentiation infers Expression:
-    Modulo ({infer BinaryExpression.left=current} operator='^' right=Modulo)*;
-
-Modulo infers Expression:
-    PrimaryExpression ({infer BinaryExpression.left=current} operator='%' right=PrimaryExpression)*;
-
-PrimaryExpression infers Expression:
-    '(' Expression ')' |
-    {infer NumberLiteral} value=FLOAT |
-    {infer FunctionCall} func=[Definition] ('(' args+=Expression (',' args+=Expression)* ')') |
-    {infer VariableRef} variable=[VariableDefinition:ID];
 
 hidden terminal WS: /\s+/;
 terminal FLOAT returns number: /[0-9]+(\.[0-9]+)?/;

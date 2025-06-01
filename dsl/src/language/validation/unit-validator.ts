@@ -1,29 +1,8 @@
-import type { ValidationAcceptor, ValidationChecks } from "langium";
-import type {
-  ProcessBigraphLanguageAstType,
-  Unit as ASTUnit,
-} from "./generated/ast.js";
-import type { ProcessBigraphLanguageServices } from "./process-bigraph-language-module.js";
+import type { ValidationAcceptor } from "langium";
+import type { Unit as ASTUnit } from "../generated/ast.js";
 import { unit as MathjsUnit } from "mathjs";
 
-/**
- * Register custom validation checks.
- */
-export function registerValidationChecks(
-  services: ProcessBigraphLanguageServices,
-) {
-  const registry = services.validation.ValidationRegistry;
-  const validator = services.validation.ProcessBigraphLanguageValidator;
-  const checks: ValidationChecks<ProcessBigraphLanguageAstType> = {
-    Unit: validator.checkUnitSymbol,
-  };
-  registry.register(checks, validator);
-}
-
-/**
- * Implementation of custom validations.
- */
-export class ProcessBigraphLanguageValidator {
+export class UnitValidator {
   checkUnitSymbol(unit: ASTUnit, accept: ValidationAcceptor): void {
     if (unit.name) {
       try {
