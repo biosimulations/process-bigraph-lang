@@ -35,6 +35,6 @@ store cell_calcium: float = 0.0
 store nuc_glucose: float = 0.0
 store nuc_calcium: float = 0.0
 
-update (med_glucose, med_calcium) using MyProcess[ca_growth,gl_growth,dt,alpha](med_glucose, med_calcium)
-update (cell_glucose, cell_calcium) using MyProcess[ca_growth,gl_growth,dt,alpha](cell_glucose, cell_calcium)
-update (nuc_glucose, nuc_calcium) using MyProcess[ca_growth,gl_growth,dt,alpha](nuc_glucose, nuc_calcium)
+store proc1: update (med_glucose, med_calcium) using MyProcess[ca_growth,gl_growth,dt,alpha](med_glucose, med_calcium)
+store proc2: update (cell_glucose, cell_calcium) using MyProcess[ca_growth,gl_growth,dt,alpha](cell_glucose, cell_calcium)
+store proc3: update (nuc_glucose, nuc_calcium) using MyProcess[ca_growth,gl_growth,dt,alpha](nuc_glucose, nuc_calcium)

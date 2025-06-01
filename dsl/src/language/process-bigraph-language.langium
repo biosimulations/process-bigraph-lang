@@ -8,9 +8,7 @@ entry Model:
      (stepDefs+=StepDef) |
      (procDefs+=ProcDef) |
      ('store' storeNodes+=StoreNode) |
-     (parameters+=Parameter) |
-     (step_calls+=StepCall) |
-     (proc_calls+=ProcCall))*;
+     (parameters+=Parameter))*;
 
 Type:
     'type' name=ID (builtin='builtin')? ('extends' superType=[Type])? ('default' default=DefaultValue)? ('update' update=[Definition])? (subtypes+=NamedType)*;
@@ -43,7 +41,9 @@ StoreNode:
     name=ID (
         ('=' optional_val=DefaultValue) |
         (':' optional_type=[Type] ('=' optional_val=DefaultValue)?) |
-        ('{' child_defs+=StoreNode (',' child_defs+=StoreNode)* '}'));
+        (':' proc_call=ProcCall) |
+        (':' step_call=StepCall) |
+        (':' '{' child_defs+=StoreNode (',' child_defs+=StoreNode)* '}'));
 
 StepDef:
     'step' name=ID python_path=PythonPath?
@@ -67,7 +67,7 @@ StepCall:
 
 ProcCall:
     ('update' '(' (output_node_list=StoreNodeList)? ')')
-    (('using' | '<=') process_def_ref=[ProcDef])
+    (('using' | '<=') proc_def_ref=[ProcDef])
     ('[' (config_node_list=ParameterList)? ']')
     ('(' (input_node_list=StoreNodeList)? ')');
 

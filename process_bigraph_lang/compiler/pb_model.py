@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Literal
 
 
 @dataclass
@@ -14,36 +14,73 @@ class PBEntity:
 
 
 @dataclass
-class PBStore(PBEntity):
+class PBCollectionType:
+    coll_type: Literal["array"] | Literal["map"] = "map"
+
+
+@dataclass
+class PBStoreSchema(PBEntity):
+    collection_type: PBCollectionType | None = None
     data_type: str | dict[str, Any] | None = None
+    default_value: Any | None = None
+
+
+@dataclass
+class PBStoreState(PBEntity):
+    store_schema: PBStoreSchema | None
     value: Any | None = None
 
 
 @dataclass
-class PBEdge(PBEntity):
+class PBEdgeSchema(PBEntity):
+    collection_info: PBCollectionType | None
     address: str
     config_schema: dict[str, Any]
     input_schema: dict[str, Any]
     output_schema: dict[str, Any]
+    default_config_state: dict[str, Any]
+    default_input_state: dict[str, Any]
+    default_output_state: dict[str, Any]
+
+
+@dataclass
+class PBEdgeState(PBEntity):
+    address: str
     config_state: dict[str, Any]
     input_state: dict[str, Any]
     output_state: dict[str, Any]
 
 
 @dataclass
-class PBProcess(PBEdge):
+class PBProcessSchema(PBEdgeSchema):
+    _type: str = "process"
+    default_interval: float | None = None
+
+
+@dataclass
+class PBProcessState(PBEdgeState):
+    process_schema: PBProcessSchema
     _type: str = "process"
     interval: float | None = None
 
 
 @dataclass
-class PBStep(PBEdge):
+class PBStepSchema(PBEdgeSchema):
+    _type: str = "step"
+
+
+@dataclass
+class PBStepState(PBEdgeState):
+    step_schema: PBStepSchema
     _type: str = "step"
 
 
 @dataclass
 class PBModel:
-    processes: List[PBProcess]
-    steps: List[PBStep]
-    stores: List[PBStore]
+    process_schemas: List[PBProcessSchema]
+    process_states: List[PBProcessState]
+    step_schemas: List[PBStepSchema]
+    step_states: List[PBStepState]
+    store_schemas: List[PBStoreSchema]
+    store_states: List[PBStoreState]
     types: List[Dict[str, Any]]

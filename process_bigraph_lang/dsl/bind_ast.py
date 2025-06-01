@@ -17,8 +17,6 @@ from process_bigraph_lang.dsl.ast_model import (
     StoreNode,
     ProcDef,
     StepDef,
-    StepCall,
-    ProcCall,
     Parameter,
 )
 
@@ -166,11 +164,36 @@ def _bind_expr(expr: Expression, symbol_table: list[_SymbolTableEntry]) -> None:
 
 def _bind_store_node(store_node: StoreNode, symbol_table: list[_SymbolTableEntry]) -> None:
     type_symbols = [e for e in symbol_table if e.ref_type == _RefType.TYPE]
+    proc_def_symbols = [e for e in symbol_table if e.ref_type == _RefType.PROC_DEF]
+    step_def_symbols = [e for e in symbol_table if e.ref_type == _RefType.STEP_DEF]
+    store_node_symbols = [e for e in symbol_table if e.ref_type == _RefType.STORE_NODE]
+    parameter_symbols = [e for e in symbol_table if e.ref_type == _RefType.PARAMETER]
     if store_node.optional_type:
         _bind_ref(store_node.optional_type, type_symbols)
+
+    if store_node.proc_call:
+        proc_call = store_node.proc_call
+        _bind_ref(proc_call.proc_def_ref, proc_def_symbols)
+        for parameter_ref in proc_call.config_node_list.parameter_refs if proc_call.config_node_list else []:
+            _bind_ref(parameter_ref, parameter_symbols)
+        for store_ref in proc_call.input_node_list.store_node_refs if proc_call.input_node_list else []:
+            _bind_ref(store_ref, store_node_symbols)
+        for store_ref in proc_call.output_node_list.store_node_refs if proc_call.output_node_list else []:
+            _bind_ref(store_ref, store_node_symbols)
+
+    if store_node.step_call:
+        step_call = store_node.step_call
+        _bind_ref(step_call.step_def_ref, step_def_symbols)
+        for parameter_ref in step_call.config_node_list.parameter_refs if step_call.config_node_list else []:
+            _bind_ref(parameter_ref, parameter_symbols)
+        for store_ref in step_call.input_node_list.store_node_refs if step_call.input_node_list else []:
+            _bind_ref(store_ref, store_node_symbols)
+        for store_ref in step_call.output_node_list.store_node_refs if step_call.output_node_list else []:
+            _bind_ref(store_ref, store_node_symbols)
+
     if store_node.child_defs:
         for child_store_node in store_node.child_defs:
-            _bind_store_node(child_store_node, type_symbols)
+            _bind_store_node(child_store_node, symbol_table)
 
 
 def bind_ast_model(model: ASTModel) -> None:
@@ -233,30 +256,6 @@ def bind_ast_model(model: ASTModel) -> None:
         # for j, update_def in enumerate(procDef_or_stepDef.updates):
         #     _bind_ref(update_def.lhs, process_def_var_symbols)
         #     _bind_expr(update_def.rhs, expr_symbols)
-
-    stepcall_or_proccall_list: list[StepCall | ProcCall] = []
-    stepcall_or_proccall_list += model.step_calls
-    stepcall_or_proccall_list += model.proc_calls
-    for i, stepcall_or_proccall in enumerate(stepcall_or_proccall_list):
-        step_def_symbols = [e for e in symbol_table if e.ref_type == _RefType.STEP_DEF]
-        proc_def_symbols = [e for e in symbol_table if e.ref_type == _RefType.PROC_DEF]
-        if isinstance(stepcall_or_proccall, ProcCall):
-            _bind_ref(stepcall_or_proccall.proc_def_ref, proc_def_symbols)
-        elif isinstance(stepcall_or_proccall, StepCall):
-            _bind_ref(stepcall_or_proccall.step_def_ref, step_def_symbols)
-        else:
-            raise ValueError(f"Unknown stepcall or proccall type: {type(stepcall_or_proccall)}")
-        store_node_symbols = [e for e in symbol_table if e.ref_type == _RefType.STORE_NODE]
-        parameter_symbols = [e for e in symbol_table if e.ref_type == _RefType.PARAMETER]
-        if stepcall_or_proccall.config_node_list:
-            for j, parameter_ref in enumerate(stepcall_or_proccall.config_node_list.parameter_refs):
-                _bind_ref(parameter_ref, parameter_symbols)
-        if stepcall_or_proccall.input_node_list:
-            for j, store_ref in enumerate(stepcall_or_proccall.input_node_list.store_node_refs):
-                _bind_ref(store_ref, store_node_symbols)
-        if stepcall_or_proccall.output_node_list:
-            for j, store_ref in enumerate(stepcall_or_proccall.output_node_list.store_node_refs):
-                _bind_ref(store_ref, store_node_symbols)
 
     for i, store_node in enumerate(model.storeNodes):
         _bind_store_node(store_node, symbol_table)

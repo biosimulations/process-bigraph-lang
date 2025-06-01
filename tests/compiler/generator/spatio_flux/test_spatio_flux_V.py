@@ -5,7 +5,15 @@ import numpy as np
 import process_bigraph as pg  # type: ignore[import-untyped]
 
 from process_bigraph_lang.compiler.converter import assemble_pb
-from process_bigraph_lang.compiler.pb_model import PBStore, PBModel, PBProcess, PBStep
+from process_bigraph_lang.compiler.pb_model import (
+    PBStoreSchema,
+    PBStoreState,
+    PBModel,
+    PBProcessSchema,
+    PBProcessState,
+    PBStepSchema,
+    PBStepState,
+)
 from tests.fixtures.test_registry.spatio_flux import register_types as apply_spatio_types_and_processes_to_core
 
 n_bins = (4, 4)
@@ -21,9 +29,7 @@ step_config_template = {
                 "minimal_particle": {
                     "_type": "process",
                     "address": {"_type": "quote", "_default": f"local:!{MINIMAL_PARTICLE_PROCESS_ADDR}"},
-                    "_config": {
-                        "_type": {"_type": "map", "_value": "reaction"},
-                    },
+                    "_config": {"_type": "map", "_value": "reaction"},
                     "config": {
                         "_type": "quote",
                         "_default": {
@@ -85,6 +91,10 @@ step_config_template = {
             "address": {"_type": "quote", "_default": "local:ram-emitter"},
             "_config": {"emit": {"_type": "map", "_value": "any"}},
             "_inputs": {"_type": "map", "_value": "any"},
+        },
+        "fields": {
+            "biomass": {"_data": "positive_float", "_shape": (4, 4), "_type": "array"},
+            "detritus": {"_data": "positive_float", "_shape": (4, 4), "_type": "array"},
         },
     },
     "state": {
@@ -166,45 +176,116 @@ def test_five_from_generator() -> None:
         [0.0, 0.0, 0.0, 0.0],
     ])
     field_array_type = dict(_type="array", _shape=n_bins, _data="positive_float")
-    store_biomass = PBStore(key="biomass", path=["fields"], value=biomass_array, data_type=field_array_type)
-    store_detritus = PBStore(key="detritus", path=["fields"], value=detrius_array, data_type=field_array_type)
-    store_position = PBStore(
+    store_schema_biomass = PBStoreSchema(key="biomass", path=["fields"], default_value=None, data_type=field_array_type)
+    store_state_biomass = PBStoreState(
+        key="biomass", path=["fields"], value=biomass_array, store_schema=store_schema_biomass
+    )
+    store_schema_detritus = PBStoreSchema(
+        key="detritus", path=["fields"], default_value=None, data_type=field_array_type
+    )
+    store_state_detritus = PBStoreState(
+        key="detritus", path=["fields"], value=detrius_array, store_schema=store_schema_detritus
+    )
+
+    # TODO: store_schema_particles is a hack for particles map to add _type=map (other Schema defs add the _value key)
+    store_schema_particles = PBStoreSchema(
+        key="particles",
+        path=[],
+        default_value=None,
+        data_type=dict(_type="map"),
+        collection_type=None,
+    )
+
+    store_schema_position = PBStoreSchema(
+        key="position",
+        path=["particles", "_value"],  # the "_value" path element is needed where a map is a path ancestor
+        default_value=None,
+        data_type=dict(_type="tuple", _data="float"),
+        collection_type=None,
+    )
+    store_state_position = PBStoreState(
         key="position",
         path=["particles", "xBaTNrq4T8mh1phCXNGeow"],
         value=(np.float64(2.4310020233238836), np.float64(14.43465475731152)),
-        data_type=dict(_type="tuple", _data="float"),
+        store_schema=store_schema_position,
     )
-    store_size = PBStore(
-        key="size", path=["particles", "xBaTNrq4T8mh1phCXNGeow"], value=48.17502371097209, data_type="float"
+    store_schema_size = PBStoreSchema(
+        key="size",
+        path=["particles", "_value"],  # the "_value" path element is needed where a map is a path ancestor
+        default_value=None,
+        data_type="float",
+        collection_type=None,
     )
-    store_local_biomass = PBStore(
+    store_state_size = PBStoreState(
+        key="size",
+        path=["particles", "xBaTNrq4T8mh1phCXNGeow"],
+        value=48.17502371097209,
+        store_schema=store_schema_size,
+    )
+    store_schema_local_biomass = PBStoreSchema(
+        key="biomass",
+        path=["particles", "_value", "local"],  # the "_value" path element is needed where a map is a path ancestor
+        default_value=None,
+        data_type="float",
+        collection_type=None,
+        # collection_type=PBCollectionType(coll_type="map"),
+    )
+    store_state_local_biomass = PBStoreState(
         key="biomass",
         path=["particles", "xBaTNrq4T8mh1phCXNGeow", "local"],
         value=np.float64(1.4563571535090656),
+        store_schema=store_schema_local_biomass,
+    )
+    store_schema_local_detritus = PBStoreSchema(
+        key="detritus", path=["particles", "_value", "local"], default_value=None, data_type="float"
+    )
+    store_state_local_detritus = PBStoreState(
+        key="detritus",
+        path=["particles", "xBaTNrq4T8mh1phCXNGeow", "local"],
+        value=np.float64(0.0),
+        store_schema=store_schema_local_detritus,
+    )
+    store_schema_particle_id = PBStoreSchema(
+        key="id", path=["particles", "_value"], default_value=None, data_type="string"
+    )
+    store_state_particle_id = PBStoreState(
+        key="id",
+        path=["particles", "xBaTNrq4T8mh1phCXNGeow"],
+        value="xBaTNrq4T8mh1phCXNGeow",
+        store_schema=store_schema_particle_id,
+    )
+    store_schema_mass = PBStoreSchema(key="mass", path=["particles", "_value"], default_value=None, data_type="float")
+    store_state_mass = PBStoreState(
+        key="mass",
+        path=["particles", "xBaTNrq4T8mh1phCXNGeow"],
+        value=0.9667339634671268,
+        store_schema=store_schema_mass,
+    )
+    store_schema_exchange_biomass = PBStoreSchema(
+        key="biomass",
+        path=["particles", "_value", "exchange"],
+        default_value=0.0,
         data_type="float",
     )
-    store_local_detritus = PBStore(
-        key="detritus", path=["particles", "xBaTNrq4T8mh1phCXNGeow", "local"], value=np.float64(0.0), data_type="float"
-    )
-    store_particle_id = PBStore(
-        key="id", path=["particles", "xBaTNrq4T8mh1phCXNGeow"], value="xBaTNrq4T8mh1phCXNGeow", data_type="string"
-    )
-    store_mass = PBStore(
-        key="mass", path=["particles", "xBaTNrq4T8mh1phCXNGeow"], value=0.9667339634671268, data_type="float"
-    )
-    store_exchange_biomass = PBStore(
+    store_state_exchange_biomass = PBStoreState(
         key="biomass",
         path=["particles", "xBaTNrq4T8mh1phCXNGeow", "exchange"],
         value=0.0,
+        store_schema=store_schema_exchange_biomass,
+    )
+    store_schema_exchange_detritus = PBStoreSchema(
+        key="detritus",
+        path=["particles", "_value", "exchange"],
+        default_value=None,
         data_type="float",
     )
-    store_exchange_detritus = PBStore(
+    store_state_exchange_detritus = PBStoreState(
         key="detritus",
         path=["particles", "xBaTNrq4T8mh1phCXNGeow", "exchange"],
         value=0.0,
-        data_type="float",
+        store_schema=store_schema_exchange_detritus,
     )
-    process_particles = PBProcess(
+    process_schema_particles = PBProcessSchema(
         key="particles_process",
         path=[],
         address=f"local:!{PARTICLES_PROCESS_ADDR}",
@@ -225,6 +306,15 @@ def test_five_from_generator() -> None:
             particles="map[particle]",
             fields=dict(_type="map", _value=dict(_type="array", _shape=n_bins, _data="positive_float")),
         ),
+        default_config_state={},
+        default_input_state={},
+        default_output_state={},
+        collection_info=None,
+    )
+    process_state_particles = PBProcessState(
+        key="particles_process",
+        path=[],
+        address=f"local:!{PARTICLES_PROCESS_ADDR}",
         config_state=dict(
             n_bins=n_bins,
             bounds=bounds,
@@ -235,18 +325,19 @@ def test_five_from_generator() -> None:
         ),
         input_state=dict(particles=["particles"], fields=["fields"]),
         output_state=dict(particles=["particles"], fields=["fields"]),
+        process_schema=process_schema_particles,
     )
-    process_minimal_particle = PBProcess(
+    process_schema_minimal_particle = PBProcessSchema(
         key="minimal_particle",
-        path=["particles", "xBaTNrq4T8mh1phCXNGeow"],
+        path=["particles", "_value"],
         address=f"local:!{MINIMAL_PARTICLE_PROCESS_ADDR}",
         config_schema=dict(_type="map", _value="reaction"),
         input_schema=dict(mass="float", substrates=dict(_type="map", _value="positive_float")),
         output_schema=dict(mass="float", substrates=dict(_type="map", _value="float")),
-        config_state=dict(
+        default_config_state=dict(
             _type="quote",
             _default=dict(
-                reaction=dict(
+                reactions=dict(
                     grow=dict(
                         biomass=dict(vmax=0.01, kcat=0.01, role="reactant"),
                         detritus=dict(vmax=0.001, kcat=0.001, role="product"),
@@ -254,34 +345,79 @@ def test_five_from_generator() -> None:
                 )
             ),
         ),
-        input_state=dict(_type="tree[wires]", _default=dict(mass=["mass"], substrates=["local"])),
-        output_state=dict(_type="tree[wires]", _default=dict(mass=["mass"], substrates=["exchange"])),
+        default_input_state=dict(_type="tree[wires]", _default=dict(mass=["mass"], substrates=["local"])),
+        default_output_state=dict(_type="tree[wires]", _default=dict(mass=["mass"], substrates=["exchange"])),
+        collection_info=None,
     )
-    step_emitter = PBStep(
+    # process_state_minimal_particle = PBProcessState(
+    #     key="minimal_particle",
+    #     path=["particles", "xBaTNrq4T8mh1phCXNGeow"],
+    #     address=f"local:!{MINIMAL_PARTICLE_PROCESS_ADDR}",
+    #     config_state=dict(
+    #         _type="quote",
+    #         _default=dict(
+    #             reaction=dict(
+    #                 grow=dict(
+    #                     biomass=dict(vmax=0.01, kcat=0.01, role="reactant"),
+    #                     detritus=dict(vmax=0.001, kcat=0.001, role="product"),
+    #                 )
+    #             )
+    #         ),
+    #     ),
+    #     input_state=dict(_type="tree[wires]", _default=dict(mass=["mass"], substrates=["local"])),
+    #     output_state=dict(_type="tree[wires]", _default=dict(mass=["mass"], substrates=["exchange"])),
+    #     process_schema=process_schema_minimal_particle,
+    # )
+    step_emitter_schema = PBStepSchema(
         key="emitter",
         path=[],
         address="local:ram-emitter",
         config_schema=dict(emit=dict(_type="map", _value="any")),
         input_schema=dict(_type="map", _value="any"),
         output_schema={},
+        default_config_state={},
+        default_input_state={},
+        default_output_state={},
+        collection_info=None,
+    )
+    step_emitter_state = PBStepState(
+        key="emitter",
+        path=[],
+        address="local:ram-emitter",
         config_state=dict(emit=dict(global_time="any", particles="any", fields="any")),
         input_state=dict(global_time=["global_time"], particles=["particles"], fields=["fields"]),
         output_state={},
+        step_schema=step_emitter_schema,
     )
     pb_model = PBModel(
-        processes=[process_particles, process_minimal_particle],
-        steps=[step_emitter],
-        stores=[
-            store_biomass,
-            store_detritus,
-            store_position,
-            store_size,
-            store_local_biomass,
-            store_local_detritus,
-            store_particle_id,
-            store_mass,
-            store_exchange_biomass,
-            store_exchange_detritus,
+        process_schemas=[process_schema_particles, process_schema_minimal_particle],
+        process_states=[process_state_particles],
+        step_schemas=[step_emitter_schema],
+        step_states=[step_emitter_state],
+        store_schemas=[
+            store_schema_biomass,
+            store_schema_detritus,
+            store_schema_position,
+            store_schema_size,
+            store_schema_local_biomass,
+            store_schema_local_detritus,
+            store_schema_particle_id,
+            store_schema_mass,
+            store_schema_exchange_biomass,
+            store_schema_exchange_detritus,
+            store_schema_particles,
+        ],
+        store_states=[
+            store_state_biomass,
+            store_state_detritus,
+            store_state_position,
+            store_state_size,
+            store_state_local_biomass,
+            store_state_local_detritus,
+            store_state_particle_id,
+            store_state_mass,
+            store_state_exchange_biomass,
+            store_state_exchange_detritus,
         ],
         types=[],
     )
@@ -290,7 +426,7 @@ def test_five_from_generator() -> None:
     b: dict[str, dict[str, Any]] = cast(dict[str, dict[str, Any]], deepcopy(generated_config))
     a["state"]["fields"] = {}
     b["state"]["fields"] = {}
-    # assert a == b
+    assert a == b
 
     core = pg.ProcessTypes()
     core = pg.register_types(core)

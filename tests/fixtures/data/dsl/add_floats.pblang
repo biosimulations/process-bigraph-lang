@@ -2,14 +2,14 @@
 type float builtin
 type string builtin
 
-proc add_nums path toy.AddFloatsRepeatedly
+proc AddNums path toy.AddFloatsRepeatedly
     var left_hand_addend: float
     var right_hand_addend: float
     var result: float
     inputs left_hand_addend right_hand_addend
     outputs result
 
-step print_result path toy.SaveFloatToFile
+step PrintResult path toy.SaveFloatToFile
     param output_file_path: string default "~/abc_result.txt"
     var result: float
     inputs result
@@ -19,5 +19,5 @@ store A: float = 2.07
 store B: float = 3.5
 store C: float = 0.0
 
-update (C) using add_nums[](A,B)
-set () as print_result[output_file](C)
+store add_nums: update (C) using AddNums[](A,B)
+store print_result: set () as PrintResult[output_file](C)

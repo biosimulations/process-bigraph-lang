@@ -72,6 +72,8 @@ class StoreNode(NamedObject):
     obj_type: Literal["StoreNode"] = Field(default="StoreNode")
     optional_val: DefaultValue | None = None
     optional_type: TypeRef | None = None
+    proc_call: Union["ProcCall", None] = None
+    step_call: Union["StepCall", None] = None
     child_defs: list["StoreNode"] | None = None
 
 
@@ -167,5 +169,3 @@ class ASTModel(BaseModel):
     procDefs: list[ProcDef]
     storeNodes: list[StoreNode]
     parameters: list[Parameter]
-    step_calls: list[StepCall]
-    proc_calls: list[ProcCall]

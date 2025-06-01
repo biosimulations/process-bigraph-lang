@@ -26,4 +26,4 @@ store run_time: float
 store res_array: numpy_array_2d
 store res_labels: list_string
 
-set (res_array, res_labels) as ode_solver[model,n_steps](time, run_time)
+store proc1: set (res_array, res_labels) as ode_solver[model,n_steps](time, run_time)
