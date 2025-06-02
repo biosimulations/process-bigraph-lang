@@ -18,6 +18,9 @@ export function registerValidationChecks(
       TypeRef: type_validator.validateTypeRef,
       CallExpression: type_validator.validateCallExpression,
       RemoteDef: type_validator.validateRemoteDef,
+      StoreDecl: type_validator.checkStoreDecl,
+      InitDecl: type_validator.checkInitDecl,
+      ConnectDecl: type_validator.checkConnectDecl,
     },
     type_validator,
   );

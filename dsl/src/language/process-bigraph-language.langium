@@ -4,7 +4,7 @@ entry Model:
     elements+=ModelElement*;
 
 ModelElement:
-    TypeDef | VarDef | Unit | RemoteDef;
+    TypeDef | VarDef | Unit | RemoteDef | StoreDecl | InitDecl | ConnectDecl;
 
 RemoteDef:
     'remote' name=ID '{'
@@ -25,6 +25,25 @@ CallExpression:
 
 Argument:
     name=ID '=' value=Value;
+
+StoreDecl:
+    'store' name=ID ':' type=TypeRef ';';
+
+InitDecl:
+    'init' store=[StoreDecl:ID] '=' value=Value ';';
+
+ConnectDecl:
+    'connect' '(' outputs+=StoreRef (',' outputs+=StoreRef)* ')' '='
+    'call' callee=[RemoteDef:ID] '(' args+=ArgAssignment (',' args+=ArgAssignment)* ')' ';'
+;
+
+ArgAssignment:
+    name=ID '=' value=StoreRef
+;
+
+StoreRef:
+    store=[StoreDecl:ID]
+;
 
 TypeDef:
     PrimitiveType | StructType | TypeAlias;
