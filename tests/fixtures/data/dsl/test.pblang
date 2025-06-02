@@ -55,6 +55,7 @@ struct MyConfig {
     timeout: float = 30.0;
 }
 remote FetchUser {
+    python "tests.fixtures.test_registry.toy_library.FetchUserProcess"
     call (
         userId: int
     ) -> (

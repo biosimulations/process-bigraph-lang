@@ -8,6 +8,7 @@ ModelElement:
 
 RemoteDef:
     'remote' name=ID '{'
+        ('python' pythonPath=STRING)
         ('config' config=StructType)?
         'call' signature=CallableSignature
     '}';

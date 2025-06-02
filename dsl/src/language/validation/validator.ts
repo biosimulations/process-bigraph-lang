@@ -17,6 +17,7 @@ export function registerValidationChecks(
       CallableSignature: type_validator.validateSignature,
       TypeRef: type_validator.validateTypeRef,
       CallExpression: type_validator.validateCallExpression,
+      RemoteDef: type_validator.validateRemoteDef,
     },
     type_validator,
   );

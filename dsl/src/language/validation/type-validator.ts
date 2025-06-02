@@ -7,6 +7,7 @@ import {
   Field,
   isTupleType,
   ParamDecl,
+  RemoteDef,
   TypeRef,
   VarDef,
 } from "../generated/ast.js";
@@ -152,6 +153,22 @@ export class TypeValidator {
       if (!seen.has(name)) {
         accept("error", `Missing required argument '${name}'`, { node: call });
       }
+    }
+  }
+
+  validateRemoteDef(remote: RemoteDef, accept: ValidationAcceptor) {
+    if (
+      remote.pythonPath &&
+      !/^[a-zA-Z_][\w]*(\.[a-zA-Z_][\w]*)*$/.test(remote.pythonPath)
+    ) {
+      accept(
+        "error",
+        `Invalid Python path '${remote.pythonPath}'. Expected dot-separated identifiers.`,
+        {
+          node: remote,
+          property: "pythonPath",
+        },
+      );
     }
   }
 }
