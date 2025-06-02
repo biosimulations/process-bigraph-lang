@@ -19,6 +19,12 @@ CallableSignature:
 ParamDecl:
     name=ID ':' type=TypeRef;
 
+CallExpression:
+    'call' callee=[RemoteDef] '(' (args+=Argument (',' args+=Argument)* ','?)? ')';
+
+Argument:
+    name=ID '=' value=Value;
+
 TypeDef:
     PrimitiveType | StructType | TypeAlias;
 
@@ -52,7 +58,13 @@ SimpleTypeRef:
     type=[TypeDef:ID];
 
 VarDef:
-    'let' name=ID ':' type=TypeRef ('=' value=Value)? ';';
+    'let' (name=ID | lhs=TuplePattern) ':' type=TypeRef ('=' value=Value)? ';';
+
+TuplePattern:
+    '(' bindings+=TupleBinding (',' bindings+=TupleBinding)* ')';
+
+TupleBinding:
+    name=ID ':' type=TypeRef;
 
 Value:
     IntLiteral |
@@ -63,7 +75,8 @@ Value:
     StructLiteral |
     ArrayLiteral |
     MapLiteral |
-    TupleLiteral;
+    TupleLiteral |
+    CallExpression;
 
 StructLiteral:
     '{' (fields+=StructFieldValue (',' fields+=StructFieldValue)* ','?)? '}';

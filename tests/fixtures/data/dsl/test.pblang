@@ -91,6 +91,10 @@ let d: float = 6;
 
 type float builtin
 type string builtin
+let abc: (a: float, b: string) = (a = 3.14, b = "test");
+
+let e: (name: string, email: string) = call FetchUser(userId=1); // This should be a valid call to the remote function
+let (name: string, email: string): (name: string, email: string) = call FetchUser(userId=1); // This should be a valid call to the remote function
 
 // proc Grow path tests.fixtures.test_registry.toy_library.AddFloatsProcess
 //     var left_hand_addend : float

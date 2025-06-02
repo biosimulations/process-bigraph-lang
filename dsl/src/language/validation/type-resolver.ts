@@ -18,6 +18,9 @@ import {
   isStringLiteral,
   isBoolLiteral,
   isTupleLiteral,
+  CallExpression,
+  CallableSignature,
+  isCallExpression,
 } from "../generated/ast.js";
 import { ValidationAcceptor } from "langium";
 
@@ -182,6 +185,32 @@ export function validateValueAgainstType(
       return arrayValid;
 
     case "tuple":
+      if (isCallExpression(value)) {
+        const sig = value.callee?.ref?.signature;
+        if (!sig) return false;
+
+        const resultMap = new Map(
+          sig.results.map((p) => [p.name, resolveType(p.type)]),
+        );
+        const expectedMap = new Map(
+          expected.elements.map((p) => [p.name, p.type]),
+        );
+        let valid = true;
+
+        for (const [name, type] of expectedMap) {
+          const actualType = resultMap.get(name);
+          if (!actualType || !isTypeAssignable(actualType, type)) {
+            accept(
+              "error",
+              `Call result '${name}' is not compatible with expected type`,
+              { node: value },
+            );
+            valid = false;
+          }
+        }
+        return valid;
+      }
+
       if (!isTupleLiteral(value)) {
         accept("error", `Expected a tuple literal`, { node: value });
         return false;
@@ -256,4 +285,53 @@ export function validateValueAgainstType(
     case "alias":
       return validateValueAgainstType(value, expected.target, accept);
   }
+}
+
+export function resolveCallExpr(
+  call: CallExpression,
+): CallableSignature | undefined {
+  return call.callee?.ref?.signature;
+}
+
+export function isTypeAssignable(
+  actual: ResolvedType,
+  expected: ResolvedType,
+): boolean {
+  // Unwrap aliases
+  while (actual.kind === "alias") actual = actual.target;
+  while (expected.kind === "alias") expected = expected.target;
+
+  if (actual.kind === "primitive" && expected.kind === "primitive") {
+    if (actual.name === expected.name) return true;
+    if (actual.name === "int" && expected.name === "float") return true;
+    return false;
+  }
+
+  if (actual.kind === "struct" && expected.kind === "struct") {
+    if (actual.type.name !== expected.type.name) return false;
+    // For strict matching; for subtyping, you'd need deeper checking
+    return true;
+  }
+
+  if (actual.kind === "array" && expected.kind === "array") {
+    return isTypeAssignable(actual.elementType, expected.elementType);
+  }
+
+  if (actual.kind === "map" && expected.kind === "map") {
+    return (
+      isTypeAssignable(actual.keyType, expected.keyType) &&
+      isTypeAssignable(actual.valueType, expected.valueType)
+    );
+  }
+
+  if (actual.kind === "tuple" && expected.kind === "tuple") {
+    const actualFields = new Map(actual.elements.map((e) => [e.name, e.type]));
+    for (const e of expected.elements) {
+      const actualField = actualFields.get(e.name);
+      if (!actualField || !isTypeAssignable(actualField, e.type)) return false;
+    }
+    return true;
+  }
+
+  return false;
 }

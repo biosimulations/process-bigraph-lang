@@ -16,6 +16,7 @@ export function registerValidationChecks(
       Field: type_validator.checkField,
       CallableSignature: type_validator.validateSignature,
       TypeRef: type_validator.validateTypeRef,
+      CallExpression: type_validator.validateCallExpression,
     },
     type_validator,
   );

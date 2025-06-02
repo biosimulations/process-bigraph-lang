@@ -3,6 +3,7 @@
 import { ValidationAcceptor } from "langium";
 import {
   CallableSignature,
+  CallExpression,
   Field,
   isTupleType,
   ParamDecl,
@@ -110,6 +111,46 @@ export class TypeValidator {
         accept("error", `Unknown or invalid type`, {
           node: typeRef,
         });
+      }
+    }
+  }
+
+  validateCallExpression(
+    call: CallExpression,
+    accept: ValidationAcceptor,
+  ): void {
+    const sig = call.callee?.ref?.signature;
+    if (!sig) return;
+
+    const paramMap = new Map(
+      sig.params.map((p) => [p.name, resolveType(p.type)]),
+    );
+    const seen = new Set<string>();
+
+    for (const arg of call.args) {
+      const name = arg.name;
+      if (seen.has(name)) {
+        accept("error", `Duplicate argument '${name}'`, {
+          node: arg,
+          property: "name",
+        });
+        continue;
+      }
+      seen.add(name);
+      const expected = paramMap.get(name);
+      if (!expected) {
+        accept("error", `Unexpected argument '${name}'`, {
+          node: arg,
+          property: "name",
+        });
+        continue;
+      }
+      validateValueAgainstType(arg.value, expected, accept);
+    }
+
+    for (const [name] of paramMap) {
+      if (!seen.has(name)) {
+        accept("error", `Missing required argument '${name}'`, { node: call });
       }
     }
   }
