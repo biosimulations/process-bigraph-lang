@@ -7,6 +7,7 @@ import {
   isSimpleTypeRef,
   isStructType,
   isTypeAlias,
+  isVarRef,
   StructType,
   TypeRef,
   Value,
@@ -91,6 +92,29 @@ export function validateValueAgainstType(
   expected: ResolvedType,
   accept: ValidationAcceptor,
 ): boolean {
+  // Handle VarRef: resolve and check its type
+  if (isVarRef(value)) {
+    const ref = value.ref;
+    if (!ref || !ref.ref?.type) {
+      accept("error", "Unresolved or untyped variable reference", {
+        node: value,
+      });
+      return false;
+    }
+    const actualType = resolveType(ref.ref?.type);
+    if (!isTypeAssignable(actualType, expected)) {
+      accept(
+        "error",
+        `Variable reference is not assignable to expected type: actual=${typeToString(
+          actualType,
+        )}, expected=${typeToString(expected)}`,
+        { node: value },
+      );
+      return false;
+    }
+    return true;
+  }
+
   switch (expected.kind) {
     case "primitive":
       if (expected.name === "int") {
@@ -334,4 +358,27 @@ export function isTypeAssignable(
   }
 
   return false;
+}
+
+function typeToString(type: ResolvedType): string {
+  switch (type.kind) {
+    case "primitive":
+      return type.name;
+    case "struct":
+      return `struct ${type.type.name}`;
+    case "array":
+      return `array<${typeToString(type.elementType)}>`;
+    case "map":
+      return `map<${typeToString(type.keyType)}, ${typeToString(
+        type.valueType,
+      )}>`;
+    case "tuple":
+      return `tuple(${type.elements
+        .map((e) => `${e.name}: ${typeToString(e.type)}`)
+        .join(", ")})`;
+    case "alias":
+      return typeToString(type.target);
+    default:
+      return "unknown";
+  }
 }

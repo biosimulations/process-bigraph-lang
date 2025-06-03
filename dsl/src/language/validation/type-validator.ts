@@ -25,17 +25,7 @@ export class TypeValidator {
     if (varDef.type && varDef.value) {
       try {
         const resolvedType = resolveType(varDef.type);
-        const isValid = validateValueAgainstType(
-          varDef.value,
-          resolvedType,
-          accept,
-        );
-
-        if (!isValid) {
-          accept("error", `Value does not match declared type`, {
-            node: varDef.value,
-          });
-        }
+        validateValueAgainstType(varDef.value, resolvedType, accept);
       } catch (err) {
         accept("error", `Type resolution error: ${(err as Error).message}`, {
           node: varDef.type,
