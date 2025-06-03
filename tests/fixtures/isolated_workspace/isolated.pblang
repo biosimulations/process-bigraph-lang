@@ -1,0 +1,53 @@
+    // type float builtin
+    // type string builtin
+
+    // proc Grow path tests.fixtures.test_registry.toy_library.AddFloatsProcess
+    //     var left_hand_addend : float
+    //     var right_hand_addend : float
+    //     var result : float
+    //     inputs left_hand_addend right_hand_addend
+    //     outputs result
+
+    // store A: float = 2.07
+    // store B: float = 3.5
+    // store C: float
+    // store add_nums_1: update (C) using Grow[](A, B)
+    // store add_nums_2: update (C) using Grow[](A, B)
+
+type float builtin
+type string builtin
+
+remote Grow {
+    python "tests.fixtures.test_registry.toy_library.AddFloatsProcess"
+    call (left_hand_addend: float, right_hand_addend: float) -> (result: float)
+}
+let A: float = 2.07;
+let B: float = 3.5;
+let (C: float): (result: float) = call Grow(left_hand_addend=AA, right_hand_addend=B);
+
+
+
+type float builtin
+type string builtin
+
+struct AddFloatsProcess   {
+    left_hand_addend: float;
+    right_hand_addend: float;
+    result: map<string,array<float>> = {"abc"=[1,3,5], "def"=[2,4,6]};
+}
+
+store A: float;
+store B: float;
+store C: float;
+store AA: float;
+
+init A = 2.07;
+init B = 3.5;
+init AA = "Hello, World!";
+
+remote Grow {
+    python "my.package.Grow"
+    call (left_hand_addend: float, right_hand_addend: float) -> (result: float)
+}
+
+connect (C) = call Grow(left_hand_addend=AA, right_hand_addend=B);

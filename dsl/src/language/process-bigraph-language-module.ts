@@ -11,17 +11,17 @@ import {
   ProcessBigraphLanguageGeneratedModule,
   ProcessBigraphLanguageGeneratedSharedModule,
 } from "./generated/module.js";
-import {
-  ProcessBigraphLanguageValidator,
-  registerValidationChecks,
-} from "./process-bigraph-language-validator.js";
+import { UnitValidator } from "./validation/unit-validator.js";
+import { registerValidationChecks } from "./validation/validator.js";
+import { TypeValidator } from "./validation/type-validator.js";
 
 /**
  * Declaration of custom services - add your own service classes here.
  */
 export type ProcessBigraphLanguageAddedServices = {
   validation: {
-    ProcessBigraphLanguageValidator: ProcessBigraphLanguageValidator;
+    UnitValidator: UnitValidator;
+    CustomValidator: TypeValidator;
   };
 };
 
@@ -42,8 +42,8 @@ export const ProcessBigraphLanguageModule: Module<
   PartialLangiumServices & ProcessBigraphLanguageAddedServices
 > = {
   validation: {
-    ProcessBigraphLanguageValidator: () =>
-      new ProcessBigraphLanguageValidator(),
+    UnitValidator: () => new UnitValidator(),
+    CustomValidator: () => new TypeValidator(),
   },
 };
 
