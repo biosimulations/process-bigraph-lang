@@ -8,6 +8,7 @@ import {
   isStructType,
   isTypeAlias,
   isVarRef,
+  isRemoteCallableType,
   StructType,
   TypeRef,
   Value,
@@ -19,9 +20,9 @@ import {
   isStringLiteral,
   isBoolLiteral,
   isTupleLiteral,
-  CallExpression,
-  CallableSignature,
-  isCallExpression,
+  isCallableLiteral,
+  RemoteCallableType,
+  TupleType,
 } from "../generated/ast.js";
 import { ValidationAcceptor } from "langium";
 
@@ -32,6 +33,7 @@ import { ValidationAcceptor } from "langium";
 export type ResolvedType =
   | { kind: "primitive"; name: string }
   | { kind: "struct"; type: StructType }
+  | { kind: "remoteCallable"; type: RemoteCallableType }
   | { kind: "alias"; target: ResolvedType }
   | { kind: "array"; elementType: ResolvedType }
   | { kind: "tuple"; elements: { name: string; type: ResolvedType }[] }
@@ -57,6 +59,12 @@ export function resolveType(typeRef: TypeRef): ResolvedType {
     if (isStructType(def)) {
       return {
         kind: "struct",
+        type: def,
+      };
+    }
+    if (isRemoteCallableType(def)) {
+      return {
+        kind: "remoteCallable",
         type: def,
       };
     }
@@ -193,6 +201,51 @@ export function validateValueAgainstType(
       }
       return structValid;
 
+    case "remoteCallable":
+        if (!isCallableLiteral(value)) {
+            accept("error", `Expected a callable literal for remote callable`, {
+            node: value,
+            });
+            return false;
+        }
+
+        const config: TupleType | undefined = value.callable_type.ref?.config;
+
+        const paramMap = config
+            ? new Map(config.elements.map((p) => [p.name, resolveType(p.type)]))
+            : new Map();
+        const seen = new Set<string>();
+
+        for (const arg of value.configArgs) {
+            const name = arg.name;
+            if (seen.has(name)) {
+            accept("error", `Duplicate argument '${name}'`, {
+                node: arg,
+                property: "name",
+            });
+            continue;
+            }
+            seen.add(name);
+            const expectedType = paramMap.get(name);
+            if (!expectedType) {
+            accept("error", `Unexpected argument '${name}'`, {
+                node: arg,
+                property: "name",
+            });
+            continue;
+            }
+            if (!validateValueAgainstType(arg.value, expectedType, accept)) {
+            return false;
+            }
+        }
+
+        for (const [name] of paramMap) {
+            if (!seen.has(name)) {
+            accept("error", `Missing required argument '${name}'`, { node: value });
+            return false;
+            }
+        }
+        return true;
     case "array":
       if (!isArrayLiteral(value)) {
         accept("error", `Expected an array literal`, { node: value });
@@ -208,16 +261,16 @@ export function validateValueAgainstType(
       }
       return arrayValid;
 
-    case "tuple":
-      if (isCallExpression(value)) {
-        const sig = value.callee?.ref?.signature;
-        if (!sig) return false;
+    case "tuple": {
+      if (isCallableLiteral(value)) {
+        const config = value.callable_type.ref?.config;
+        if (!config) return false;
 
         const resultMap = new Map(
-          sig.results.map((p) => [p.name, resolveType(p.type)]),
+            config.elements.map((p) => [p.name, resolveType(p.type)]),
         );
         const expectedMap = new Map(
-          expected.elements.map((p) => [p.name, p.type]),
+            expected.elements.map((p) => [p.name, p.type]),
         );
         let valid = true;
 
@@ -225,9 +278,9 @@ export function validateValueAgainstType(
           const actualType = resultMap.get(name);
           if (!actualType || !isTypeAssignable(actualType, type)) {
             accept(
-              "error",
-              `Call result '${name}' is not compatible with expected type`,
-              { node: value },
+                "error",
+                `remote callable config '${name}' has type '${actualType}' but expecting '${type}' `,
+                {node: value},
             );
             valid = false;
           }
@@ -236,13 +289,13 @@ export function validateValueAgainstType(
       }
 
       if (!isTupleLiteral(value)) {
-        accept("error", `Expected a tuple literal`, { node: value });
+        accept("error", `Expected a tuple literal`, {node: value});
         return false;
       }
 
       let hasError = false;
       const expectedFields = new Map(
-        expected.elements.map((e) => [e.name, e.type]),
+          expected.elements.map((e) => [e.name, e.type]),
       );
       const seen = new Set<string>();
 
@@ -275,13 +328,13 @@ export function validateValueAgainstType(
 
       for (const [name] of expectedFields) {
         if (!seen.has(name)) {
-          accept("error", `Missing tuple field '${name}'`, { node: value });
+          accept("error", `Missing tuple field '${name}'`, {node: value});
           hasError = true;
         }
       }
 
       return !hasError;
-
+    }
     case "map":
       if (!isMapLiteral(value)) {
         accept("error", `Expected a map literal`, { node: value });
@@ -309,12 +362,6 @@ export function validateValueAgainstType(
     case "alias":
       return validateValueAgainstType(value, expected.target, accept);
   }
-}
-
-export function resolveCallExpr(
-  call: CallExpression,
-): CallableSignature | undefined {
-  return call.callee?.ref?.signature;
 }
 
 export function isTypeAssignable(

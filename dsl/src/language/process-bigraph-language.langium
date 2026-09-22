@@ -4,27 +4,31 @@ entry Model:
     elements+=ModelElement*;
 
 ModelElement:
-    TypeDef | VarDef | Unit | RemoteDef | StoreDecl | InitDecl | ConnectDecl;
+    TypeDef | VarDef | Unit | RemoteCallableType | StoreDecl | InitDecl | ConnectStatement;
 
-RemoteDef:
-    'remote' name=ID '{'
-        ('python' pythonPath=STRING)
-        ('config' config=StructType)?
-        'call' signature=CallableSignature
+
+RemoteCallableType:
+    'remote' kind=('step' | 'process') name=ID 'at' address=STRING '{'
+        ('config' config=TupleType)?
+        ('inputs' inputs=TupleType)?
+        ('outputs' outputs=TupleType)?
     '}';
 
-CallableSignature:
-    '(' params+=ParamDecl (',' params+=ParamDecl)* ')' '->'
-    '(' results+=ParamDecl (',' results+=ParamDecl)* ')';
+ConnectStatement:
+    'connect' instance=VarRef
+    'inputs' '(' inputBindings+=Binding (',' inputBindings+=Binding)* ')'
+    'outputs' '(' outputBindings+=Binding (',' outputBindings+=Binding)* ')'
+    ';';
 
-ParamDecl:
-    name=ID ':' type=TypeRef;
+Binding:
+    name=ID '=' variable=MemberCall;
 
-CallExpression:
-    'call' callee=[RemoteDef] '(' (args+=Argument (',' args+=Argument)* ','?)? ')';
+MemberCall:
+    element=[NamedElement:ID]
+    ({infer MemberCall.previous=current} "." element=[NamedElement:ID])* ;
 
-Argument:
-    name=ID '=' value=Value;
+NamedElement:
+    VarDef | Field | StoreDecl | ParamDecl;
 
 StoreDecl:
     'store' name=ID ':' type=TypeRef ';';
@@ -32,21 +36,8 @@ StoreDecl:
 InitDecl:
     'init' store=[StoreDecl:ID] '=' value=Value ';';
 
-ConnectDecl:
-    'connect' '(' outputs+=StoreRef (',' outputs+=StoreRef)* ')' '='
-    'call' callee=[RemoteDef:ID] '(' args+=ArgAssignment (',' args+=ArgAssignment)* ')' ';'
-;
-
-ArgAssignment:
-    name=ID '=' value=StoreRef
-;
-
-StoreRef:
-    store=[StoreDecl:ID]
-;
-
 TypeDef:
-    PrimitiveType | StructType | TypeAlias;
+    PrimitiveType | StructType | TypeAlias | RemoteCallableType;
 
 PrimitiveType:
     'type' name=ID 'builtin';
@@ -74,6 +65,9 @@ MapType:
 TupleType:
     '(' elements+=ParamDecl (',' elements+=ParamDecl)* ')';
 
+ParamDecl:
+    name=ID ':' type=TypeRef;
+
 SimpleTypeRef:
     type=[TypeDef:ID];
 
@@ -92,11 +86,18 @@ Value:
     StringLiteral |
     BoolLiteral |
     VarRef |
+    NamedElement |
     StructLiteral |
     ArrayLiteral |
     MapLiteral |
     TupleLiteral |
-    CallExpression;
+    CallableLiteral;
+
+CallableLiteral:
+    callable_type=[RemoteCallableType:ID] '(' configArgs+=ConfigArg (',' configArgs+=ConfigArg)* ')';
+
+ConfigArg:
+    name=ID '=' value=Value;
 
 StructLiteral:
     '{' (fields+=StructFieldValue (',' fields+=StructFieldValue)* ','?)? '}';

@@ -57,6 +57,30 @@ add_floats_step_expected_config_template = {
     },
 }
 
+add_floats_step_pblang = """
+type float builtin
+type string builtin
+struct AddFloatsStep {
+    address: string = "tests.fixtures.test_registry.toy_library.AddFloatsStep";
+    inputs: (left_hand_addend: float, right_hand_addend: float);
+    outputs: (result: float);
+}
+struct SaveFloatToFileStep {
+    address: string = "tests.fixtures.test_registry.toy_library.SaveFloatToFileStep";
+    configs: (output_file_path: string);
+    inputs: (result: float);
+}
+
+let out_path: string = "output.txt";
+
+let A: float = 2.07;
+let B: float = 3.5;
+let C: float;
+
+let add_nums: AddFloatsStep = { address="abc", inputs=(left_hand_addend=A, right_hand_addend=B), outputs=(result=C) };
+let print_result: SaveFloatToFileStep = { address="abc", configs=(output_file_path=out_path), inputs=(result=C) };
+"""
+
 add_floats_process_expected_config_template = {
     "composition": {
         "A": "float",

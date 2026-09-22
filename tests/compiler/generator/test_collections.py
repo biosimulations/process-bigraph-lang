@@ -378,7 +378,7 @@ def test_map_generator() -> None:
     assert np.allclose(composite.state["C"], (2.07 + 3.5) * 10 * 2)
 
 
-flat_pblang = """
+_flat_pblang_old = """
     type float builtin
     type string builtin
 
@@ -395,6 +395,33 @@ flat_pblang = """
     store add_nums_1: update (C) using Grow[](A, B)
     store add_nums_2: update (C) using Grow[](A, B)
 """
+
+
+flat_pblang = """
+    type float builtin
+    type string builtin
+    type bool builtin
+
+    struct Grow {
+        address: string = "tests.fixtures.test_registry.toy_library.AddFloatsProcess";
+        inputs: (left_hand_addend:float, right_hand_addend:float);
+        outputs: (result:float);
+    }
+    let A: float = 2.07;
+    let B: float = 3.5;
+    let C: float;
+
+    let add_nums_1: Grow = {
+        address="tests.fixtures.test_registry.toy_library.AddFloatsProcess",
+        inputs=(left_hand_addend=A, right_hand_addend=B),
+        outputs=(result=C)
+    };
+    let add_nums_2: Grow = {
+        address="tests.fixtures.test_registry.toy_library.AddFloatsProcess",
+        inputs=(left_hand_addend=A, right_hand_addend=B),
+        outputs=(result=C)
+    };
+    """
 
 
 def test_flat_parser() -> None:

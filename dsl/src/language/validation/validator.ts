@@ -14,13 +14,12 @@ export function registerValidationChecks(
     {
       VarDef: type_validator.checkVarDef,
       Field: type_validator.checkField,
-      CallableSignature: type_validator.validateSignature,
+      CallableLiteral: type_validator.validateCallableLiteral,
       TypeRef: type_validator.validateTypeRef,
-      CallExpression: type_validator.validateCallExpression,
-      RemoteDef: type_validator.validateRemoteDef,
+      ConnectStatement: type_validator.validateConnectStatement,
+      RemoteCallableType: type_validator.validateRemoteCallableType,
       StoreDecl: type_validator.checkStoreDecl,
       InitDecl: type_validator.checkInitDecl,
-      ConnectDecl: type_validator.checkConnectDecl,
     },
     type_validator,
   );

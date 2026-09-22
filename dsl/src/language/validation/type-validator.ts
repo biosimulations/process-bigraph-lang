@@ -2,20 +2,18 @@
 
 import { ValidationAcceptor } from "langium";
 import {
-  CallableSignature,
-  CallExpression,
-  ConnectDecl,
+  CallableLiteral,
+  ConnectStatement,
   Field,
   InitDecl,
+  // isRemoteCallableType,
   isTupleType,
-  ParamDecl,
-  RemoteDef,
+  RemoteCallableType,
   StoreDecl,
   TypeRef,
   VarDef,
 } from "../generated/ast.js";
 import {
-  isTypeAssignable,
   resolveType,
   validateValueAgainstType,
 } from "./type-resolver.js";
@@ -51,38 +49,6 @@ export class TypeValidator {
     }
   }
 
-  validateSignature(signature: CallableSignature, accept: ValidationAcceptor) {
-    const seenParams = new Set<string>();
-    for (const param of signature.params) {
-      this.validateParam(param, accept, seenParams);
-    }
-
-    const seenResults = new Set<string>();
-    for (const result of signature.results) {
-      this.validateParam(result, accept, seenResults);
-    }
-  }
-
-  private validateParam(
-    param: ParamDecl,
-    accept: ValidationAcceptor,
-    seen: Set<string>,
-  ) {
-    if (seen.has(param.name)) {
-      accept("error", `Duplicate parameter name '${param.name}'`, {
-        node: param,
-        property: "name",
-      });
-    } else {
-      seen.add(param.name);
-    }
-
-    const resolvedType = resolveType(param.type);
-    if (!resolvedType) {
-      accept("error", `Could not resolve type`, { node: param.type });
-    }
-  }
-
   validateTypeRef(typeRef: TypeRef, accept: ValidationAcceptor) {
     if (isTupleType(typeRef)) {
       const seen = new Set<string>();
@@ -113,19 +79,19 @@ export class TypeValidator {
     }
   }
 
-  validateCallExpression(
-    call: CallExpression,
+  validateCallableLiteral(
+    callable_literal: CallableLiteral,
     accept: ValidationAcceptor,
   ): void {
-    const sig = call.callee?.ref?.signature;
-    if (!sig) return;
+    const config = callable_literal.callable_type?.ref?.config;
+    if (!config) return;
 
     const paramMap = new Map(
-      sig.params.map((p) => [p.name, resolveType(p.type)]),
+      config.elements.map((p) => [p.name, resolveType(p.type)]),
     );
     const seen = new Set<string>();
 
-    for (const arg of call.args) {
+    for (const arg of callable_literal.configArgs) {
       const name = arg.name;
       if (seen.has(name)) {
         accept("error", `Duplicate argument '${name}'`, {
@@ -148,22 +114,22 @@ export class TypeValidator {
 
     for (const [name] of paramMap) {
       if (!seen.has(name)) {
-        accept("error", `Missing required argument '${name}'`, { node: call });
+        accept("error", `Missing required argument '${name}'`, { node: callable_literal });
       }
     }
   }
 
-  validateRemoteDef(remote: RemoteDef, accept: ValidationAcceptor) {
+  validateRemoteCallableType(remote: RemoteCallableType, accept: ValidationAcceptor) {
     if (
-      remote.pythonPath &&
-      !/^[a-zA-Z_][\w]*(\.[a-zA-Z_][\w]*)*$/.test(remote.pythonPath)
+      remote.address &&
+      !/^[a-zA-Z_][\w]*(\.[a-zA-Z_][\w]*)*$/.test(remote.address)
     ) {
       accept(
         "error",
-        `Invalid Python path '${remote.pythonPath}'. Expected dot-separated identifiers.`,
+        `Invalid Python path '${remote.address}'. Expected dot-separated identifiers.`,
         {
           node: remote,
-          property: "pythonPath",
+          property: "address",
         },
       );
     }
@@ -214,90 +180,72 @@ export class TypeValidator {
     }
   }
 
-  checkConnectDecl(connect: ConnectDecl, accept: ValidationAcceptor): void {
-    const remote = connect.callee?.ref as RemoteDef | undefined;
-    if (!remote) {
-      accept("error", `Unknown remote in connect`, { node: connect });
-      return;
-    }
-    const sig = remote.signature;
-    if (!sig) {
-      accept("error", `Remote '${remote.name}' has no signature`, {
-        node: connect,
-      });
-      return;
-    }
-
-    // Validate input arguments
-    for (const arg of connect.args) {
-      const param = sig.params.find((p) => p.name === arg.name);
-      const store = arg.value?.store?.ref;
-      if (!param) {
-        accept("error", `Unknown parameter '${arg.name}' in remote`, {
-          node: arg,
-        });
-        continue;
-      }
-      if (!store) {
-        accept("error", `Unknown store for argument '${arg.name}'`, {
-          node: arg.value,
-        });
-        continue;
-      }
-      if (!store.type) {
-        accept("error", `Store '${store.name}' has no type`, {
-          node: arg.value,
-        });
-        continue;
-      }
-      const paramType = resolveType(param.type);
-      const storeType = resolveType(store.type);
-      if (!isTypeAssignable(storeType, paramType)) {
-        accept(
-          "error",
-          `Type mismatch: store '${store.name}' is not assignable to parameter '${param.name}'`,
-          { node: arg.value },
-        );
-      }
-    }
-
-    // Validate output stores
-    for (let i = 0; i < connect.outputs.length; i++) {
-      const outputRef = connect.outputs[i];
-      const store = outputRef.store?.ref;
-      const result = sig.results[i];
-      if (!result) {
-        accept("error", `Too many output stores for remote '${remote.name}'`, {
-          node: outputRef,
-        });
-        continue;
-      }
-      if (!store) {
-        accept("error", `Unknown output store`, { node: outputRef });
-        continue;
-      }
-      if (!store.type) {
-        accept("error", `Store '${store.name}' has no type`, {
-          node: outputRef,
-        });
-        continue;
-      }
-      const resultType = resolveType(result.type);
-      const storeType = resolveType(store.type);
-      if (!isTypeAssignable(resultType, storeType)) {
-        accept(
-          "error",
-          `Type mismatch: remote result '${result.name}' is not assignable to store '${store.name}'`,
-          { node: outputRef },
-        );
-      }
-    }
-
-    // Check for missing outputs
-    if (connect.outputs.length < sig.results.length) {
-      accept("error", `Missing output store(s) for remote '${remote.name}'`, {
-        node: connect,
-      });
-    }
+  validateConnectStatement(connect: ConnectStatement, accept: ValidationAcceptor): void {
+    // const remoteRef = connect.instance;
+    // if (!remoteRef) {
+    //   accept("error", `Unknown remote in connect`, { node: connect.instance });
+    //   return;
+    // }
+    // const remoteType = remoteRef.ref?.ref;
+    // if (!remoteType) {
+    //   accept("error", `Remote callable reference is missing`, { node: connect.instance });
+    //   return;
+    // }
+    // const instanceType = resolveType(remoteType.type);
+    //
+    // if (!instanceType || !isRemoteCallableType(instanceType)) {
+    //   accept("error", `Remote callable not found`, { node: connect.instance });
+    //   return;
+    // }
+    //
+    // const callableType = instanceType as RemoteCallableType;
+    //
+    // // Validate input arguments
+    // for (const binding of connect.inputBindings) {
+    //   const param = callableType.inputs?.elements.find((p) => p.name === binding.name);
+    //   const store = binding.name.value?.store?.ref;
+    //   if (!param) {
+    //     accept("error", `Unknown parameter '${arg.name}' in remote`, {
+    //       node: arg,
+    //     });
+    //     continue;
+    //   }
+    //   if (!store) {
+    //     accept("error", `Unknown store for argument '${arg.name}'`, {
+    //       node: arg.value,
+    //     });
+    //     continue;
+    //   }
+    //   if (!store.type) {
+    //     accept("error", `Store '${store.name}' has no type`, {
+    //       node: arg.value,
+    //     });
+    //     continue;
+    //   }
+    //   const paramType = resolveType(param.type);
+    //   const storeType = resolveType(store.type);
+    //   if (!isTypeAssignable(storeType, paramType)) {
+    //     accept(
+    //         "error",
+    //         `Type mismatch: store '${store.name}' is not assignable to parameter '${param.name}'`,
+    //         { node: arg.value },
+    //     );
+    //   }
+    // }
+    //
+    // // TODO: Check for missing inputs
+    // if (connect.outputs.length < sig.results.length) {
+    //   accept("error", `Missing output store(s) for remote '${remote.name}'`, {
+    //     node: connect,
+    //   });
+    // }
+    //
+    // // Validate output stores
+    // for (const binding of connect.outputBindings) {
+    //   if (binding === binding) {}  // This is a placeholder to avoid unused variable warning
+    //   // TODO: Check if the binding matches a parameter in the remote callable's outputs tuple
+    // }
+    //
+    // // TODO: Check for missing outputs
   }
 }
