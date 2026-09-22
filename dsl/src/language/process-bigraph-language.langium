@@ -4,7 +4,7 @@ entry Model:
     elements+=ModelElement*;
 
 ModelElement:
-    TypeDef | VarDef | Unit | RemoteCallableType | StoreDecl | InitDecl | ConnectStatement;
+    TypeDef | VarDef | Unit | StoreDecl | InitDecl | ConnectStatement;
 
 
 RemoteCallableType:
@@ -106,11 +106,16 @@ StructFieldValue:
 ArrayLiteral:
     '[' (elements+=Value (',' elements+=Value)* ','?)? ']';
 
+// Map keys are literals so that '{ name = … }' is always a struct literal.
+// An empty '{}' parses as a StructLiteral and is accepted where a map is expected.
 MapLiteral:
-    '{' (entries+=MapEntry (',' entries+=MapEntry)* ','?)? '}';
+    '{' entries+=MapEntry (',' entries+=MapEntry)* ','? '}';
 
 MapEntry:
-    key=Value '=' value=Value;
+    key=MapKey '=' value=Value;
+
+MapKey:
+    StringLiteral | IntLiteral | FloatLiteral | BoolLiteral;
 
 TupleLiteral:
     '(' (fields+=TupleFieldValue (',' fields+=TupleFieldValue)* ','?)? ')';

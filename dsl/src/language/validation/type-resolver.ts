@@ -284,6 +284,18 @@ export function validateValueAgainstType(
       return !hasError;
     }
     case "map":
+      // '{}' parses as an empty struct literal; treat it as an empty map
+      if (isStructLiteral(value) && value.fields.length === 0) {
+        return true;
+      }
+      if (isStructLiteral(value)) {
+        accept(
+          "error",
+          `Expected a map literal; map keys must be literals, e.g. { "key" = value }`,
+          { node: value },
+        );
+        return false;
+      }
       if (!isMapLiteral(value)) {
         accept("error", `Expected a map literal`, { node: value });
         return false;
