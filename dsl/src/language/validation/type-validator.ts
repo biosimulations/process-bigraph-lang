@@ -2,21 +2,26 @@
 
 import { ValidationAcceptor } from "langium";
 import {
+  Binding,
   CallableLiteral,
   ConnectStatement,
   Field,
   InitDecl,
-  // isRemoteCallableType,
   isTupleType,
+  ParamDecl,
   RemoteCallableType,
   StoreDecl,
   TypeRef,
   VarDef,
 } from "../generated/ast.js";
 import {
+  isTypeAssignable,
+  ResolvedType,
   resolveType,
+  typeToString,
   validateValueAgainstType,
 } from "./type-resolver.js";
+import { inferType } from "./scope-provider.js";
 
 export class TypeValidator {
   checkVarDef(varDef: VarDef, accept: ValidationAcceptor): void {
@@ -180,72 +185,117 @@ export class TypeValidator {
     }
   }
 
-  validateConnectStatement(connect: ConnectStatement, accept: ValidationAcceptor): void {
-    // const remoteRef = connect.instance;
-    // if (!remoteRef) {
-    //   accept("error", `Unknown remote in connect`, { node: connect.instance });
-    //   return;
-    // }
-    // const remoteType = remoteRef.ref?.ref;
-    // if (!remoteType) {
-    //   accept("error", `Remote callable reference is missing`, { node: connect.instance });
-    //   return;
-    // }
-    // const instanceType = resolveType(remoteType.type);
-    //
-    // if (!instanceType || !isRemoteCallableType(instanceType)) {
-    //   accept("error", `Remote callable not found`, { node: connect.instance });
-    //   return;
-    // }
-    //
-    // const callableType = instanceType as RemoteCallableType;
-    //
-    // // Validate input arguments
-    // for (const binding of connect.inputBindings) {
-    //   const param = callableType.inputs?.elements.find((p) => p.name === binding.name);
-    //   const store = binding.name.value?.store?.ref;
-    //   if (!param) {
-    //     accept("error", `Unknown parameter '${arg.name}' in remote`, {
-    //       node: arg,
-    //     });
-    //     continue;
-    //   }
-    //   if (!store) {
-    //     accept("error", `Unknown store for argument '${arg.name}'`, {
-    //       node: arg.value,
-    //     });
-    //     continue;
-    //   }
-    //   if (!store.type) {
-    //     accept("error", `Store '${store.name}' has no type`, {
-    //       node: arg.value,
-    //     });
-    //     continue;
-    //   }
-    //   const paramType = resolveType(param.type);
-    //   const storeType = resolveType(store.type);
-    //   if (!isTypeAssignable(storeType, paramType)) {
-    //     accept(
-    //         "error",
-    //         `Type mismatch: store '${store.name}' is not assignable to parameter '${param.name}'`,
-    //         { node: arg.value },
-    //     );
-    //   }
-    // }
-    //
-    // // TODO: Check for missing inputs
-    // if (connect.outputs.length < sig.results.length) {
-    //   accept("error", `Missing output store(s) for remote '${remote.name}'`, {
-    //     node: connect,
-    //   });
-    // }
-    //
-    // // Validate output stores
-    // for (const binding of connect.outputBindings) {
-    //   if (binding === binding) {}  // This is a placeholder to avoid unused variable warning
-    //   // TODO: Check if the binding matches a parameter in the remote callable's outputs tuple
-    // }
-    //
-    // // TODO: Check for missing outputs
+  validateConnectStatement(
+    connect: ConnectStatement,
+    accept: ValidationAcceptor,
+  ): void {
+    const instance = connect.instance?.ref?.ref;
+    if (!instance) return; // unresolved instance is reported by the linker
+
+    let instanceType: ResolvedType;
+    try {
+      instanceType = resolveType(instance.type);
+    } catch (err) {
+      accept("error", `Type resolution error: ${(err as Error).message}`, {
+        node: connect.instance,
+      });
+      return;
+    }
+    while (instanceType.kind === "alias") instanceType = instanceType.target;
+    if (instanceType.kind !== "remoteCallable") {
+      accept(
+        "error",
+        `'${instance.name}' is not a remote step or process instance (type ${typeToString(instanceType)})`,
+        { node: connect.instance },
+      );
+      return;
+    }
+    const remote = instanceType.type;
+
+    // inputs flow from the bound element into the remote's parameter
+    this.checkBindings(
+      connect.inputBindings,
+      remote.inputs?.elements ?? [],
+      "input",
+      remote.name,
+      (bound, port) => isTypeAssignable(bound, port),
+      accept,
+    );
+    // outputs flow from the remote's result into the bound element
+    this.checkBindings(
+      connect.outputBindings,
+      remote.outputs?.elements ?? [],
+      "output",
+      remote.name,
+      (bound, port) => isTypeAssignable(port, bound),
+      accept,
+    );
+
+    const missing = (ports: ParamDecl[] | undefined, bindings: Binding[]) =>
+      (ports ?? [])
+        .map((p) => p.name)
+        .filter((name) => !bindings.some((b) => b.name === name));
+    for (const name of missing(remote.inputs?.elements, connect.inputBindings)) {
+      accept("error", `Missing input binding '${name}' for '${remote.name}'`, {
+        node: connect,
+        property: "inputBindings",
+      });
+    }
+    for (const name of missing(remote.outputs?.elements, connect.outputBindings)) {
+      accept("error", `Missing output binding '${name}' for '${remote.name}'`, {
+        node: connect,
+        property: "outputBindings",
+      });
+    }
+  }
+
+  private checkBindings(
+    bindings: Binding[],
+    ports: ParamDecl[],
+    direction: "input" | "output",
+    remoteName: string,
+    isCompatible: (bound: ResolvedType, port: ResolvedType) => boolean,
+    accept: ValidationAcceptor,
+  ): void {
+    const seen = new Set<string>();
+    for (const binding of bindings) {
+      if (seen.has(binding.name)) {
+        accept("error", `Duplicate ${direction} binding '${binding.name}'`, {
+          node: binding,
+          property: "name",
+        });
+        continue;
+      }
+      seen.add(binding.name);
+
+      const port = ports.find((p) => p.name === binding.name);
+      if (!port) {
+        accept(
+          "error",
+          `'${remoteName}' has no ${direction} named '${binding.name}'`,
+          { node: binding, property: "name" },
+        );
+        continue;
+      }
+
+      const boundTypeRef = inferType(binding.variable);
+      if (!boundTypeRef) continue; // unresolved reference is reported by the linker
+      try {
+        const boundType = resolveType(boundTypeRef);
+        const portType = resolveType(port.type);
+        if (!isCompatible(boundType, portType)) {
+          accept(
+            "error",
+            `Type mismatch for ${direction} '${binding.name}': bound element has type ${typeToString(boundType)}, '${remoteName}' ${direction} has type ${typeToString(portType)}`,
+            { node: binding, property: "variable" },
+          );
+        }
+      } catch (err) {
+        accept("error", `Type resolution error: ${(err as Error).message}`, {
+          node: binding,
+          property: "variable",
+        });
+      }
+    }
   }
 }

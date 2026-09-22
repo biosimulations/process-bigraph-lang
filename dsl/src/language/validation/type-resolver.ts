@@ -404,7 +404,7 @@ export function isTypeAssignable(
   return false;
 }
 
-function typeToString(type: ResolvedType): string {
+export function typeToString(type: ResolvedType): string {
   switch (type.kind) {
     case "primitive":
       return type.name;
