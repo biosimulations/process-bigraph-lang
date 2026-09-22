@@ -9,6 +9,7 @@ copyright: Maintained by <a href="https://biosimulations.com">Florian</a>.
 
 nav:
   - Home: index.md
+  - Architecture: architecture.md
   - Modules: modules.md
 plugins:
   - search
