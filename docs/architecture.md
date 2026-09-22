@@ -6,11 +6,11 @@ descriptions into composite documents that `process-bigraph` can run.
 
 The repository holds two cooperating projects:
 
-| Component | Location | Language | Purpose |
-|---|---|---|---|
-| Langium DSL | `dsl/` | TypeScript | Defines the grammar. Provides the parser, language server (LSP), VS Code extension, browser editor demo, and CLI. |
-| Python package | `process_bigraph_lang/` | Python | Parses `.pblang` files by calling the DSL CLI, then compiles the result into a process-bigraph document. |
-| ANTLR grammar | `antlr/`, `process_bigraph_lang/antlr/`, `cpp/` | ANTLR / generated Python and C++ | A second grammar that is not used for parsing today (see [ANTLR grammar](#antlr-grammar-legacy)). |
+| Component      | Location                                        | Language                         | Purpose                                                                                                           |
+| -------------- | ----------------------------------------------- | -------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| Langium DSL    | `dsl/`                                          | TypeScript                       | Defines the grammar. Provides the parser, language server (LSP), VS Code extension, browser editor demo, and CLI. |
+| Python package | `process_bigraph_lang/`                         | Python                           | Parses `.pblang` files by calling the DSL CLI, then compiles the result into a process-bigraph document.          |
+| ANTLR grammar  | `antlr/`, `process_bigraph_lang/antlr/`, `cpp/` | ANTLR / generated Python and C++ | A second grammar that is not used for parsing today (see [ANTLR grammar](#antlr-grammar-legacy)).                 |
 
 The Langium grammar is the single source of truth for the language. The Python package does not parse
 `.pblang` itself. It runs a native build of the DSL CLI and reads the abstract syntax tree (AST) that the CLI
@@ -59,19 +59,19 @@ server infrastructure from a grammar file. The project then reuses those same se
   the generated module, and this project's custom services. `createProcessBigraphLanguageServices()` is the
   shared factory that every entry point calls.
 - **`process-bigraph-language-validator.ts`** holds custom validation checks, such as unit-symbol checks.
-- **`sbml.ts` and `commands.ts`** implement the *Generate SBML Stub* command. It parses an SBML file and writes a
+- **`sbml.ts` and `commands.ts`** implement the _Generate SBML Stub_ command. It parses an SBML file and writes a
   `.pblang` stub that declares its species, compartments, parameters, and reactions.
 
 ### Entry points
 
 All of these entry points build on the same language services:
 
-| Entry point | File | Used by |
-|---|---|---|
-| Language server (Node) | `src/language/main.ts` | The VS Code extension |
-| Language server (web worker) | `src/language/main-browser.ts` | The Monaco-based browser demo (`npm run dev`, `static/`, `setup*.ts`) |
-| VS Code extension client | `src/extension/main.ts` | VS Code. Starts the language server and adds the SBML stub command to context menus. |
-| CLI | `src/cli/main.ts`, `bin/cli.js` | Humans and the Python package. `generate` writes the linked AST as JSON. `parseAndValidate` reports syntax errors. |
+| Entry point                  | File                            | Used by                                                                                                            |
+| ---------------------------- | ------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| Language server (Node)       | `src/language/main.ts`          | The VS Code extension                                                                                              |
+| Language server (web worker) | `src/language/main-browser.ts`  | The Monaco-based browser demo (`npm run dev`, `static/`, `setup*.ts`)                                              |
+| VS Code extension client     | `src/extension/main.ts`         | VS Code. Starts the language server and adds the SBML stub command to context menus.                               |
+| CLI                          | `src/cli/main.ts`, `bin/cli.js` | Humans and the Python package. `generate` writes the linked AST as JSON. `parseAndValidate` reports syntax errors. |
 
 `npm run build` compiles TypeScript and bundles with esbuild into `out/`. `npm run build:native` also runs
 `deno compile` to produce a standalone `dist/cli-native` executable that does not need Node at runtime.
@@ -120,12 +120,12 @@ Langium grammar.
 
 ## Tests
 
-| Location | Runner | What it covers |
-|---|---|---|
-| `dsl/test/` | vitest (`npm test`) | Parsing, linking, validation, and SBML handling in the Langium services, run in memory |
-| `tests/dsl/` | pytest | Langium parsing and validation through `cli-native`, plus the legacy ANTLR grammar |
-| `tests/compiler/generator/` | pytest | Each compiler stage (`ASTModel`, `PBModel`, assembled document). Many tests then build a `process_bigraph.Composite` from the output and run it. |
-| `tests/fixtures/` | — | Sample `.pblang` and SBML files (`data/`) and the Python step and process classes those models point at (`test_registry/`) |
+| Location                    | Runner              | What it covers                                                                                                                                   |
+| --------------------------- | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `dsl/test/`                 | vitest (`npm test`) | Parsing, linking, validation, and SBML handling in the Langium services, run in memory                                                           |
+| `tests/dsl/`                | pytest              | Langium parsing and validation through `cli-native`, plus the legacy ANTLR grammar                                                               |
+| `tests/compiler/generator/` | pytest              | Each compiler stage (`ASTModel`, `PBModel`, assembled document). Many tests then build a `process_bigraph.Composite` from the output and run it. |
+| `tests/fixtures/`           | —                   | Sample `.pblang` and SBML files (`data/`) and the Python step and process classes those models point at (`test_registry/`)                       |
 
 The Python tests call `cli-native`, so they depend on an up-to-date binary in `process_bigraph_lang/bin/`.
 
