@@ -27,8 +27,7 @@ MemberCall:
     element=[NamedElement:ID]
     ({infer MemberCall.previous=current} "." element=[NamedElement:ID])* ;
 
-NamedElement:
-    VarDef | Field | StoreDecl | ParamDecl;
+type NamedElement = VarDef | Field | StoreDecl | ParamDecl;
 
 StoreDecl:
     'store' name=ID ':' type=TypeRef ';';
@@ -85,8 +84,7 @@ Value:
     FloatLiteral |
     StringLiteral |
     BoolLiteral |
-    VarRef |
-    NamedElement |
+    MemberCall |
     StructLiteral |
     ArrayLiteral |
     MapLiteral |

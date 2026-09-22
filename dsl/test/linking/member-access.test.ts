@@ -25,6 +25,7 @@ const preamble = `
   type float builtin
   type string builtin
   remote step Add at "pkg.Add" {
+    config (unused: string)
     inputs (left: float, right: float)
     outputs (result: float)
   }
@@ -106,5 +107,58 @@ describe("Member access scoping", () => {
       "result=s.A.<?A>",
     ]);
     expect(linkingErrors(document)).toHaveLength(3);
+  });
+});
+
+describe("References as values", () => {
+  async function errors(text: string): Promise<string[]> {
+    document = await parseHelper<Model>(services.ProcessBigraphLanguage)(
+      `${preamble}\n${text}`,
+      { validation: true },
+    );
+    expect(document.parseResult.parserErrors).toHaveLength(0);
+    return (document.diagnostics ?? [])
+      .filter((d) => d.severity === 1)
+      .map((d) => d.message);
+  }
+
+  test("accepts plain and dotted references of the expected type", async () => {
+    expect(
+      await errors(`
+        struct S { A: float; inner: (x: float); }
+        let s: S = { A=1.0, inner=(x=2.0) };
+        let a: float = s.A;
+        let b: float = s.inner.x;
+        let c: float = a;
+        let d: S = s;
+        let e: array<float> = [a, s.A, s.inner.x];
+      `),
+    ).toEqual([]);
+  });
+
+  test("reports type mismatches for references", async () => {
+    expect(
+      await errors(`
+        struct S { A: float; name: string; }
+        let s: S = { A=1.0, name="n" };
+        let a: string = s.A;
+        let b: float = s.name;
+        let c: float = s;
+      `),
+    ).toEqual([
+      "Reference is not assignable to expected type: actual=float, expected=string",
+      "Reference is not assignable to expected type: actual=string, expected=float",
+      "Reference is not assignable to expected type: actual=struct S, expected=float",
+    ]);
+  });
+
+  test("reports unresolved members once, from the linker", async () => {
+    const result = await errors(`
+      struct S { A: float; }
+      let s: S = { A=1.0 };
+      let a: float = s.B;
+    `);
+    expect(result).toHaveLength(1);
+    expect(result[0]).toContain("Could not resolve reference");
   });
 });

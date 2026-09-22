@@ -7,7 +7,7 @@ import {
   isSimpleTypeRef,
   isStructType,
   isTypeAlias,
-  isVarRef,
+  isMemberCall,
   isRemoteCallableType,
   StructType,
   TypeRef,
@@ -25,6 +25,7 @@ import {
   TupleType,
 } from "../generated/ast.js";
 import { ValidationAcceptor } from "langium";
+import { inferType } from "./scope-provider.js";
 
 // ============================
 // Type Resolver
@@ -100,20 +101,16 @@ export function validateValueAgainstType(
   expected: ResolvedType,
   accept: ValidationAcceptor,
 ): boolean {
-  // Handle VarRef: resolve and check its type
-  if (isVarRef(value)) {
-    const ref = value.ref;
-    if (!ref || !ref.ref?.type) {
-      accept("error", "Unresolved or untyped variable reference", {
-        node: value,
-      });
-      return false;
-    }
-    const actualType = resolveType(ref.ref?.type);
+  // Handle references (a, a.b.c): check the declared type of the referenced element.
+  // Unresolved references are already reported by the linker.
+  if (isMemberCall(value)) {
+    const declaredType = inferType(value);
+    if (!declaredType) return false;
+    const actualType = resolveType(declaredType);
     if (!isTypeAssignable(actualType, expected)) {
       accept(
         "error",
-        `Variable reference is not assignable to expected type: actual=${typeToString(
+        `Reference is not assignable to expected type: actual=${typeToString(
           actualType,
         )}, expected=${typeToString(expected)}`,
         { node: value },
