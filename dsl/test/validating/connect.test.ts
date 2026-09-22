@@ -147,4 +147,20 @@ describe("connect statement type checking", () => {
       "Missing input binding 'value' for 'Emit'",
     ]);
   });
+
+  test("instantiates a remote without config using an empty argument list", async () => {
+    expect(
+      await errors(`
+        remote step Sink at "pkg.Sink" { inputs (value: float) }
+        let sink: Sink = Sink();
+        connect sink inputs (value=s.A);
+      `),
+    ).toEqual([]);
+  });
+
+  test("still requires config arguments when the remote declares config", async () => {
+    const result = await errors(`let bad: Emit = Emit();`);
+    expect(result.length).toBeGreaterThan(0);
+    expect(result.every((m) => m === "Missing required argument 'unused'")).toBe(true);
+  });
 });

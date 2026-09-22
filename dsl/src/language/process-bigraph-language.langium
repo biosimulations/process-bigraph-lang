@@ -92,7 +92,7 @@ Value:
     CallableLiteral;
 
 CallableLiteral:
-    callable_type=[RemoteCallableType:ID] '(' configArgs+=ConfigArg (',' configArgs+=ConfigArg)* ')';
+    callable_type=[RemoteCallableType:ID] '(' (configArgs+=ConfigArg (',' configArgs+=ConfigArg)* ','?)? ')';
 
 ConfigArg:
     name=ID '=' value=Value;
