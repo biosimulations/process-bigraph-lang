@@ -88,11 +88,11 @@ export class TypeValidator {
     callable_literal: CallableLiteral,
     accept: ValidationAcceptor,
   ): void {
-    const config = callable_literal.callable_type?.ref?.config;
-    if (!config) return;
+    const remote = callable_literal.callable_type?.ref;
+    if (!remote) return; // unresolved reference is reported by the linker
 
     const paramMap = new Map(
-      config.elements.map((p) => [p.name, resolveType(p.type)]),
+      (remote.config?.elements ?? []).map((p) => [p.name, resolveType(p.type)]),
     );
     const seen = new Set<string>();
 

@@ -22,7 +22,6 @@ import {
   isTupleLiteral,
   isCallableLiteral,
   RemoteCallableType,
-  TupleType,
 } from "../generated/ast.js";
 import { ValidationAcceptor } from "langium";
 import { inferType } from "./scope-provider.js";
@@ -198,51 +197,29 @@ export function validateValueAgainstType(
       }
       return structValid;
 
-    case "remoteCallable":
-        if (!isCallableLiteral(value)) {
-            accept("error", `Expected a callable literal for remote callable`, {
-            node: value,
-            });
-            return false;
-        }
-
-        const config: TupleType | undefined = value.callable_type.ref?.config;
-
-        const paramMap = config
-            ? new Map(config.elements.map((p) => [p.name, resolveType(p.type)]))
-            : new Map();
-        const seen = new Set<string>();
-
-        for (const arg of value.configArgs) {
-            const name = arg.name;
-            if (seen.has(name)) {
-            accept("error", `Duplicate argument '${name}'`, {
-                node: arg,
-                property: "name",
-            });
-            continue;
-            }
-            seen.add(name);
-            const expectedType = paramMap.get(name);
-            if (!expectedType) {
-            accept("error", `Unexpected argument '${name}'`, {
-                node: arg,
-                property: "name",
-            });
-            continue;
-            }
-            if (!validateValueAgainstType(arg.value, expectedType, accept)) {
-            return false;
-            }
-        }
-
-        for (const [name] of paramMap) {
-            if (!seen.has(name)) {
-            accept("error", `Missing required argument '${name}'`, { node: value });
-            return false;
-            }
-        }
-        return true;
+    case "remoteCallable": {
+      // Config arguments are checked by TypeValidator.validateCallableLiteral,
+      // which runs on every callable literal; here only the instance's type matters.
+      if (!isCallableLiteral(value)) {
+        accept(
+          "error",
+          `Expected an instance of remote '${expected.type.name}', e.g. ${expected.type.name}(…)`,
+          { node: value },
+        );
+        return false;
+      }
+      const actual = value.callable_type.ref;
+      if (!actual) return false; // unresolved reference is reported by the linker
+      if (actual !== expected.type) {
+        accept(
+          "error",
+          `Expected an instance of remote '${expected.type.name}' but got an instance of '${actual.name}'`,
+          { node: value, property: "callable_type" },
+        );
+        return false;
+      }
+      return true;
+    }
     case "array":
       if (!isArrayLiteral(value)) {
         accept("error", `Expected an array literal`, { node: value });
@@ -259,32 +236,6 @@ export function validateValueAgainstType(
       return arrayValid;
 
     case "tuple": {
-      if (isCallableLiteral(value)) {
-        const config = value.callable_type.ref?.config;
-        if (!config) return false;
-
-        const resultMap = new Map(
-            config.elements.map((p) => [p.name, resolveType(p.type)]),
-        );
-        const expectedMap = new Map(
-            expected.elements.map((p) => [p.name, p.type]),
-        );
-        let valid = true;
-
-        for (const [name, type] of expectedMap) {
-          const actualType = resultMap.get(name);
-          if (!actualType || !isTypeAssignable(actualType, type)) {
-            accept(
-                "error",
-                `remote callable config '${name}' has type '${actualType}' but expecting '${type}' `,
-                {node: value},
-            );
-            valid = false;
-          }
-        }
-        return valid;
-      }
-
       if (!isTupleLiteral(value)) {
         accept("error", `Expected a tuple literal`, {node: value});
         return false;
@@ -381,6 +332,10 @@ export function isTypeAssignable(
     return true;
   }
 
+  if (actual.kind === "remoteCallable" && expected.kind === "remoteCallable") {
+    return actual.type === expected.type;
+  }
+
   if (actual.kind === "array" && expected.kind === "array") {
     return isTypeAssignable(actual.elementType, expected.elementType);
   }
@@ -410,6 +365,8 @@ export function typeToString(type: ResolvedType): string {
       return type.name;
     case "struct":
       return `struct ${type.type.name}`;
+    case "remoteCallable":
+      return `remote ${type.type.kind} ${type.type.name}`;
     case "array":
       return `array<${typeToString(type.elementType)}>`;
     case "map":
