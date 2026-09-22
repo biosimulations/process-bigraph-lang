@@ -1,80 +1,70 @@
 import {DefaultScopeProvider, EMPTY_SCOPE, ReferenceInfo, Scope} from 'langium';
-import { MemberCall, isVarDef, isField, isStoreDecl, isStructType, isMemberCall, isSimpleTypeRef } from '../generated/ast.js';
+import {
+    MemberCall,
+    NamedElement,
+    TypeRef,
+    isMemberCall,
+    isSimpleTypeRef,
+    isStructType,
+    isTupleType,
+    isTypeAlias,
+} from '../generated/ast.js';
 
+/**
+ * Scopes the members of a dotted reference (`a.b.c`): each segment after the first
+ * resolves against the fields of the previous segment's struct type, or the named
+ * elements of its tuple type.
+ */
 export class MyScopeProvider extends DefaultScopeProvider {
     override getScope(context: ReferenceInfo): Scope {
         if (context.property === 'element' && isMemberCall(context.container)) {
-            const memberCall = context.container as MemberCall;
-            const previous = memberCall.previous;
+            const previous = context.container.previous;
             if (!previous) {
                 return super.getScope(context);
             }
-            const previousType = inferType(previous); // Implement this for your type system
-            if (isStructType(previousType)) { // Or your own type check
-                return this.createScopeForNodes(previousType.fields);
-            }
-            return EMPTY_SCOPE;
+            const members = getMembers(inferType(previous));
+            return members ? this.createScopeForNodes(members) : EMPTY_SCOPE;
         }
         return super.getScope(context);
     }
 }
 
-// export function inferType(memberCall: MemberCall): any {
-//     // Traverse the chain to the root element
-//     let current = memberCall;
-//     while (current.previous) {
-//         current = current.previous;
-//     }
-//     const element = current.element?.ref;
-//     if (!element) return undefined;
-//
-//     // For VarDef, Field, StoreDecl, return their type
-//     if (isVarDef(element) || isField(element) || isStoreDecl(element)) {
-//         return element.type;
-//     }
-//     // Add more cases as needed
-//     return undefined;
-// }
-
-
-
-
-export function inferType(memberCall: MemberCall): any {
-    // Start with the first element in the chain
-    let current: MemberCall | undefined = memberCall;
-    let type: any = undefined;
-
-    // Find the root element and get its type
-    while (current?.previous) {
-        current = current.previous;
-    }
-    const element = current?.element?.ref;
+/**
+ * Returns the declared type of the element a member chain refers to, or undefined if
+ * any segment is unresolved or not a member of the previous segment's type.
+ */
+export function inferType(memberCall: MemberCall): TypeRef | undefined {
+    const element = memberCall.element?.ref;
     if (!element) return undefined;
-
-    if (isVarDef(element) || isField(element) || isStoreDecl(element)) {
-        type = element.type;
-    } else {
-        return undefined;
+    if (memberCall.previous) {
+        const members = getMembers(inferType(memberCall.previous));
+        if (!members?.includes(element)) return undefined;
     }
+    return element.type;
+}
 
-    // Walk the chain to resolve each member
-    current = memberCall;
-    const chain: MemberCall[] = [];
-    while (current?.previous) {
-        chain.unshift(current);
-        current = current.previous;
-    }
-
-    for (const call of chain) {
-        // Only structs have fields
-        if (isSimpleTypeRef(type) && isStructType(type.type?.ref)) {
-            const struct = type.type.ref;
-            const field = struct.fields.find(f => f.name === call.element?.ref?.name);
-            if (!field) return undefined;
-            type = field.type;
-        } else {
+/**
+ * Returns the named members of a struct or tuple type (following type aliases),
+ * or undefined for types without members.
+ */
+function getMembers(typeRef: TypeRef | undefined): NamedElement[] | undefined {
+    const seen = new Set<TypeRef>();
+    while (typeRef && !seen.has(typeRef)) {
+        seen.add(typeRef);
+        if (isTupleType(typeRef)) {
+            return typeRef.elements;
+        }
+        if (!isSimpleTypeRef(typeRef)) {
             return undefined;
         }
+        const def = typeRef.type?.ref;
+        if (isStructType(def)) {
+            return def.fields;
+        }
+        if (!isTypeAlias(def)) {
+            return undefined;
+        }
+        typeRef = def.type;
     }
-    return type;
+    return undefined;
 }
