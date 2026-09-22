@@ -28,6 +28,11 @@ const preamble = `
   struct S { A: float; B: float; C: float; I: int; name: string; }
   let s: S = { A=1.0, B=2.0, C=3.0, I=1, name="n" };
   let add: Add = Add(unused="x");
+  remote step Emit at "pkg.Emit" {
+    config (unused: string)
+    inputs (value: float)
+  }
+  let emit: Emit = Emit(unused="x");
 `;
 
 async function errors(text: string): Promise<string[]> {
@@ -118,5 +123,28 @@ describe("connect statement type checking", () => {
     );
     expect(result).toHaveLength(1);
     expect(result[0]).toContain("Could not resolve reference");
+  });
+
+  test("omits the outputs clause for a remote with no outputs", async () => {
+    expect(await errors(`connect emit inputs (value=s.A);`)).toEqual([]);
+  });
+
+  test("accepts an empty outputs clause for a remote with no outputs", async () => {
+    expect(
+      await errors(`connect emit inputs (value=s.A) outputs ();`),
+    ).toEqual([]);
+  });
+
+  test("reports ports left unbound by an omitted or empty clause", async () => {
+    expect(
+      await errors(`
+        connect add outputs (result=s.C);
+        connect emit inputs ();
+      `),
+    ).toEqual([
+      "Missing input binding 'left' for 'Add'",
+      "Missing input binding 'right' for 'Add'",
+      "Missing input binding 'value' for 'Emit'",
+    ]);
   });
 });

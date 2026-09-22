@@ -16,8 +16,8 @@ RemoteCallableType:
 
 ConnectStatement:
     'connect' instance=VarRef
-    'inputs' '(' inputBindings+=Binding (',' inputBindings+=Binding)* ')'
-    'outputs' '(' outputBindings+=Binding (',' outputBindings+=Binding)* ')'
+    ('inputs' '(' (inputBindings+=Binding (',' inputBindings+=Binding)*)? ')')?
+    ('outputs' '(' (outputBindings+=Binding (',' outputBindings+=Binding)*)? ')')?
     ';';
 
 Binding:
