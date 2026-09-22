@@ -142,8 +142,8 @@ Unit:
     "unit" name=ID ":" (('[' symbol=STRING ']') | (unit_ref=[Unit]));
 
 hidden terminal WS: /\s+/;
-terminal FLOAT returns number: /([0-9]+\.[0-9]*|\.[0-9]+)([eE][+-]?[0-9]+)?/;
-terminal INT returns number: /[0-9]+/;
+terminal FLOAT returns number: /-?([0-9]+\.[0-9]*|\.[0-9]+)([eE][+-]?[0-9]+)?/;
+terminal INT returns number: /-?[0-9]+/;
 terminal ID: /[_a-zA-Z][\w_]*/;
 
 terminal STRING: /"(\\.|[^"\\])*"|'(\\.|[^'\\])*'/;

@@ -2,7 +2,7 @@ import { afterEach, beforeAll, describe, expect, test, vi } from "vitest";
 import { EmptyFileSystem, type LangiumDocument } from "langium";
 import { clearDocuments, parseHelper } from "langium/test";
 import { createProcessBigraphLanguageServices } from "../../src/language/process-bigraph-language-module.js";
-import { Model } from "../../src/language/generated/ast.js";
+import { Model, isVarDef } from "../../src/language/generated/ast.js";
 
 let services: ReturnType<typeof createProcessBigraphLanguageServices>;
 let document: LangiumDocument<Model> | undefined;
@@ -110,5 +110,22 @@ describe("struct and map literals", () => {
     expect(await errors(`let p: P = { "x" = 1.0 };`)).toEqual([
       "Expected struct of type 'P'",
     ]);
+  });
+
+  test("parses negative numbers", async () => {
+    expect(
+      await errors(`
+        let i: int = -3;
+        let f: float = -2.5;
+        let g: float = -.5e-3;
+        let p: P = { x = -1.0, y = -2 };
+      `),
+    ).toEqual([]);
+    const literal = (name: string) =>
+      document!.parseResult.value.elements.filter(isVarDef).find((v) => v.name === name)
+        ?.value as { value: number } | undefined;
+    expect(literal("i")?.value).toBe(-3);
+    expect(literal("f")?.value).toBe(-2.5);
+    expect(literal("g")?.value).toBe(-0.0005);
   });
 });
