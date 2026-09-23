@@ -1,5 +1,13 @@
 import { describe, expect, test } from "vitest";
-import { parseSBML } from "../../src/language/sbml.js";
+import { EmptyFileSystem } from "langium";
+import { parseHelper } from "langium/test";
+import {
+  generateStubPblang,
+  parseSBML,
+  type SbmlContent,
+} from "../../src/language/sbml.js";
+import { createProcessBigraphLanguageServices } from "../../src/language/process-bigraph-language-module.js";
+import { Model } from "../../src/language/generated/ast.js";
 
 // @ts-ignore
 import libsbml from "libsbmljs_stable";
@@ -121,5 +129,73 @@ describe("Synchronous reading from inline string", function () {
     expect(parsed.reactions[2].id).toEqual("_J2");
     expect(parsed.reactions[2].reactants.length).toEqual(1);
     expect(parsed.reactions[2].reactants[0].species).toEqual("S2");
+  });
+});
+
+async function validationErrors(pblang: string): Promise<string[]> {
+  const services = createProcessBigraphLanguageServices(EmptyFileSystem);
+  const document = await parseHelper<Model>(services.ProcessBigraphLanguage)(
+    pblang,
+    { validation: true },
+  );
+  return [
+    ...document.parseResult.lexerErrors.map((e) => e.message),
+    ...document.parseResult.parserErrors.map((e) => e.message),
+    ...(document.diagnostics ?? [])
+      .filter((d) => d.severity === 1)
+      .map((d) => d.message),
+  ];
+}
+
+describe("SBML stub generation", () => {
+  test("generates a stub in the current DSL syntax", async () => {
+    const stub = generateStubPblang(parseSBML(sbmlstr), "model", "../model.sbml");
+    expect(stub).toBe(
+      [
+        "type float builtin",
+        "type string builtin",
+        "",
+        "// SBML model 'model' (concentrations in 10e-6 mole/liter)",
+        'let model_file: string = "../model.sbml";',
+        "",
+        "struct model_parameters {",
+        "    k0: float = 0.1;",
+        "    k1: float = 1;",
+        "    n: float = 4;",
+        "    k2: float = 0.2;",
+        "}",
+        "",
+        "struct model_species {",
+        "    S1: float = 1;",
+        "    S2: float = 0;",
+        "}",
+        "",
+      ].join("\n"),
+    );
+    expect(await validationErrors(stub)).toEqual([]);
+  });
+
+  test("handles missing values, amounts, exponents and unsafe names", async () => {
+    const content: SbmlContent = {
+      compartments: [{ id: "cell", size: 2 }],
+      species: [
+        { id: "A", compartment: "cell", initialAmount: 3 },
+        { id: "B", compartment: "cell" },
+        { id: "store", compartment: "cell", initialConcentration: -1e-7 },
+      ],
+      reactions: [],
+      parameters: [
+        { id: "kf", value: 2.5e-8 },
+        { id: "kr" },
+      ],
+    };
+    const stub = generateStubPblang(content, "BIOMD-0912.v2", "models/m.xml");
+    expect(stub).toContain('let BIOMD_0912_v2_file: string = "models/m.xml";');
+    expect(stub).toContain("    kf: float = 2.5e-8;");
+    expect(stub).toContain("    kr: float;");
+    expect(stub).toContain("    A: float = 1.5;");
+    expect(stub).toContain("    B: float;");
+    expect(stub).toContain("    store_: float = -1.0e-7;");
+    expect(await validationErrors(stub)).toEqual([]);
   });
 });
