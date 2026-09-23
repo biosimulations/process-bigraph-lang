@@ -5,7 +5,6 @@ Particle-COMETS composite made of diffusion-advection and particle processes, wi
 from typing import Any, cast
 
 import numpy as np
-from process_bigraph import ProcessTypes  # type: ignore[import-untyped]
 
 # TODO -- need to do this to register???
 from tests.fixtures.test_registry.spatio_flux.processes.diffusion_advection import get_diffusion_advection_spec
@@ -37,7 +36,7 @@ from tests.fixtures.test_registry.spatio_flux.processes.particle_comets import d
 
 
 def get_particles_dfba_state(
-    core: ProcessTypes,
+    core: Any,
     n_bins: tuple[int, int] = (10, 10),
     bounds: tuple[float, float] = (10.0, 10.0),
     mol_ids: list[str] | None = None,

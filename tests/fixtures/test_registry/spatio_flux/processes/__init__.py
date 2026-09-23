@@ -1,4 +1,4 @@
-from process_bigraph import ProcessTypes  # type: ignore[import-untyped]
+from typing import Any
 
 from tests.fixtures.test_registry.spatio_flux.processes.dfba import DynamicFBA
 from tests.fixtures.test_registry.spatio_flux.processes.diffusion_advection import DiffusionAdvection
@@ -13,7 +13,6 @@ PROCESS_DICT = {
 }
 
 
-def register_processes(core: ProcessTypes) -> ProcessTypes:
-    for process_name, process in PROCESS_DICT.items():
-        core.register_process(process_name, process)
+def register_processes(core: Any) -> Any:
+    core.register_links(PROCESS_DICT)
     return core

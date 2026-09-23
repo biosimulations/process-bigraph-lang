@@ -5,17 +5,20 @@ from typing import Generator
 import pytest
 
 from process_bigraph_lang.dsl.ast_model import (
+    ArrayType,
     ASTModel,
-    BinaryExpression,
-    VariableRef,
+    FloatLiteral,
+    Field_,
+    MemberCall,
+    PrimitiveType,
     Reference,
-    NumberLiteral,
-    Definition,
-    DeclaredParameter,
-    FunctionCall,
+    SimpleTypeRef,
+    StructFieldValue,
+    StructLiteral,
+    StructType,
+    TypeAlias,
     Unit,
-    DefaultValue,
-    Type,
+    VarDef,
 )
 
 
@@ -28,9 +31,17 @@ def model_path_abc() -> Path:
 
 
 @pytest.fixture
+def model_path_abc_antlr() -> Path:
+    """
+    Fixture that provides the path to the ABC model file in the legacy ANTLR grammar.
+    """
+    return Path(__file__).parent / "data" / "antlr" / "abc.pblang"
+
+
+@pytest.fixture
 def model_path_abc_error() -> Path:
     """
-    Fixture that provides the path to the ABC model file.
+    Fixture that provides the path to the ABC model file with an unresolved reference.
     """
     return Path(__file__).parent / "data" / "dsl" / "abc_with_error.pblang"
 
@@ -51,81 +62,79 @@ def model_dfba_single() -> Path:
     return Path(__file__).parent / "data" / "dsl" / "dfba_single.pblang"
 
 
-@pytest.fixture
-def simple_parse_data_1() -> Generator[tuple[str, Path, ASTModel], None, None]:
-    dsl_str = """
-        def test(a):  a + 1;
-    """
-    expr = BinaryExpression(
-        operator="+",
-        left=VariableRef(variable=Reference(ref="#/definitions@0/args@0", ref_text="a", ref_object=None)),
-        right=NumberLiteral(value=1.0),
-    )
-    definition = Definition(
-        name="test",
-        args=[DeclaredParameter(name="a")],
-        expr=expr,
-    )
-    expected_model = ASTModel(
-        definitions=[definition],
-        types=[],
-        units=[],
-        stepDefs=[],
-        procDefs=[],
-        storeNodes=[],
-        parameters=[],
-    )
+def _float_ref() -> SimpleTypeRef:
+    return SimpleTypeRef(type=Reference(ref="#/elements@0", ref_text="float"))
 
+
+def _write(dsl_str: str) -> Generator[Path, None, None]:
     with tempfile.TemporaryDirectory() as tmpdir:
         tmp_path = Path(tmpdir) / "test.pblang"
         with open(tmp_path, "w") as f:
             f.write(dsl_str)
+        yield tmp_path
 
+
+@pytest.fixture
+def simple_parse_data_1() -> Generator[tuple[str, Path, ASTModel], None, None]:
+    dsl_str = """
+        type float builtin
+        let a: float = 1.0;
+        let b: float = a;
+    """
+    expected_model = ASTModel(
+        elements=[
+            PrimitiveType(name="float"),
+            VarDef(name="a", type=_float_ref(), value=FloatLiteral(value=1.0)),
+            VarDef(
+                name="b",
+                type=_float_ref(),
+                value=MemberCall(element=Reference(ref="#/elements@1", ref_text="a")),
+            ),
+        ]
+    )
+    for tmp_path in _write(dsl_str):
         yield dsl_str, tmp_path, expected_model
 
 
 @pytest.fixture
 def simple_parse_data_2() -> Generator[tuple[str, Path, ASTModel], None, None]:
     dsl_str = """
-        def mult(a, b):  a * b;
-        def square(a) : mult(a, a);
+        type float builtin
+        struct Point { x: float; y: float = 0.0; }
+        let p: Point = { x = 1.0, y = 2.0 };
+        let px: float = p.x;
     """
-    expr1 = BinaryExpression(
-        operator="*",
-        left=VariableRef(variable=Reference(ref="#/definitions@0/args@0", ref_text="a")),
-        right=VariableRef(variable=Reference(ref="#/definitions@0/args@1", ref_text="b")),
-    )
-    definition1 = Definition(
-        name="mult",
-        args=[DeclaredParameter(name="a"), DeclaredParameter(name="b")],
-        expr=expr1,
-    )
-    expr2 = FunctionCall(
-        func=Reference(ref="#/definitions@0", ref_text="mult"),
-        args=[
-            VariableRef(variable=Reference(ref="#/definitions@1/args@0", ref_text="a", ref_object=None)),
-            VariableRef(variable=Reference(ref="#/definitions@1/args@0", ref_text="a", ref_object=None)),
-        ],
-    )
-    definition2 = Definition(
-        name="square",
-        args=[DeclaredParameter(name="a")],
-        expr=expr2,
-    )
     expected_model = ASTModel(
-        definitions=[definition1, definition2],
-        types=[],
-        units=[],
-        stepDefs=[],
-        procDefs=[],
-        storeNodes=[],
-        parameters=[],
+        elements=[
+            PrimitiveType(name="float"),
+            StructType(
+                name="Point",
+                fields=[
+                    Field_(name="x", type=_float_ref()),
+                    Field_(name="y", type=_float_ref(), default=FloatLiteral(value=0.0)),
+                ],
+            ),
+            VarDef(
+                name="p",
+                type=SimpleTypeRef(type=Reference(ref="#/elements@1", ref_text="Point")),
+                value=StructLiteral(
+                    fields=[
+                        StructFieldValue(name="x", value=FloatLiteral(value=1.0)),
+                        StructFieldValue(name="y", value=FloatLiteral(value=2.0)),
+                    ]
+                ),
+            ),
+            VarDef(
+                name="px",
+                type=_float_ref(),
+                value=MemberCall(
+                    previous=MemberCall(element=Reference(ref="#/elements@2", ref_text="p")),
+                    element=Reference(ref="#/elements@1/fields@0", ref_text="x"),
+                ),
+            ),
+        ]
     )
-    with tempfile.TemporaryDirectory() as tmpdir:
-        tmp_path = Path(tmpdir) / "test.pblang"
-        with open(tmp_path, "w") as f:
-            f.write(dsl_str)
-
+    for tmp_path in _write(dsl_str):
         yield dsl_str, tmp_path, expected_model
 
 
@@ -133,59 +142,31 @@ def simple_parse_data_2() -> Generator[tuple[str, Path, ASTModel], None, None]:
 def simple_parse_data_3() -> Generator[tuple[str, Path, ASTModel], None, None]:
     dsl_str = """
     // imported definitions from standard library (or other files)
-    type float default 0.0
-    def exp(a): builtin
+    type float builtin
 
     // my model
-    type concentration extends float default 1.0
-    def my_update(substrate, rate, interval): substrate + rate * interval;
+    type concentration = float
+    type concentrations = array<concentration>
     unit uM_per_h: ["10e-6 mole/liter/h"]
     unit uM: ["10e-6 mole/liter"]
     unit conc: uM_per_h
     unit hour: ["h"]
     unit dimensionless: ["1"]
     """
-    type_float = Type(name="float", default=DefaultValue(val=0))
-    def_exp = Definition(
-        name="exp",
-        args=[DeclaredParameter(name="a")],
-        builtin="builtin",
-    )
-    type_concentration = Type(
-        name="concentration",
-        superType=Reference(ref="#/types@0", ref_text="float"),
-        default=DefaultValue(val=1),
-    )
-    def_my_update = Definition(
-        name="my_update",
-        args=[DeclaredParameter(name="substrate"), DeclaredParameter(name="rate"), DeclaredParameter(name="interval")],
-        expr=BinaryExpression(
-            operator="+",
-            left=VariableRef(variable=Reference(ref="#/definitions@1/args@0", ref_text="substrate")),
-            right=BinaryExpression(
-                operator="*",
-                left=VariableRef(variable=Reference(ref="#/definitions@1/args@1", ref_text="rate")),
-                right=VariableRef(variable=Reference(ref="#/definitions@1/args@2", ref_text="interval")),
-            ),
-        ),
-    )
-    unit_uM_per_h = Unit(name="uM_per_h", symbol="10e-6 mole/liter/h")
-    unit_uM = Unit(name="uM", symbol="10e-6 mole/liter")
-    unit_conc = Unit(name="conc", unit_ref=Reference(ref="#/units@0", ref_text="uM_per_h"))
-    unit_hour = Unit(name="hour", symbol="h")
-    unit_dimensionless = Unit(name="dimensionless", symbol="1")
     expected_model = ASTModel(
-        units=[unit_uM_per_h, unit_uM, unit_conc, unit_hour, unit_dimensionless],
-        definitions=[def_exp, def_my_update],
-        types=[type_float, type_concentration],
-        stepDefs=[],
-        procDefs=[],
-        storeNodes=[],
-        parameters=[],
+        elements=[
+            PrimitiveType(name="float"),
+            TypeAlias(name="concentration", type=_float_ref()),
+            TypeAlias(
+                name="concentrations",
+                type=ArrayType(elementType=SimpleTypeRef(type=Reference(ref="#/elements@1", ref_text="concentration"))),
+            ),
+            Unit(name="uM_per_h", symbol="10e-6 mole/liter/h"),
+            Unit(name="uM", symbol="10e-6 mole/liter"),
+            Unit(name="conc", unit_ref=Reference(ref="#/elements@3", ref_text="uM_per_h")),
+            Unit(name="hour", symbol="h"),
+            Unit(name="dimensionless", symbol="1"),
+        ]
     )
-    with tempfile.TemporaryDirectory() as tmpdir:
-        tmp_path = Path(tmpdir) / "test.pblang"
-        with open(tmp_path, "w") as f:
-            f.write(dsl_str)
-
+    for tmp_path in _write(dsl_str):
         yield dsl_str, tmp_path, expected_model

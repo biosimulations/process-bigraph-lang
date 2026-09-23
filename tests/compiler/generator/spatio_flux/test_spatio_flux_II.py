@@ -27,101 +27,20 @@ substrate_values: dict[str, list[list[float]]] = {
     substrate: [[10.0 if substrate == "glucose" else (1.0 if substrate == "acetate" else 0.0)] for row in range(rows)]
     for substrate in ["acetate", "biomass", "glucose"]
 }
-step_config_template = {
-    "composition": {
+step_config_template: dict[str, Any] = {
+    "schema": {
         "fields": {
             "acetate": f"array[({rows}|{columns}),positive_float]",
             "biomass": f"array[({rows}|{columns}),positive_float]",
             "glucose": f"array[({rows}|{columns}),positive_float]",
-        },
-        "dFBA[0,0]": {
-            "_type": "process",
-            "address": {"_type": "quote", "_default": f"local:!{D_FBA_PROCESS_ADDR}"},
-            "_config": {
-                "model_file": "string",
-                "kinetic_params": "map[tuple[float,float]]",
-                "substrate_update_reactions": "map[string]",
-                "biomass_identifier": "string",
-                "bounds": "map[bounds]",
-            },
-            "_inputs": {"substrates": {"_type": "map", "_value": "positive_float"}},
-            "_outputs": {"substrates": {"_type": "map", "_value": "positive_float"}},
-        },
-        "dFBA[0,1]": {
-            "_type": "process",
-            "address": {"_type": "quote", "_default": f"local:!{D_FBA_PROCESS_ADDR}"},
-            "_config": {
-                "model_file": "string",
-                "kinetic_params": "map[tuple[float,float]]",
-                "substrate_update_reactions": "map[string]",
-                "biomass_identifier": "string",
-                "bounds": "map[bounds]",
-            },
-            "_inputs": {"substrates": {"_type": "map", "_value": "positive_float"}},
-            "_outputs": {"substrates": {"_type": "map", "_value": "positive_float"}},
-        },
-        "dFBA[0,2]": {
-            "_type": "process",
-            "address": {"_type": "quote", "_default": f"local:!{D_FBA_PROCESS_ADDR}"},
-            "_config": {
-                "model_file": "string",
-                "kinetic_params": "map[tuple[float,float]]",
-                "substrate_update_reactions": "map[string]",
-                "biomass_identifier": "string",
-                "bounds": "map[bounds]",
-            },
-            "_inputs": {"substrates": {"_type": "map", "_value": "positive_float"}},
-            "_outputs": {"substrates": {"_type": "map", "_value": "positive_float"}},
-        },
-        "dFBA[1,0]": {
-            "_type": "process",
-            "address": {"_type": "quote", "_default": f"local:!{D_FBA_PROCESS_ADDR}"},
-            "_config": {
-                "model_file": "string",
-                "kinetic_params": "map[tuple[float,float]]",
-                "substrate_update_reactions": "map[string]",
-                "biomass_identifier": "string",
-                "bounds": "map[bounds]",
-            },
-            "_inputs": {"substrates": {"_type": "map", "_value": "positive_float"}},
-            "_outputs": {"substrates": {"_type": "map", "_value": "positive_float"}},
-        },
-        "dFBA[1,1]": {
-            "_type": "process",
-            "address": {"_type": "quote", "_default": f"local:!{D_FBA_PROCESS_ADDR}"},
-            "_config": {
-                "model_file": "string",
-                "kinetic_params": "map[tuple[float,float]]",
-                "substrate_update_reactions": "map[string]",
-                "biomass_identifier": "string",
-                "bounds": "map[bounds]",
-            },
-            "_inputs": {"substrates": {"_type": "map", "_value": "positive_float"}},
-            "_outputs": {"substrates": {"_type": "map", "_value": "positive_float"}},
-        },
-        "dFBA[1,2]": {
-            "_type": "process",
-            "address": {"_type": "quote", "_default": f"local:!{D_FBA_PROCESS_ADDR}"},
-            "_config": {
-                "model_file": "string",
-                "kinetic_params": "map[tuple[float,float]]",
-                "substrate_update_reactions": "map[string]",
-                "biomass_identifier": "string",
-                "bounds": "map[bounds]",
-            },
-            "_inputs": {"substrates": {"_type": "map", "_value": "positive_float"}},
-            "_outputs": {"substrates": {"_type": "map", "_value": "positive_float"}},
-        },
-        "emitter": {
-            "_type": "step",
-            "address": {"_type": "quote", "_default": "local:ram-emitter"},
-            "_config": {"emit": {"_type": "map", "_value": "any"}},
-            "_inputs": {"_type": "map", "_value": "any"},
-        },
+        }
     },
     "state": {
         "dFBA[0,0]": {
             "_type": "process",
+            "_inputs": {"substrates": {"_type": "map", "_value": "positive_float"}},
+            "_outputs": {"substrates": {"_type": "map", "_value": "positive_float"}},
+            "address": f"local:!{D_FBA_PROCESS_ADDR}",
             "config": {
                 "biomass_identifier": "biomass",
                 "bounds": {"ATPM": {"lower": 1.0, "upper": 1.0}, "EX_o2_e": {"lower": -2.0, "upper": None}},
@@ -136,7 +55,6 @@ step_config_template = {
                     "glucose": ["fields", "glucose", 0, 0],
                 }
             },
-            "interval": 1.0,
             "outputs": {
                 "substrates": {
                     "acetate": ["fields", "acetate", 0, 0],
@@ -144,9 +62,13 @@ step_config_template = {
                     "glucose": ["fields", "glucose", 0, 0],
                 }
             },
+            "interval": 1.0,
         },
         "dFBA[0,1]": {
             "_type": "process",
+            "_inputs": {"substrates": {"_type": "map", "_value": "positive_float"}},
+            "_outputs": {"substrates": {"_type": "map", "_value": "positive_float"}},
+            "address": f"local:!{D_FBA_PROCESS_ADDR}",
             "config": {
                 "biomass_identifier": "biomass",
                 "bounds": {"ATPM": {"lower": 1.0, "upper": 1.0}, "EX_o2_e": {"lower": -2.0, "upper": None}},
@@ -161,7 +83,6 @@ step_config_template = {
                     "glucose": ["fields", "glucose", 0, 1],
                 }
             },
-            "interval": 1.0,
             "outputs": {
                 "substrates": {
                     "acetate": ["fields", "acetate", 0, 1],
@@ -169,9 +90,13 @@ step_config_template = {
                     "glucose": ["fields", "glucose", 0, 1],
                 }
             },
+            "interval": 1.0,
         },
         "dFBA[0,2]": {
             "_type": "process",
+            "_inputs": {"substrates": {"_type": "map", "_value": "positive_float"}},
+            "_outputs": {"substrates": {"_type": "map", "_value": "positive_float"}},
+            "address": f"local:!{D_FBA_PROCESS_ADDR}",
             "config": {
                 "biomass_identifier": "biomass",
                 "bounds": {"ATPM": {"lower": 1.0, "upper": 1.0}, "EX_o2_e": {"lower": -2.0, "upper": None}},
@@ -186,7 +111,6 @@ step_config_template = {
                     "glucose": ["fields", "glucose", 0, 2],
                 }
             },
-            "interval": 1.0,
             "outputs": {
                 "substrates": {
                     "acetate": ["fields", "acetate", 0, 2],
@@ -194,9 +118,13 @@ step_config_template = {
                     "glucose": ["fields", "glucose", 0, 2],
                 }
             },
+            "interval": 1.0,
         },
         "dFBA[1,0]": {
             "_type": "process",
+            "_inputs": {"substrates": {"_type": "map", "_value": "positive_float"}},
+            "_outputs": {"substrates": {"_type": "map", "_value": "positive_float"}},
+            "address": f"local:!{D_FBA_PROCESS_ADDR}",
             "config": {
                 "biomass_identifier": "biomass",
                 "bounds": {"ATPM": {"lower": 1.0, "upper": 1.0}, "EX_o2_e": {"lower": -2.0, "upper": None}},
@@ -211,7 +139,6 @@ step_config_template = {
                     "glucose": ["fields", "glucose", 1, 0],
                 }
             },
-            "interval": 1.0,
             "outputs": {
                 "substrates": {
                     "acetate": ["fields", "acetate", 1, 0],
@@ -219,9 +146,13 @@ step_config_template = {
                     "glucose": ["fields", "glucose", 1, 0],
                 }
             },
+            "interval": 1.0,
         },
         "dFBA[1,1]": {
             "_type": "process",
+            "_inputs": {"substrates": {"_type": "map", "_value": "positive_float"}},
+            "_outputs": {"substrates": {"_type": "map", "_value": "positive_float"}},
+            "address": f"local:!{D_FBA_PROCESS_ADDR}",
             "config": {
                 "biomass_identifier": "biomass",
                 "bounds": {"ATPM": {"lower": 1.0, "upper": 1.0}, "EX_o2_e": {"lower": -2.0, "upper": None}},
@@ -236,7 +167,6 @@ step_config_template = {
                     "glucose": ["fields", "glucose", 1, 1],
                 }
             },
-            "interval": 1.0,
             "outputs": {
                 "substrates": {
                     "acetate": ["fields", "acetate", 1, 1],
@@ -244,9 +174,13 @@ step_config_template = {
                     "glucose": ["fields", "glucose", 1, 1],
                 }
             },
+            "interval": 1.0,
         },
         "dFBA[1,2]": {
             "_type": "process",
+            "_inputs": {"substrates": {"_type": "map", "_value": "positive_float"}},
+            "_outputs": {"substrates": {"_type": "map", "_value": "positive_float"}},
+            "address": f"local:!{D_FBA_PROCESS_ADDR}",
             "config": {
                 "biomass_identifier": "biomass",
                 "bounds": {"ATPM": {"lower": 1.0, "upper": 1.0}, "EX_o2_e": {"lower": -2.0, "upper": None}},
@@ -261,7 +195,6 @@ step_config_template = {
                     "glucose": ["fields", "glucose", 1, 2],
                 }
             },
-            "interval": 1.0,
             "outputs": {
                 "substrates": {
                     "acetate": ["fields", "acetate", 1, 2],
@@ -269,10 +202,12 @@ step_config_template = {
                     "glucose": ["fields", "glucose", 1, 2],
                 }
             },
+            "interval": 1.0,
         },
         "emitter": {
             "_type": "step",
-            "config": {"emit": {"fields": "any", "global_time": "any"}},
+            "address": "local:RAMEmitter",
+            "config": {"emit": {"fields": "node", "global_time": "node"}},
             "inputs": {"fields": ["fields"], "global_time": ["global_time"]},
         },
         "fields": {
@@ -294,8 +229,7 @@ step_config_template = {
 
 
 def test_spatio_flux_two_from_document() -> None:
-    core = pg.ProcessTypes()
-    core = pg.register_types(core)
+    core = pg.allocate_core()
     apply_spatio_types_and_processes_to_core(core)
 
     config: dict[str, Any] = deepcopy(step_config_template)
@@ -359,9 +293,9 @@ def test_spatio_flux_two_from_generator() -> None:
     step_emitter_schema = PBStepSchema(
         key="emitter",
         path=[],
-        address="local:ram-emitter",
-        config_schema=dict(emit=dict(_type="map", _value="any")),
-        input_schema=dict(_type="map", _value="any"),
+        address="local:RAMEmitter",
+        config_schema=dict(emit="schema"),
+        input_schema={},
         output_schema={},
         default_config_state={},
         default_input_state={},
@@ -371,8 +305,8 @@ def test_spatio_flux_two_from_generator() -> None:
     step_emitter_state = PBStepState(
         key="emitter",
         path=[],
-        address="local:ram-emitter",
-        config_state=dict(emit=dict(fields="any", global_time="any")),
+        address="local:RAMEmitter",
+        config_state=dict(emit=dict(fields="node", global_time="node")),
         input_state=dict(fields=["fields"], global_time=["global_time"]),
         output_state={},
         step_schema=step_emitter_schema,
@@ -449,8 +383,7 @@ def test_spatio_flux_two_from_generator() -> None:
     b["state"]["fields"] = {}
     assert a == b
 
-    core = pg.ProcessTypes()
-    core = pg.register_types(core)
+    core = pg.allocate_core()
     apply_spatio_types_and_processes_to_core(core)
 
     composite = pg.Composite(config=deepcopy(generated_config), core=core)

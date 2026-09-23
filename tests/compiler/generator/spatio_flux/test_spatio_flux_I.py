@@ -18,31 +18,13 @@ from tests.fixtures.test_registry.spatio_flux import register_types as apply_spa
 
 D_FBA_PROCESS_ADDR = "tests.fixtures.test_registry.spatio_flux.processes.DynamicFBA"
 step_config_template = {
-    "composition": {
-        "fields": {"acetate": "positive_float", "biomass": "positive_float", "glucose": "positive_float"},
-        "dFBA": {
-            "_type": "process",
-            "address": {"_type": "quote", "_default": f"local:!{D_FBA_PROCESS_ADDR}"},
-            "_config": {
-                "model_file": "string",
-                "kinetic_params": "map[tuple[float,float]]",
-                "substrate_update_reactions": "map[string]",
-                "biomass_identifier": "string",
-                "bounds": "map[bounds]",
-            },
-            "_inputs": {"substrates": {"_type": "map", "_value": "positive_float"}},
-            "_outputs": {"substrates": {"_type": "map", "_value": "positive_float"}},
-        },
-        "emitter": {
-            "_type": "step",
-            "address": {"_type": "quote", "_default": "local:ram-emitter"},
-            "_config": {"emit": {"_type": "map", "_value": "any"}},
-            "_inputs": {"_type": "map", "_value": "any"},
-        },
-    },
+    "schema": {"fields": {"acetate": "positive_float", "biomass": "positive_float", "glucose": "positive_float"}},
     "state": {
         "dFBA": {
             "_type": "process",
+            "_inputs": {"substrates": {"_type": "map", "_value": "positive_float"}},
+            "_outputs": {"substrates": {"_type": "map", "_value": "positive_float"}},
+            "address": f"local:!{D_FBA_PROCESS_ADDR}",
             "config": {
                 "biomass_identifier": "biomass",
                 "bounds": {"ATPM": {"lower": 1.0, "upper": 1.0}, "EX_o2_e": {"lower": -2.0, "upper": None}},
@@ -57,7 +39,6 @@ step_config_template = {
                     "glucose": ["fields", "glucose"],
                 }
             },
-            "interval": 1.0,
             "outputs": {
                 "substrates": {
                     "acetate": ["fields", "acetate"],
@@ -65,13 +46,13 @@ step_config_template = {
                     "glucose": ["fields", "glucose"],
                 }
             },
-            # "shared": None,
+            "interval": 1.0,
         },
         "emitter": {
             "_type": "step",
-            "config": {"emit": {"fields": "any", "global_time": "any"}},
+            "address": "local:RAMEmitter",
+            "config": {"emit": {"fields": "node", "global_time": "node"}},
             "inputs": {"fields": ["fields"], "global_time": ["global_time"]},
-            # "outputs": None,
         },
         "fields": {"acetate": 0.807561836566412, "biomass": 0.1, "glucose": 10},
     },
@@ -79,8 +60,7 @@ step_config_template = {
 
 
 def test_spatio_flux_one_from_document() -> None:
-    core = pg.ProcessTypes()
-    core = pg.register_types(core)
+    core = pg.allocate_core()
     apply_spatio_types_and_processes_to_core(core)
 
     config: dict[str, Any] = deepcopy(step_config_template)
@@ -118,9 +98,9 @@ def test_spatio_flux_one_from_generator() -> None:
     step_emitter_schema = PBStepSchema(
         key="emitter",
         path=[],
-        address="local:ram-emitter",
-        config_schema=dict(emit=dict(_type="map", _value="any")),
-        input_schema=dict(_type="map", _value="any"),
+        address="local:RAMEmitter",
+        config_schema=dict(emit="schema"),
+        input_schema={},
         output_schema={},
         default_config_state={},
         default_input_state={},
@@ -130,8 +110,8 @@ def test_spatio_flux_one_from_generator() -> None:
     step_emitter_state = PBStepState(
         key="emitter",
         path=[],
-        address="local:ram-emitter",
-        config_state=dict(emit=dict(fields="any", global_time="any")),
+        address="local:RAMEmitter",
+        config_state=dict(emit=dict(fields="node", global_time="node")),
         input_state=dict(fields=["fields"], global_time=["global_time"]),
         output_state={},
         step_schema=step_emitter_schema,
@@ -196,8 +176,7 @@ def test_spatio_flux_one_from_generator() -> None:
     generated_config: dict[str, Any] = assemble_pb(pb_model=pb_model)
     assert step_config_template == generated_config
 
-    core = pg.ProcessTypes()
-    core = pg.register_types(core)
+    core = pg.allocate_core()
     apply_spatio_types_and_processes_to_core(core)
 
     # construct and run the Step network (don't need to call composite.run(), executes in composite.initialize())

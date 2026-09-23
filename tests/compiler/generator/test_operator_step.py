@@ -7,43 +7,24 @@ from process_bigraph_lang.compiler.converter import assemble_pb
 from process_bigraph_lang.compiler.pb_model import PBStoreSchema, PBStoreState, PBStepSchema, PBStepState, PBModel
 
 op_step_expected_config = {
-    "composition": {
-        "A": "float",
-        "B": "float",
-        "C": "float",
-        "D": "float",
-        "step1": {
-            "_type": "step",
-            "address": {
-                "_type": "quote",
-                "_default": "local:!process_bigraph.tests.OperatorStep",
-            },
-            "_config": {"operator": "string"},
-            "_inputs": {"a": "float", "b": "float"},
-            "_outputs": {"c": "float"},
-        },
-        "step2": {
-            "_type": "step",
-            "address": {
-                "_type": "quote",
-                "_default": "local:!process_bigraph.tests.OperatorStep",
-            },
-            "_config": {"operator": "string"},
-            "_inputs": {"a": "float", "b": "float"},
-            "_outputs": {"c": "float"},
-        },
-    },
+    "schema": {"A": "float", "B": "float", "C": "float", "D": "float"},
     "state": {
         "A": 13,
         "B": 21,
         "step1": {
             "_type": "step",
+            "_inputs": {"a": "float", "b": "float"},
+            "_outputs": {"c": "float"},
+            "address": "local:!process_bigraph.processes.examples.OperatorStep",
             "config": {"operator": "+"},
             "inputs": {"a": ["A"], "b": ["B"]},
             "outputs": {"c": ["C"]},
         },
         "step2": {
             "_type": "step",
+            "_inputs": {"a": "float", "b": "float"},
+            "_outputs": {"c": "float"},
+            "address": "local:!process_bigraph.processes.examples.OperatorStep",
             "config": {"operator": "*"},
             "inputs": {"a": ["B"], "b": ["C"]},
             "outputs": {"c": ["D"]},
@@ -53,8 +34,7 @@ op_step_expected_config = {
 
 
 def test_op_step_initialization() -> None:
-    core = pg.ProcessTypes()
-    core = pg.register_types(core)
+    core = pg.allocate_core()
     composite = pg.Composite(config=deepcopy(op_step_expected_config), core=core)
     composite.run(0.0)
     assert composite.state["D"] == (13 + 21) * 21
@@ -72,7 +52,7 @@ def test_op_step_generator() -> None:
     step_schema_step1 = PBStepSchema(
         key="step1",
         path=[],
-        address="local:!process_bigraph.tests.OperatorStep",
+        address="local:!process_bigraph.processes.examples.OperatorStep",
         config_schema=dict(operator="string"),
         input_schema=dict(a="float", b="float"),
         output_schema=dict(c="float"),
@@ -84,7 +64,7 @@ def test_op_step_generator() -> None:
     step_state_step1 = PBStepState(
         key="step1",
         path=[],
-        address="local:!process_bigraph.tests.OperatorStep",
+        address="local:!process_bigraph.processes.examples.OperatorStep",
         config_state=dict(operator="+"),
         input_state=dict(a=["A"], b=["B"]),
         output_state=dict(c=["C"]),
@@ -93,7 +73,7 @@ def test_op_step_generator() -> None:
     step_schema_step2 = PBStepSchema(
         key="step2",
         path=[],
-        address="local:!process_bigraph.tests.OperatorStep",
+        address="local:!process_bigraph.processes.examples.OperatorStep",
         config_schema=dict(operator="string"),
         input_schema=dict(a="float", b="float"),
         output_schema=dict(c="float"),
@@ -105,7 +85,7 @@ def test_op_step_generator() -> None:
     step_state_step2 = PBStepState(
         key="step2",
         path=[],
-        address="local:!process_bigraph.tests.OperatorStep",
+        address="local:!process_bigraph.processes.examples.OperatorStep",
         config_state=dict(operator="*"),
         input_state=dict(a=["B"], b=["C"]),
         output_state=dict(c=["D"]),
@@ -124,8 +104,7 @@ def test_op_step_generator() -> None:
     generated_config: dict[str, Any] = assemble_pb(pb_model=pb_model)
     assert op_step_expected_config == generated_config
 
-    core = pg.ProcessTypes()
-    core = pg.register_types(core)
+    core = pg.allocate_core()
     composite = pg.Composite(config=deepcopy(generated_config), core=core)
     composite.run(0.0)
     assert composite.state["A"] == 13

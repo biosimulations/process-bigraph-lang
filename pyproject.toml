@@ -31,8 +31,8 @@ pre-commit = "^3.4.0"
 tox = "^4.11.1"
 types-antlr4-python3-runtime = "^4.13.0.20240519"
 tellurium = "^2.2.10"
-bigraph-schema = "^0.0.59"
-process-bigraph = "^0.0.38"
+bigraph-schema = "^1.6.0"
+process-bigraph = "^1.8.4"
 optlang = "^1.8.3"
 
 [tool.poetry.group.docs.dependencies]

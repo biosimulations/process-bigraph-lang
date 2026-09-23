@@ -27,47 +27,24 @@ diffusion_dt = 1e-1
 advection_coeffs = {"biomass": (0, -0.1)}
 
 DIFF_ADVEC_PROCESS_ADDR = "tests.fixtures.test_registry.spatio_flux.processes.DiffusionAdvection"
-step_config_template = {
-    "composition": {
+step_config_template: dict[str, Any] = {
+    "schema": {
         "fields": {
-            "acetate": {"_type": "array", "_shape": n_bins, "_data": "positive_float"},
-            "biomass": {"_type": "array", "_shape": n_bins, "_data": "positive_float"},
-            "glucose": {"_type": "array", "_shape": n_bins, "_data": "positive_float"},
-        },
-        "diffusion_advection": {
-            "_type": "process",
-            "address": {"_type": "quote", "_default": f"local:!{DIFF_ADVEC_PROCESS_ADDR}"},
-            "_config": {
-                "n_bins": "tuple[integer,integer]",
-                "bounds": "tuple[float,float]",
-                "default_diffusion_rate": {"_type": "float", "_default": 1e-1},
-                "default_diffusion_dt": {"_type": "float", "_default": 1e-1},
-                "diffusion_coeffs": "map[float]",
-                "advection_coeffs": "map[tuple[float,float]]",
-            },
-            "_inputs": {
-                "fields": {
-                    "_type": "map",
-                    "_value": {"_type": "array", "_shape": n_bins, "_data": "positive_float"},
-                }
-            },
-            "_outputs": {
-                "fields": {
-                    "_type": "map",
-                    "_value": {"_type": "array", "_shape": n_bins, "_data": "positive_float"},
-                }
-            },
-        },
-        "emitter": {
-            "_type": "step",
-            "address": {"_type": "quote", "_default": "local:ram-emitter"},
-            "_config": {"emit": {"_type": "map", "_value": "any"}},
-            "_inputs": {"_type": "map", "_value": "any"},
-        },
+            "acetate": {"_type": "positive_array", "_shape": n_bins, "_data": "float"},
+            "biomass": {"_type": "positive_array", "_shape": n_bins, "_data": "float"},
+            "glucose": {"_type": "positive_array", "_shape": n_bins, "_data": "float"},
+        }
     },
     "state": {
         "diffusion_advection": {
             "_type": "process",
+            "_inputs": {
+                "fields": {"_type": "map", "_value": {"_type": "positive_array", "_shape": n_bins, "_data": "float"}}
+            },
+            "_outputs": {
+                "fields": {"_type": "map", "_value": {"_type": "positive_array", "_shape": n_bins, "_data": "float"}}
+            },
+            "address": f"local:!{DIFF_ADVEC_PROCESS_ADDR}",
             "config": {
                 "n_bins": n_bins_as_str,
                 "bounds": bounds,
@@ -76,15 +53,14 @@ step_config_template = {
                 "advection_coeffs": advection_coeffs,
             },
             "inputs": {"fields": ["fields"]},
-            "interval": 1.0,
             "outputs": {"fields": ["fields"]},
-            # "shared": None,
+            "interval": 1.0,
         },
         "emitter": {
             "_type": "step",
-            "config": {"emit": {"fields": "any", "global_time": "any"}},
+            "address": "local:RAMEmitter",
+            "config": {"emit": {"fields": "node", "global_time": "node"}},
             "inputs": {"fields": ["fields"], "global_time": ["global_time"]},
-            # "outputs": None,
         },
         "fields": {
             "acetate": np.array(
@@ -120,8 +96,7 @@ step_config_template = {
 
 
 def test_from_document() -> None:
-    core = pg.ProcessTypes()
-    core = pg.register_types(core)
+    core = pg.allocate_core()
     spatio_flux_register_types(core)
 
     config: dict[str, Any] = deepcopy(step_config_template)
@@ -151,7 +126,7 @@ def test_from_generator() -> None:
         key="acetate",
         path=["fields"],
         default_value=None,
-        data_type=dict(_type="array", _shape=n_bins, _data="positive_float"),
+        data_type=dict(_type="positive_array", _shape=n_bins, _data="float"),
     )
     store_state_fields_acetate = PBStoreState(
         key="acetate",
@@ -169,7 +144,7 @@ def test_from_generator() -> None:
         key="biomass",
         path=["fields"],
         default_value=None,
-        data_type=dict(_type="array", _shape=n_bins, _data="positive_float"),
+        data_type=dict(_type="positive_array", _shape=n_bins, _data="float"),
     )
     store_state_fields_biomass = PBStoreState(
         key="biomass",
@@ -187,7 +162,7 @@ def test_from_generator() -> None:
         key="glucose",
         path=["fields"],
         default_value=None,
-        data_type=dict(_type="array", _shape=n_bins, _data="positive_float"),
+        data_type=dict(_type="positive_array", _shape=n_bins, _data="float"),
     )
     store_state_fields_glucose = PBStoreState(
         key="glucose",
@@ -213,8 +188,8 @@ def test_from_generator() -> None:
             diffusion_coeffs="map[float]",
             advection_coeffs="map[tuple[float,float]]",
         ),
-        input_schema=dict(fields=dict(_type="map", _value=dict(_type="array", _shape=n_bins, _data="positive_float"))),
-        output_schema=dict(fields=dict(_type="map", _value=dict(_type="array", _shape=n_bins, _data="positive_float"))),
+        input_schema=dict(fields=dict(_type="map", _value=dict(_type="positive_array", _shape=n_bins, _data="float"))),
+        output_schema=dict(fields=dict(_type="map", _value=dict(_type="positive_array", _shape=n_bins, _data="float"))),
         default_config_state={},
         default_input_state={},
         default_output_state={},
@@ -240,9 +215,9 @@ def test_from_generator() -> None:
     step_emitter_schema = PBStepSchema(
         key="emitter",
         path=[],
-        address="local:ram-emitter",
-        config_schema=dict(emit=dict(_type="map", _value="any")),
-        input_schema=dict(_type="map", _value="any"),
+        address="local:RAMEmitter",
+        config_schema=dict(emit="schema"),
+        input_schema={},
         output_schema={},
         default_config_state={},
         default_input_state={},
@@ -252,8 +227,8 @@ def test_from_generator() -> None:
     step_emitter_state = PBStepState(
         key="emitter",
         path=[],
-        address="local:ram-emitter",
-        config_state=dict(emit=dict(fields="any", global_time="any")),
+        address="local:RAMEmitter",
+        config_state=dict(emit=dict(fields="node", global_time="node")),
         input_state=dict(fields=["fields"], global_time=["global_time"]),
         output_state={},
         step_schema=step_emitter_schema,
@@ -274,8 +249,7 @@ def test_from_generator() -> None:
     b["state"]["fields"] = {}
     assert a == b
 
-    core = pg.ProcessTypes()
-    core = pg.register_types(core)
+    core = pg.allocate_core()
     spatio_flux_register_types(core)
 
     # construct and run the Step network (don't need to call composite.run(), executes in composite.initialize())

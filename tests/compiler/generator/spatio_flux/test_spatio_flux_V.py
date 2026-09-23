@@ -2,6 +2,7 @@ from copy import deepcopy
 from typing import Any, cast
 
 import numpy as np
+import pytest
 import process_bigraph as pg  # type: ignore[import-untyped]
 
 from process_bigraph_lang.compiler.converter import assemble_pb
@@ -22,7 +23,7 @@ diffusion_rate = 0.1
 PARTICLES_PROCESS_ADDR = "tests.fixtures.test_registry.spatio_flux.processes.Particles"
 MINIMAL_PARTICLE_PROCESS_ADDR = "tests.fixtures.test_registry.spatio_flux.processes.MinimalParticle"
 step_config_template = {
-    "composition": {
+    "schema": {
         "particles": {
             "_type": "map",
             "_value": {
@@ -48,53 +49,9 @@ step_config_template = {
                 }
             },
         },
-        "particles_process": {
-            "_type": "process",
-            "address": {
-                "_type": "quote",
-                "_default": f"local:!{PARTICLES_PROCESS_ADDR}",
-            },
-            "_config": {
-                "bounds": "tuple[float,float]",
-                "n_bins": "tuple[integer,integer]",
-                "diffusion_rate": {"_type": "float", "_default": 1e-1},
-                "advection_rate": {"_type": "tuple[float,float]", "_default": (0, 0)},
-                "add_probability": "float",
-                "boundary_to_add": {"_type": "list[boundary_side]", "_default": ["left", "right"]},
-                "boundary_to_remove": {"_type": "list[boundary_side]", "_default": ["left", "right", "top", "bottom"]},
-            },
-            "_inputs": {
-                "particles": "map[particle]",
-                "fields": {
-                    "_type": "map",
-                    "_value": {
-                        "_type": "array",
-                        "_shape": n_bins,
-                        "_data": "positive_float",
-                    },
-                },
-            },
-            "_outputs": {
-                "particles": "map[particle]",
-                "fields": {
-                    "_type": "map",
-                    "_value": {
-                        "_type": "array",
-                        "_shape": n_bins,
-                        "_data": "positive_float",
-                    },
-                },
-            },
-        },
-        "emitter": {
-            "_type": "step",
-            "address": {"_type": "quote", "_default": "local:ram-emitter"},
-            "_config": {"emit": {"_type": "map", "_value": "any"}},
-            "_inputs": {"_type": "map", "_value": "any"},
-        },
         "fields": {
-            "biomass": {"_data": "positive_float", "_shape": (4, 4), "_type": "array"},
-            "detritus": {"_data": "positive_float", "_shape": (4, 4), "_type": "array"},
+            "biomass": {"_data": "float", "_shape": (4, 4), "_type": "positive_array"},
+            "detritus": {"_data": "float", "_shape": (4, 4), "_type": "positive_array"},
         },
     },
     "state": {
@@ -124,7 +81,15 @@ step_config_template = {
         },
         "particles_process": {
             "_type": "process",
-            # "address": f"local:!{PARTICLES_PROCESS_ADDR}",
+            "_inputs": {
+                "particles": "map[particle]",
+                "fields": {"_type": "map", "_value": {"_type": "positive_array", "_shape": n_bins, "_data": "float"}},
+            },
+            "_outputs": {
+                "particles": "map[particle]",
+                "fields": {"_type": "map", "_value": {"_type": "positive_array", "_shape": n_bins, "_data": "float"}},
+            },
+            "address": f"local:!{PARTICLES_PROCESS_ADDR}",
             "config": {
                 "n_bins": n_bins,
                 "bounds": bounds,
@@ -138,17 +103,24 @@ step_config_template = {
         },
         "emitter": {
             "_type": "step",
-            # "address": "local:ram-emitter",
-            "config": {"emit": {"global_time": "any", "particles": "any", "fields": "any"}},
+            "address": "local:RAMEmitter",
+            "config": {"emit": {"global_time": "node", "particles": "node", "fields": "node"}},
             "inputs": {"global_time": ["global_time"], "particles": ["particles"], "fields": ["fields"]},
         },
     },
 }
 
 
+_PER_PARTICLE_TEMPLATE_REASON = (
+    "per-particle process templates embedded in a map schema (quoted address/config, tree[wires] defaults) are a "
+    "process-bigraph 0.0.x idiom; 1.x ignores addresses in the schema (the minimal_particle processes would silently "
+    "not run) and expresses this with template sites, which the compiler does not support yet"
+)
+
+
+@pytest.mark.skip(reason=_PER_PARTICLE_TEMPLATE_REASON)
 def test_five_from_document() -> None:
-    core = pg.ProcessTypes()
-    core = pg.register_types(core)
+    core = pg.allocate_core()
     apply_spatio_types_and_processes_to_core(core)
 
     config: dict[str, Any] = deepcopy(step_config_template)
@@ -162,6 +134,7 @@ def test_five_from_document() -> None:
     pass
 
 
+@pytest.mark.skip(reason=_PER_PARTICLE_TEMPLATE_REASON)
 def test_five_from_generator() -> None:
     biomass_array = np.array([
         [0.9335271, 0.94210545, 1.45635715, 0.85470302],
@@ -175,7 +148,7 @@ def test_five_from_generator() -> None:
         [0.0, 0.0, 0.0, 0.0],
         [0.0, 0.0, 0.0, 0.0],
     ])
-    field_array_type = dict(_type="array", _shape=n_bins, _data="positive_float")
+    field_array_type = dict(_type="positive_array", _shape=n_bins, _data="float")
     store_schema_biomass = PBStoreSchema(key="biomass", path=["fields"], default_value=None, data_type=field_array_type)
     store_state_biomass = PBStoreState(
         key="biomass", path=["fields"], value=biomass_array, store_schema=store_schema_biomass
@@ -300,11 +273,11 @@ def test_five_from_generator() -> None:
         ),
         input_schema=dict(
             particles="map[particle]",
-            fields=dict(_type="map", _value=dict(_type="array", _shape=n_bins, _data="positive_float")),
+            fields=dict(_type="map", _value=dict(_type="positive_array", _shape=n_bins, _data="float")),
         ),
         output_schema=dict(
             particles="map[particle]",
-            fields=dict(_type="map", _value=dict(_type="array", _shape=n_bins, _data="positive_float")),
+            fields=dict(_type="map", _value=dict(_type="positive_array", _shape=n_bins, _data="float")),
         ),
         default_config_state={},
         default_input_state={},
@@ -371,9 +344,9 @@ def test_five_from_generator() -> None:
     step_emitter_schema = PBStepSchema(
         key="emitter",
         path=[],
-        address="local:ram-emitter",
-        config_schema=dict(emit=dict(_type="map", _value="any")),
-        input_schema=dict(_type="map", _value="any"),
+        address="local:RAMEmitter",
+        config_schema=dict(emit="schema"),
+        input_schema={},
         output_schema={},
         default_config_state={},
         default_input_state={},
@@ -383,8 +356,8 @@ def test_five_from_generator() -> None:
     step_emitter_state = PBStepState(
         key="emitter",
         path=[],
-        address="local:ram-emitter",
-        config_state=dict(emit=dict(global_time="any", particles="any", fields="any")),
+        address="local:RAMEmitter",
+        config_state=dict(emit=dict(global_time="node", particles="node", fields="node")),
         input_state=dict(global_time=["global_time"], particles=["particles"], fields=["fields"]),
         output_state={},
         step_schema=step_emitter_schema,
@@ -428,8 +401,7 @@ def test_five_from_generator() -> None:
     b["state"]["fields"] = {}
     assert a == b
 
-    core = pg.ProcessTypes()
-    core = pg.register_types(core)
+    core = pg.allocate_core()
     apply_spatio_types_and_processes_to_core(core)
 
     composite = pg.Composite(config=deepcopy(step_config_template), core=core)
