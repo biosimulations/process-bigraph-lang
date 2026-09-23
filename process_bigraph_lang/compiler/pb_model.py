@@ -34,7 +34,7 @@ class PBStoreState(PBEntity):
 @dataclass
 class PBEdgeSchema(PBEntity):
     collection_info: PBCollectionType | None
-    address: str
+    address: str | None  # None: an interface, whose implementation is left open (an address site)
     config_schema: dict[str, Any]
     input_schema: dict[str, Any]
     output_schema: dict[str, Any]
@@ -45,7 +45,7 @@ class PBEdgeSchema(PBEntity):
 
 @dataclass
 class PBEdgeState(PBEntity):
-    address: str
+    address: str | None
     config_state: dict[str, Any]
     input_state: dict[str, Any]
     output_state: dict[str, Any]

@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from typing import Any
 
+from process_bigraph_lang.compiler.converter import site
 from process_bigraph_lang.compiler.pb_model import (
     PBModel,
     PBProcessSchema,
@@ -26,6 +27,7 @@ from process_bigraph_lang.dsl.ast_model import (
     PrimitiveType,
     RemoteCallableType,
     SimpleTypeRef,
+    SiteLiteral,
     StoreDecl,
     StringLiteral,
     StructLiteral,
@@ -50,6 +52,9 @@ def compile_ast(ast_model: ASTModel) -> PBModel:
       stores are split into one store per field, nested under the struct's name
     - a value of a remote type (`Grow(...)`) becomes a step or process at that path
     - `connect` bindings wire edge ports to store paths, relative to the edge's container
+    - an open value (`?`) becomes a template site, sorted by its store's or config parameter's type,
+      and an instance of an interface (a remote without `at`) gets an open address; the result is a
+      template to fill (process_bigraph.templates) before it runs
     """
     return _Compiler(ast_model).compile()
 
@@ -174,7 +179,19 @@ class _Compiler:
         self, key: str, type_ref: TypeRef, value: Value | _Const | None, path: list[str], default: Value | None = None
     ) -> None:
         type_def = _type_def(type_ref)
-        if isinstance(type_def, RemoteCallableType):
+        if isinstance(value, SiteLiteral) and not isinstance(type_def, RemoteCallableType):
+            # an open store (a struct-typed one stays whole: one site sorted by the struct type)
+            store_schema = PBStoreSchema(
+                key=key,
+                path=path,
+                data_type=type_schema(type_ref),
+                default_value=self._evaluate(default, type_ref) if default is not None else None,
+            )
+            self.pb_model.store_schemas.append(store_schema)
+            self.pb_model.store_states.append(
+                PBStoreState(key=key, path=path, store_schema=store_schema, value=self._site(value, type_ref))
+            )
+        elif isinstance(type_def, RemoteCallableType):
             if not isinstance(value, CallableLiteral):
                 raise ValueError(f"'{'.'.join([*path, key])}' must be initialized with {type_def.name}(...)")
             self._declare_edge(key, type_def, value, path)
@@ -210,7 +227,14 @@ class _Compiler:
             return {port.name: type_schema(port.type) for port in ports.elements} if ports else {}
 
         config_types = {param.name: param.type for param in remote.config.elements} if remote.config else {}
-        config_state = {arg.name: self._evaluate(arg.value, config_types.get(arg.name)) for arg in literal.configArgs}
+        config_state = {
+            arg.name: (
+                self._site(arg.value, config_types[arg.name])
+                if isinstance(arg.value, SiteLiteral)
+                else self._evaluate(arg.value, config_types.get(arg.name))
+            )
+            for arg in literal.configArgs
+        }
         edge_fields: dict[str, Any] = dict(
             key=key,
             path=path,
@@ -262,6 +286,10 @@ class _Compiler:
         # a leaf store, or a struct-typed store containing leaf stores
         return any(schema.full_path[: len(path)] == path for schema in self.pb_model.store_schemas)
 
+    def _site(self, value: SiteLiteral, type_ref: TypeRef) -> dict[str, Any]:
+        default = self._evaluate(value.default, type_ref) if value.default is not None else None
+        return site(type_schema(type_ref), default)
+
     def _evaluate(self, value: Value, type_ref: TypeRef | None = None) -> Any:
         """Evaluate a constant value; `type_ref` (if known) orders tuples and widens ints to floats."""
         type_ref = _unalias(type_ref) if type_ref is not None else None
@@ -292,6 +320,8 @@ class _Compiler:
             return tuple(self._evaluate(field_value) for field_value in fields.values())
         if isinstance(value, MemberCall):
             return self._evaluate_reference(value)
+        if isinstance(value, SiteLiteral):
+            raise ValueError("an open value (?) has no value to use as a constant")
         raise ValueError(f"'{value.callable_type.ref_text}(...)' cannot be used as a constant value")
 
     def _evaluate_reference(self, member_call: MemberCall) -> Any:

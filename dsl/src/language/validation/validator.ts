@@ -20,6 +20,8 @@ export function registerValidationChecks(
       RemoteCallableType: type_validator.validateRemoteCallableType,
       StoreDecl: type_validator.checkStoreDecl,
       InitDecl: type_validator.checkInitDecl,
+      SiteLiteral: type_validator.checkSiteLiteral,
+      MemberCall: type_validator.checkOpenReference,
     },
     type_validator,
   );

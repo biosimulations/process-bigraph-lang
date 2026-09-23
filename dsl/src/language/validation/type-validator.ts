@@ -1,15 +1,30 @@
 // src/validation/TypeValidator.ts
 
-import { ValidationAcceptor } from "langium";
+import { AstNode, AstUtils, ValidationAcceptor } from "langium";
 import {
   Binding,
   CallableLiteral,
   ConnectStatement,
   Field,
   InitDecl,
+  isBinding,
+  isConfigArg,
+  isConnectStatement,
+  isMemberCall,
+  isModel,
+  isStoreDecl,
+  MemberCall,
+  Value,
+  isField,
+  isInitDecl,
+  isSiteLiteral,
+  isStructFieldValue,
+  isStructLiteral,
+  isVarDef,
   isTupleType,
   ParamDecl,
   RemoteCallableType,
+  SiteLiteral,
   StoreDecl,
   TypeRef,
   VarDef,
@@ -24,6 +39,92 @@ import {
 import { inferType, memberCallText } from "./scope-provider.js";
 
 export class TypeValidator {
+  /**
+   * An open value (`?`) is a template site, which must be a whole node of the document: a
+   * store (a `let`/`init` value, or a field of a struct literal in such a position) or a
+   * config argument. Inside an array, map or tuple it would be part of a single value.
+   */
+  checkSiteLiteral(site: SiteLiteral, accept: ValidationAcceptor): void {
+    let node: AstNode = site;
+    for (;;) {
+      const container = node.$container;
+      if (
+        isStructFieldValue(container) &&
+        isStructLiteral(container.$container)
+      ) {
+        node = container.$container;
+        continue;
+      }
+      if (isVarDef(container) && container.lhs) {
+        accept("error", `A destructuring 'let' cannot be open`, {
+          node: site,
+        });
+      } else if (isField(container)) {
+        accept("error", `A struct field default cannot be open`, {
+          node: site,
+        });
+      } else if (isSiteLiteral(container)) {
+        accept("error", `The default of an open value cannot itself be open`, {
+          node: site,
+        });
+      } else if (
+        !isVarDef(container) &&
+        !isInitDecl(container) &&
+        !isConfigArg(container)
+      ) {
+        accept(
+          "error",
+          `An open value (?) must be a whole store or config argument, not part of an array, map or tuple`,
+          { node: site },
+        );
+      }
+      return;
+    }
+  }
+
+  /**
+   * A reference used as a value is replaced by the referenced value when compiled, so it
+   * cannot refer to an open value (or a struct field of one). Wires in `connect` may.
+   */
+  checkOpenReference(memberCall: MemberCall, accept: ValidationAcceptor): void {
+    const container = memberCall.$container;
+    if (
+      isMemberCall(container) ||
+      isBinding(container) ||
+      isConnectStatement(container)
+    ) {
+      return;
+    }
+    const chain: MemberCall[] = [];
+    for (let m: MemberCall | undefined = memberCall; m; m = m.previous) {
+      chain.unshift(m);
+    }
+    const root = chain[0].element?.ref;
+    let value: Value | undefined;
+    if (isVarDef(root)) {
+      value = root.value;
+    } else if (isStoreDecl(root)) {
+      const model = AstUtils.getContainerOfType(root, isModel);
+      value = model?.elements
+        .filter(isInitDecl)
+        .find((init) => init.store?.ref === root)?.value;
+    }
+    for (const segment of chain.slice(1)) {
+      if (!isStructLiteral(value)) break;
+      value = value.fields.find((f) => f.name === segment.element?.$refText)
+        ?.value;
+    }
+    if (isSiteLiteral(value)) {
+      accept(
+        "error",
+        `'${memberCallText(
+          memberCall,
+        )}' is open (?) and has no value to use here`,
+        { node: memberCall },
+      );
+    }
+  }
+
   checkVarDef(varDef: VarDef, accept: ValidationAcceptor): void {
     if (varDef.type && varDef.value) {
       try {

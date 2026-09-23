@@ -18,7 +18,12 @@ def assemble_pb(pb_model: PBModel) -> dict[str, Any]:
     A map of edges also gets a `{"_type": "map", "_value": <edge type>}` entry in `schema`.
     """
     doc: dict[str, Any] = dict(schema={}, state={})
+    # An open store (a site) is typed by its site's _sort alone: process-bigraph (1.8.4) realizes a
+    # store that also has a schema entry from that schema and silently ignores the unfilled site.
+    open_paths = {tuple(s.full_path) for s in pb_model.store_states if _is_site(s.value)}
     for store_schema in pb_model.store_schemas:
+        if tuple(store_schema.full_path) in open_paths:
+            continue
         if store_schema.collection_type == PBCollectionType(coll_type="map"):
             if store_schema.data_type:
                 set_value_at_path(doc["schema"], store_schema.path + ["_type"], value="map")
@@ -65,6 +70,27 @@ def edge_address(address: str) -> str:
     return address if ":" in address else f"local:!{address}"
 
 
+def site(sort: Any, default: Any = None) -> dict[str, Any]:
+    """A template site: an open value of type `sort`, required unless it has a `default`."""
+    node: dict[str, Any] = {"_type": "site", "_sort": sort}
+    if default is not None:
+        node["_default"] = default
+    return node
+
+
+def _is_site(value: Any) -> bool:
+    return isinstance(value, dict) and value.get("_type") == "site"
+
+
+def _face(edge_schema: PBEdgeSchema) -> dict[str, Any]:
+    face: dict[str, Any] = {"_type": "link"}
+    if edge_schema.input_schema:
+        face["_inputs"] = edge_schema.input_schema
+    if edge_schema.output_schema:
+        face["_outputs"] = edge_schema.output_schema
+    return face
+
+
 def _edge_type(edge_schema: PBEdgeSchema) -> dict[str, Any]:
     edge_type: dict[str, Any] = {"_type": _edge_kind(edge_schema)}
     if edge_schema.input_schema:
@@ -79,9 +105,11 @@ def _edge_kind(edge_schema: PBEdgeSchema) -> str:
 
 
 def _edge_node(edge_schema: PBEdgeSchema, edge_state: PBEdgeState) -> dict[str, Any]:
+    address = edge_state.address or edge_schema.address
     node: dict[str, Any] = {
         **_edge_type(edge_schema),
-        "address": edge_address(edge_state.address or edge_schema.address),
+        # an interface (no address) leaves its implementation open: an address site sorted by its face
+        "address": edge_address(address) if address is not None else site(_face(edge_schema)),
     }
     config = {**edge_schema.default_config_state, **edge_state.config_state}
     if config:

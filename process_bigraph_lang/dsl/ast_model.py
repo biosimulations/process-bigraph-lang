@@ -141,6 +141,13 @@ class ConfigArg(BaseModel):
     value: "Value"
 
 
+class SiteLiteral(BaseModel):
+    """An open value (a template site): `?` is required, `?(v)` is optional with default v."""
+
+    obj_type: Literal["SiteLiteral"] = "SiteLiteral"
+    default: Union["Value", None] = None
+
+
 class CallableLiteral(BaseModel):
     """An instance of a remote step or process, e.g. `Grow(rate = 0.5)`."""
 
@@ -161,6 +168,7 @@ Value = Annotated[
         MapLiteral,
         TupleLiteral,
         CallableLiteral,
+        SiteLiteral,
     ],
     Field(discriminator="obj_type"),
 ]
@@ -198,12 +206,15 @@ class TypeAlias(BaseModel):
 
 
 class RemoteCallableType(BaseModel):
-    """A remote step or process: `remote step|process Name at "python.path" { config/inputs/outputs }`."""
+    """
+    A remote step or process: `remote step|process Name at "python.path" { config/inputs/outputs }`.
+    Without `at` (address None) it is an interface: instances get an open address (an address site).
+    """
 
     obj_type: Literal["RemoteCallableType"] = "RemoteCallableType"
     kind: Literal["step", "process"]
     name: str
-    address: str
+    address: str | None = None
     config: TupleType | None = None
     inputs: TupleType | None = None
     outputs: TupleType | None = None

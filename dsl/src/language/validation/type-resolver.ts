@@ -21,6 +21,7 @@ import {
   isBoolLiteral,
   isTupleLiteral,
   isCallableLiteral,
+  isSiteLiteral,
   RemoteCallableType,
 } from "../generated/ast.js";
 import { ValidationAcceptor } from "langium";
@@ -100,6 +101,24 @@ export function validateValueAgainstType(
   expected: ResolvedType,
   accept: ValidationAcceptor,
 ): boolean {
+  // Handle open values (template sites): `?` fits any type except a remote instance, whose
+  // implementation is left open by declaring the remote without `at` instead.
+  if (isSiteLiteral(value)) {
+    let target = expected;
+    while (target.kind === "alias") target = target.target;
+    if (target.kind === "remoteCallable") {
+      accept(
+        "error",
+        `An instance of remote '${target.type.name}' cannot be open; write ${target.type.name}(…) and declare '${target.type.name}' without 'at' to leave its implementation open`,
+        { node: value },
+      );
+      return false;
+    }
+    return value.default
+      ? validateValueAgainstType(value.default, expected, accept)
+      : true;
+  }
+
   // Handle references (a, a.b.c): check the declared type of the referenced element.
   // Unresolved references are already reported by the linker.
   if (isMemberCall(value)) {

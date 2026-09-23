@@ -7,8 +7,10 @@ ModelElement:
     TypeDef | VarDef | Unit | StoreDecl | InitDecl | ConnectStatement;
 
 
+// Without `at`, a remote type is an interface: its instances are address sites whose
+// implementation is filled in later (see SiteLiteral).
 RemoteCallableType:
-    'remote' kind=('step' | 'process') name=ID 'at' address=STRING '{'
+    'remote' kind=('step' | 'process') name=ID ('at' address=STRING)? '{'
         ('config' config=TupleType)?
         ('inputs' inputs=TupleType)?
         ('outputs' outputs=TupleType)?
@@ -89,7 +91,13 @@ Value:
     ArrayLiteral |
     MapLiteral |
     TupleLiteral |
-    CallableLiteral;
+    CallableLiteral |
+    SiteLiteral;
+
+// An open value (a template site) to be filled before the composite runs: `?` is required,
+// `?(v)` is optional with default v.
+SiteLiteral:
+    {infer SiteLiteral} '?' ('(' default=Value ')')?;
 
 CallableLiteral:
     callable_type=[RemoteCallableType:ID] '(' (configArgs+=ConfigArg (',' configArgs+=ConfigArg)* ','?)? ')';

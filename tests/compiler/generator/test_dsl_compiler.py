@@ -167,3 +167,84 @@ def test_compiled_document_runs_in_process_bigraph() -> None:
     composite.run(10.0)
     assert np.allclose(composite.state["total"], (2.07 + 3.5) * 10)
     assert composite.state["operands"] == {"a": 2.07, "b": 3.5}
+
+
+def test_open_values_compile_to_template_sites() -> None:
+    doc = compile_pblang("""
+        struct Point { x: float; y: float = 2.0; }
+        remote process Scale { config (rate: float) inputs (x: float) outputs (y: float) }
+        let rate: float = ?(0.5);
+        let p: Point = { x = ?, y = ?(3.0) };
+        let whole: Point = ?;
+        let s: Scale = Scale(rate = ?);
+        connect s inputs (x = p.x) outputs (y = p.y);
+    """)
+    # open stores are typed by their site's _sort only (a schema entry would hide the open site)
+    assert doc["schema"] == {}
+    face = {"_type": "link", "_inputs": {"x": "float"}, "_outputs": {"y": "float"}}
+    assert doc["state"] == {
+        "rate": {"_type": "site", "_sort": "float", "_default": 0.5},
+        "p": {"x": {"_type": "site", "_sort": "float"}, "y": {"_type": "site", "_sort": "float", "_default": 3.0}},
+        "whole": {"_type": "site", "_sort": {"x": "float", "y": "float"}},
+        "s": {
+            "_type": "process",
+            "_inputs": {"x": "float"},
+            "_outputs": {"y": "float"},
+            "address": {"_type": "site", "_sort": face},
+            "config": {"rate": {"_type": "site", "_sort": "float"}},
+            "inputs": {"x": ["p", "x"]},
+            "outputs": {"y": ["p", "y"]},
+        },
+    }
+
+
+TEMPLATE_PBLANG = """
+    remote process Adder {
+        inputs (left_hand_addend: float, right_hand_addend: float)
+        outputs (result: float)
+    }
+    struct Operands { a: float; b: float; }
+    let operands: Operands = { a = ?, b = ?(3.5) };
+    let total: float = 0.0;
+    let add: Adder = Adder();
+    connect add inputs (left_hand_addend = operands.a, right_hand_addend = operands.b) outputs (result = total);
+"""
+
+
+def _template_core() -> Any:
+    from tests.fixtures.test_registry.toy_library import AddFloatsProcess
+
+    core = pg.allocate_core()
+    # face checking resolves a filler's ports through the link registry, so fill by registered name
+    core.register_link("AddFloatsProcess", AddFloatsProcess)
+    return core
+
+
+def test_filled_template_runs_in_process_bigraph() -> None:
+    from process_bigraph.templates import open_sites, template_document  # type: ignore[import-untyped]
+
+    doc = compile_pblang(TEMPLATE_PBLANG)
+    core = _template_core()
+    template = core.access(doc["state"])
+    assert sorted(open_sites(template)) == [("add", "address"), ("operands", "a"), ("operands", "b")]
+
+    state = template_document(core, template, {"operands/a": 2.07, "add/address": "local:AddFloatsProcess"})
+    composite = pg.Composite({"schema": doc["schema"], "state": state}, core=_template_core())
+    composite.run(10.0)
+    assert composite.state["operands"] == {"a": 2.07, "b": 3.5}
+    assert np.allclose(composite.state["total"], (2.07 + 3.5) * 10)
+
+
+def test_unfilled_template_does_not_run() -> None:
+    from process_bigraph.templates import template_document
+
+    doc = compile_pblang(TEMPLATE_PBLANG)
+    core = _template_core()
+    with pytest.raises(ValueError, match="required site\\(s\\) left unfilled: 'add/address', 'operands/a'"):
+        template_document(core, core.access(doc["state"]), {})
+    with pytest.raises(ValueError, match="not ground"):
+        pg.Composite(compile_pblang("let a: float = ?;"), core=_template_core())
+    # process-bigraph 1.8.4 realizes edges before its groundness check, so an open *address*
+    # fails inside realize_link rather than with the "not ground" message
+    with pytest.raises(Exception):  # noqa: B017
+        pg.Composite(doc, core=_template_core())
