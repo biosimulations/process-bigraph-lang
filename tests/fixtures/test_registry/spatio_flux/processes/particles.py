@@ -10,8 +10,14 @@ import base64
 from typing import Any, Literal, cast
 
 import numpy as np
-from process_bigraph import Process, default, ProcessTypes  # type: ignore[import-untyped]
+from process_bigraph import Process  # type: ignore[import-untyped]
+
+
 from tests.fixtures.test_registry.spatio_flux.processes.dfba import dfba_config
+
+
+def default(type_: str, value: Any) -> dict[str, Any]:
+    return {"_type": type_, "_default": value}
 
 
 class Particles(Process):
@@ -38,7 +44,7 @@ class Particles(Process):
             "particles": "map[particle]",
             "fields": {
                 "_type": "map",
-                "_value": {"_type": "array", "_shape": self.config["n_bins"], "_data": "positive_float"},
+                "_value": {"_type": "positive_array", "_shape": self.config["n_bins"], "_data": "float"},
             },
         }
 
@@ -47,7 +53,7 @@ class Particles(Process):
             "particles": "map[particle]",
             "fields": {
                 "_type": "map",
-                "_value": {"_type": "array", "_shape": self.config["n_bins"], "_data": "positive_float"},
+                "_value": {"_type": "positive_array", "_shape": self.config["n_bins"], "_data": "float"},
             },
         }
 
@@ -212,7 +218,7 @@ class Particles(Process):
         return local_values
 
     @staticmethod
-    def generate_single_particle_state(config: ProcessTypes = None) -> dict[str, Any]:
+    def generate_single_particle_state(config: Any = None) -> dict[str, Any]:
         """
         Initialize a single particle with random properties.
         """
@@ -393,7 +399,7 @@ def get_particles_state(
     add_probability: float = 0.4,
     field_interactions: None = None,
     initial_min_max: dict[str, tuple[float, float]] | None = None,
-    core: ProcessTypes | None = None,
+    core: Any | None = None,
 ) -> dict[str, Any]:
     if boundary_to_add is None:
         boundary_to_add = ["top"]
@@ -429,7 +435,7 @@ def get_particles_state(
     }
 
 
-def get_minimal_particle_composition(core: ProcessTypes, config: dict[str, Any] | None = None) -> dict[str, Any]:
+def get_minimal_particle_composition(core: Any, config: dict[str, Any] | None = None) -> dict[str, Any]:
     config = config or core.default(MinimalParticle.config_schema)
     return {
         "particles": {
@@ -450,9 +456,7 @@ def get_minimal_particle_composition(core: ProcessTypes, config: dict[str, Any] 
     }
 
 
-def get_dfba_particle_composition(
-    core: ProcessTypes | None = None, config: dict[str, Any] | None = None
-) -> dict[str, Any]:
+def get_dfba_particle_composition(core: Any | None = None, config: dict[str, Any] | None = None) -> dict[str, Any]:
     config = config or dfba_config()
     return {
         "particles": {

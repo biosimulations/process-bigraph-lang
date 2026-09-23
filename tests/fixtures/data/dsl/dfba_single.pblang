@@ -1,48 +1,36 @@
-// imported definitions from standard library (or other files)
-def exp(a): builtin
-def signum(a): builtin
-def ReLU(a): signum(a) * a;
-
-// def update_float(a, b): (a + b);
-// type float default 0.0 update update_float
+// types used by the spatio-flux dynamic FBA processes
 type float builtin
 type string builtin
+type positive_float builtin
 
-def update_float_unsigned(a, b): ReLU(a + b);
-type positive_float extends float update update_float_unsigned
+struct Bounds {
+    lower: float;
+    upper: float;
+}
 
-type bounds
-    lower: maybe[float]
-    upper: maybe[float]
+struct Particle {
+    id: string;
+    size: float;
+    mass: float = 1.0;
+}
 
-type particle
-    id: string
-    // 'position': 'tuple[float,float]',
-    size: float
-    mass: float default 1.0
-    // 'local': 'map[float]',
-    // 'exchange': 'map[float]',    # {mol_id: delta_value}
+struct Kinetics {
+    vmax: float;
+    kcat: float;
+    role: string;   // reactant, product or enzyme
+}
 
-type boundary_side builtin // 'enum[left,right,top,bottom]'
-
-type substrate_role builtin // 'enum[reactant,product,enzyme]'
-
-type kinetics
-    vmax: float
-    kcat: float
-    role: substrate_role
-
-type reaction_type builtin // 'map[kinetics]'
-
+type Reaction = map<string, Kinetics>
 
 // my model
-type concentration extends float default 1.0
-def my_update(substrate, rate, interval): substrate + rate * interval;
+type concentration = float
 unit uM_per_h: ["10e-6 mole/liter/h"]
 unit uM: ["10e-6 mole/liter"]
 unit conc: uM_per_h
 unit hour: ["h"]
 unit dimensionless: ["1"]
 
-store particle1: {id="particle1", size=1.0, mass=1.0}
-store particle2: {id="particle2", size=1.0, mass=1.0}
+store particle1: Particle;
+store particle2: Particle;
+init particle1 = { id = "particle1", size = 1.0, mass = 1.0 };
+init particle2 = { id = "particle2", size = 1.0, mass = 1.0 };

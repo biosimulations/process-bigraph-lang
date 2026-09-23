@@ -1,12 +1,11 @@
 from typing import Any
 
 from process_bigraph import Process, Step  # type: ignore[import-untyped]
-from process_bigraph import ProcessTypes
 from process_bigraph.composite import SyncUpdate  # type: ignore[import-untyped]
 
 
 class TypedStep(Step):
-    def __init__(self, config: dict[str, Any] | None = None, core: ProcessTypes | None = None) -> None:
+    def __init__(self, config: dict[str, Any] | None = None, core: Any = None) -> None:
         super().__init__(config, core)
 
     def inputs(self) -> dict[str, Any]:
@@ -23,7 +22,7 @@ class TypedStep(Step):
 
 
 class TypedProcess(Process):
-    def __init__(self, config: dict[str, Any] | None = None, core: ProcessTypes | None = None) -> None:
+    def __init__(self, config: dict[str, Any] | None = None, core: Any = None) -> None:
         super().__init__(config, core)
 
     def inputs(self) -> dict[str, Any]:

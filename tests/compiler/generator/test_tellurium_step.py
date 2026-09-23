@@ -11,74 +11,43 @@ from tests.fixtures.test_registry.tellurium import TelluriumStep
 
 TELLURIUM_STEP_ADDR = f"{TelluriumStep.__module__}.{TelluriumStep.__qualname__}"
 step_config_template = {
-    "composition": {
+    "schema": {
         "results_store": {"result_array": "array[(10|4),float]", "result_labels": "list[string]"},
         "run_time_store": "float",
         "start_time_store": "float",
-        "tellurium": {
-            "_type": "step",
-            "address": {"_type": "quote", "_default": f"local:{TELLURIUM_STEP_ADDR}"},
-            "_config": {"sbml_model_path": "string", "antimony_string": "string", "num_steps": "integer"},
-            "_inputs": {"time": "float", "run_time": "float"},
-            "_outputs": {
-                "results": {
-                    "result_array": "array[(10|4),float]",
-                    "result_labels": "list[string]",
-                },
-            },
-        },
-        "emitter": {
-            "_type": "step",
-            "address": {"_type": "quote", "_default": "local:ram-emitter"},
-            "_config": {"emit": {"_type": "map", "_value": "any"}},
-            "_inputs": {"_type": "map", "_value": "any"},
-        },
     },
     "state": {
         "start_time_store": 0.0,
         "run_time_store": 10.0,
         "tellurium": {
             "_type": "step",
-            "config": {
-                "sbml_model_path": "",
-                "num_steps": 10,
-            },
-            "inputs": {
-                "time": ["start_time_store"],
-                "run_time": ["run_time_store"],
-            },
-            "outputs": {
-                "results": ["results_store"],
-            },
+            "_inputs": {"time": "float", "run_time": "float"},
+            "_outputs": {"results": {"result_array": "array[(10|4),float]", "result_labels": "list[string]"}},
+            "address": f"local:{TELLURIUM_STEP_ADDR}",
+            "config": {"sbml_model_path": "", "num_steps": 10},
+            "inputs": {"time": ["start_time_store"], "run_time": ["run_time_store"]},
+            "outputs": {"results": ["results_store"]},
         },
         "emitter": {
             "_type": "step",
-            "config": {
-                "emit": {
-                    "floating_species": "tree[float]",
-                    "time": "float",
-                },
-            },
-            "inputs": {
-                "floating_species": ["floating_species_store"],
-                "time": ["start_time_store"],
-            },
+            "address": "local:RAMEmitter",
+            "config": {"emit": {"floating_species": "node", "time": "node"}},
+            "inputs": {"floating_species": ["floating_species_store"], "time": ["start_time_store"]},
         },
     },
 }
 
 
 def test_tellurium_step(sbml_path_caravagna2010: Path) -> None:
-    core = pg.ProcessTypes()
-    core = pg.register_types(core)
+    core = pg.allocate_core()
 
     config: dict[str, Any] = deepcopy(step_config_template)
     config["state"]["tellurium"]["config"]["sbml_model_path"] = str(sbml_path_caravagna2010)
 
-    core.register_process(TELLURIUM_STEP_ADDR, TelluriumStep)
+    core.register_link(TELLURIUM_STEP_ADDR, TelluriumStep)
 
-    # construct and run the Step network (don't need to call composite.run(), executes in composite.initialize())
-    composite = pg.Composite(config=config, core=core)
+    # construct and run the Step network (don't need to call composite.run(), steps execute on initialization)
+    composite = pg.Composite(config={**config, "run_steps_on_init": True}, core=core)
 
     # compare results
     expected_array = np.array(
@@ -145,9 +114,9 @@ def test_generator_tellurium_steps() -> None:
     ram_emitter_schema = PBStepSchema(
         key="emitter",
         path=[],
-        address="local:ram-emitter",
-        config_schema=dict(emit=dict(_type="map", _value="any")),
-        input_schema=dict(_type="map", _value="any"),
+        address="local:RAMEmitter",
+        config_schema=dict(emit="schema"),
+        input_schema={},
         output_schema={},
         default_config_state={},
         default_input_state={},
@@ -157,8 +126,8 @@ def test_generator_tellurium_steps() -> None:
     ram_emitter_state = PBStepState(
         key="emitter",
         path=[],
-        address="local:ram-emitter",
-        config_state=dict(emit=dict(floating_species="tree[float]", time="float")),
+        address="local:RAMEmitter",
+        config_state=dict(emit=dict(floating_species="node", time="node")),
         input_state=dict(floating_species=["floating_species_store"], time=["start_time_store"]),
         output_state={},
         step_schema=ram_emitter_schema,

@@ -20,8 +20,18 @@ beforeAll(async () => {
 describe("Parsing tests", () => {
   test("parse simple model", async () => {
     document = await parse(`
-            def add(a, b) : a + b;
-            def double(a) : add(a, a);
+            type float builtin
+            type Length = float
+            struct Point { x: float; y: float = 0.0; }
+            unit um: ["micrometer"]
+            remote process Grow at "pkg.Grow" {
+                inputs (size: float)
+                outputs (size: float)
+            }
+            store origin: Point;
+            init origin = { x = 1.0, y = 2.0 };
+            let grow: Grow = Grow();
+            connect grow inputs (size = origin.x) outputs (size = origin.x);
         `);
 
     // check for absence of parser errors the classic way:
@@ -35,15 +45,24 @@ describe("Parsing tests", () => {
       //  by means of the reusable function 'checkDocumentValid()' to sort out (critical) typos first;
       checkDocumentValid(document) ||
         s`
-                Definitions:
-                  ${document.parseResult.value?.definitions
-                    ?.map((p) => p.name)
+                Elements:
+                  ${document.parseResult.value?.elements
+                    ?.map((e) =>
+                      `${e.$type} ${"name" in e ? e.name : ""}`.trim(),
+                    )
                     ?.join("\n")}
             `,
     ).toBe(s`
-        Definitions:
-          add
-          double
+        Elements:
+          PrimitiveType float
+          TypeAlias Length
+          StructType Point
+          Unit um
+          RemoteCallableType Grow
+          StoreDecl origin
+          InitDecl
+          VarDef grow
+          ConnectStatement
         `);
   });
 });

@@ -1,40 +1,31 @@
-// imported definitions from standard library (or other files)
-type float default 0.0
-def exp(a): builtin
+// glucose and calcium uptake in three nested compartments
+type float builtin
 
-// my model
-type concentration extends float default 1.0
-def my_update(substrate, rate, interval): substrate + rate * interval;
 unit uM_per_h: ["10e-6 mole/liter/h"]
 unit uM: ["10e-6 mole/liter"]
 unit conc: uM_per_h
 unit hour: ["h"]
 unit dimensionless: ["1"]
 
-proc MyProcess path my_processes.Process1
-    param calcium_growth: float default 0.1 [uM_per_h]
-    param glucose_growth: float default 0.1 [uM_per_h]
-    param dt: float default 0.1 [hour]
-    param alpha: float default 0.1 [dimensionless]
-    var glucose: float
-    var calcium: float [conc]
-    inputs glucose calcium
-    outputs glucose calciumaaa
+remote process MyProcess at "my_processes.Process1" {
+    config (calcium_growth: float, glucose_growth: float, dt: float, alpha: float)
+    inputs (glucose: float, calcium: float)
+    outputs (glucose: float, calcium: float)
+}
 
-param ca_growth: float = 0.1 [uM_per_h]
-param gl_growth: float = 0.1 [uM_per_h]
-param dt: float = 0.1 [hour]
-param alpha: float = 0.1 [dimensionless]
+struct Compartment {
+    glucose: float;
+    calcium: float;
+}
 
-store med_glucose: float = 3.0
-store med_calcium: float = 0.5
+let medium: Compartment = { glucose = 3.0, calcium = 0.5 };
+let cell: Compartment = { glucose = 0.0, calcium = 0.0 };
+let nucleus: Compartment = { glucose = 0.0, calcium = 0.0 };
 
-store cell_glucose: float = 0.0
-store cell_calcium: float = 0.0
+let proc1: MyProcess = MyProcess(calcium_growth = 0.1, glucose_growth = 0.1, dt = 0.1, alpha = 0.1);
+let proc2: MyProcess = MyProcess(calcium_growth = 0.1, glucose_growth = 0.1, dt = 0.1, alpha = 0.1);
+let proc3: MyProcess = MyProcess(calcium_growth = 0.1, glucose_growth = 0.1, dt = 0.1, alpha = 0.1);
 
-store nuc_glucose: float = 0.0
-store nuc_calcium: float = 0.0
-
-store proc1: update (med_glucose, med_calcium) using MyProcess[ca_growth,gl_growth,dt,alpha](med_glucose, med_calcium)
-store proc2: update (cell_glucose, cell_calcium) using MyProcess[ca_growth,gl_growth,dt,alpha](cell_glucose, cell_calcium)
-store proc3: update (nuc_glucose, nuc_calcium) using MyProcess[ca_growth,gl_growth,dt,alpha](nuc_glucose, nuc_calcium)
+connect proc1 inputs (glucose = medium.glucose, calcium = medium.calcium) outputs (glucose = medium.glucose, calcium = medium.calcium);
+connect proc2 inputs (glucose = cell.glucose, calcium = cell.calcium) outputs (glucose = cell.glucose, calcium = cell.calcium);
+connect proc3 inputs (glucose = nucleus.glucose, calcium = nucleus.calcium) outputs (glucose = nucleus.glucose, calcium = nucleus.calciumaaa);

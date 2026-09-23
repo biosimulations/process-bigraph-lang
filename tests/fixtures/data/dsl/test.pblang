@@ -1,0 +1,133 @@
+// Scratch example for exercising the DSL type checker in the editor.
+// Lines marked "error:" are intentionally invalid.
+
+type int builtin
+type float builtin
+type string builtin
+type bool builtin
+type positive_float = float
+
+unit area: ["micrometer^2"]
+
+// ---------------------------------------------------------------------------
+// tuples
+// ---------------------------------------------------------------------------
+let t1: (a: int, b: float) = (a = 5, b = 3.14);
+let t2: (a: float, b: float) = (a = 5);          // error: missing 'b'
+let t3: (a: float) = (a = 5, a = 6);             // error: duplicate field 'a'
+let t4: (a: float) = (x = 5);                    // error: unknown field 'x'
+let abc: (a: float, b: string) = (a = 3.14, b = "test");
+let (first: string, last: string): (first: string, last: string) = (first = "Ada", last = "Lovelace");
+
+// ---------------------------------------------------------------------------
+// structs, arrays and maps
+// ---------------------------------------------------------------------------
+struct User {
+    id: float = 5;
+    name: string;
+}
+struct MyConfig {
+    url: string = "https://api.example.com/data";
+    method: string = "GET";
+    timeout: float = 30.0;
+}
+struct Users {
+    id: float;
+    name: string;
+    age: float;
+}
+
+let user_array: array<User> = [
+    {id=1, name="Alice"},
+    {id=2, name="Bob"},
+    {id=3, name="Charlie"},
+];
+let numbers: array<float> = [1, 2, 3, 4, 5];     // ints widen to float
+let user_map: map<string, User> = {
+    "bob" = { id = 1, name = "Bob", },
+    "eve" = { id = 2, name = "eve" }
+};
+let bad_map: map<string, float> = { bob = 1.0 };  // error: map keys must be literals ("bob")
+let not_a_float: float = "abc";                   // error: string is not a float
+
+let a: float = 5;
+let b: string = "hello";
+let c: bool = true;
+let d: float = a;
+let user_name: string = user_array_first.name;    // error: unresolved reference
+
+// ---------------------------------------------------------------------------
+// remote processes and connections
+// ---------------------------------------------------------------------------
+remote process FetchUser at "tests.fixtures.test_registry.toy_library.FetchUserProcess" {
+    inputs (userId: int)
+    outputs (name: string, email: string)
+}
+struct UserRecord {
+    id: int;
+    name: string;
+    email: string;
+}
+let record: UserRecord = { id = 1, name = "", email = "" };
+let fetch: FetchUser = FetchUser();
+connect fetch inputs (userId = record.id) outputs (name = record.name, email = record.email);
+
+remote process Grow at "tests.fixtures.test_registry.toy_library.AddFloatsProcess" {
+    inputs (left_hand_addend: float, right_hand_addend: float)
+    outputs (result: float)
+}
+let A: float = 2.07;
+let B: float = 3.5;
+let C: float;
+let add_nums_1: Grow = Grow();
+let add_nums_2: Grow = Grow();
+connect add_nums_1 inputs (left_hand_addend = A, right_hand_addend = B) outputs (result = C);
+connect add_nums_2 inputs (left_hand_addend = A, right_hand_addend = B) outputs (result = C);
+
+// ---------------------------------------------------------------------------
+// dynamic FBA with an emitter (spatio-flux)
+// ---------------------------------------------------------------------------
+// The original model allowed 'upper: float | None'; there is no optional type yet,
+// so unbounded limits are not expressible here.
+struct Bounds {
+    lower: float;
+    upper: float;
+}
+
+remote process DynamicFBA at "tests.fixtures.test_registry.spatio_flux.processes.DynamicFBA" {
+    config (
+        model_file: string,
+        kinetic_params: map<string, (Km: float, Vmax: float)>,
+        substrate_update_reactions: map<string, string>,
+        biomass_identifier: string,
+        bounds: map<string, Bounds>
+    )
+    inputs (substrates: map<string, positive_float>)
+    outputs (substrates: map<string, positive_float>)
+}
+
+remote step Emitter at "local.ram_emitter" {
+    config (emit: map<string, string>)
+    inputs (fields: map<string, positive_float>, global_time: float)
+}
+
+store global_time: float;
+store fields: map<string, positive_float>;
+init global_time = 0.0;
+init fields = {
+    "acetate" = 0.807561836566412,
+    "biomass" = 0.1,
+    "glucose" = 10
+};
+
+let dFBA: DynamicFBA = DynamicFBA(
+    model_file = "textbook",
+    kinetic_params = { "acetate" = (Km = 0.5, Vmax = 2.0), "glucose" = (Km = 0.5, Vmax = 1.0) },
+    substrate_update_reactions = { "acetate" = "EX_ac_e", "glucose" = "EX_glc__D_e" },
+    biomass_identifier = "biomass",
+    bounds = { "ATPM" = { lower = 1.0, upper = 1.0 }, "EX_o2_e" = { lower = -2.0, upper = 1000.0 } }
+);
+let emitter: Emitter = Emitter(emit = { "fields" = "map[positive_float]", "global_time" = "float" });
+
+connect dFBA inputs (substrates = fields) outputs (substrates = fields);
+connect emitter inputs (fields = fields, global_time = global_time);

@@ -9,7 +9,7 @@ from typing import Any
 
 import numpy as np
 from scipy.ndimage import convolve  # type: ignore[import-untyped]
-from process_bigraph import Process, ProcessTypes  # type: ignore[import-untyped]
+from process_bigraph import Process  # type: ignore[import-untyped]
 
 
 # Laplacian for 2D diffusion
@@ -26,7 +26,7 @@ class DiffusionAdvection(Process):
         "advection_coeffs": "map[tuple[float,float]]",
     }
 
-    def __init__(self, config: dict[str, Any], core: ProcessTypes) -> None:
+    def __init__(self, config: dict[str, Any], core: Any) -> None:
         super().__init__(config, core)
 
         # get diffusion rates
@@ -55,7 +55,7 @@ class DiffusionAdvection(Process):
         return {
             "fields": {
                 "_type": "map",
-                "_value": {"_type": "array", "_shape": self.config["n_bins"], "_data": "positive_float"},
+                "_value": {"_type": "positive_array", "_shape": self.config["n_bins"], "_data": "float"},
             }
         }
 
@@ -63,7 +63,7 @@ class DiffusionAdvection(Process):
         return {
             "fields": {
                 "_type": "map",
-                "_value": {"_type": "array", "_shape": self.config["n_bins"], "_data": "positive_float"},
+                "_value": {"_type": "positive_array", "_shape": self.config["n_bins"], "_data": "float"},
             }
         }
 

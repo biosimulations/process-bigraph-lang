@@ -1,117 +1,156 @@
 grammar ProcessBigraphLanguage
 
 entry Model:
-    ((types+=Type) |
-     (definitions+=Definition) |
-     (units+=Unit) |
-     (sbmlModels+=SbmlModel) |
-     (stepDefs+=StepDef) |
-     (procDefs+=ProcDef) |
-     ('store' storeNodes+=StoreNode) |
-     (parameters+=Parameter))*;
+    elements+=ModelElement*;
 
-Type:
-    'type' name=ID (builtin='builtin')? ('extends' superType=[Type])? ('default' default=DefaultValue)? ('update' update=[Definition])? (subtypes+=NamedType)*;
+ModelElement:
+    TypeDef | VarDef | Unit | StoreDecl | InitDecl | ConnectStatement;
 
-NamedType:
-    name=ID ':' ((option=('maybe' | 'list' | 'array')  "[" optional_type=[Type] "]") | type=[Type])
-    ('default' default=DefaultValue)? ("[" unit_ref=[Unit] "]")?;
 
-DefaultValue:
-    val=(INT | FLOAT | STRING | 'true' | 'false');
+// Without `at`, a remote type is an interface: its instances are address sites whose
+// implementation is filled in later (see SiteLiteral).
+RemoteCallableType:
+    'remote' kind=('step' | 'process') name=ID ('at' address=STRING)? '{'
+        ('config' config=TupleType)?
+        ('inputs' inputs=TupleType)?
+        ('outputs' outputs=TupleType)?
+    '}';
 
-SchemaItem:
-    name=ID ':' type_ref=[Type] ('default' default=DefaultValue)? ("[" unit_ref=[Unit] "]")?;
+ConnectStatement:
+    'connect' instance=MemberCall
+    ('inputs' '(' (inputBindings+=Binding (',' inputBindings+=Binding)*)? ')')?
+    ('outputs' '(' (outputBindings+=Binding (',' outputBindings+=Binding)*)? ')')?
+    ';';
+
+Binding:
+    name=ID '=' variable=MemberCall;
+
+MemberCall:
+    element=[NamedElement:ID]
+    ({infer MemberCall.previous=current} "." element=[NamedElement:ID])* ;
+
+type NamedElement = VarDef | Field | StoreDecl | ParamDecl;
+
+StoreDecl:
+    'store' name=ID ':' type=TypeRef ';';
+
+InitDecl:
+    'init' store=[StoreDecl:ID] '=' value=Value ';';
+
+TypeDef:
+    PrimitiveType | StructType | TypeAlias | RemoteCallableType;
+
+PrimitiveType:
+    'type' name=ID 'builtin';
+
+StructType:
+    'struct' name=ID '{'
+        fields+=Field*
+    '}';
+
+TypeAlias:
+    'type' name=ID '=' type=TypeRef;
+
+Field:
+    name=ID ':' type=TypeRef ('=' default=Value)? ';';
+
+TypeRef:
+    ArrayType | MapType | TupleType | SimpleTypeRef;
+
+ArrayType:
+    'array' '<' elementType=TypeRef '>';
+
+MapType:
+    'map' '<' keyType=TypeRef ',' valueType=TypeRef '>';
+
+TupleType:
+    '(' elements+=ParamDecl (',' elements+=ParamDecl)* ')';
+
+ParamDecl:
+    name=ID ':' type=TypeRef;
+
+SimpleTypeRef:
+    type=[TypeDef:ID];
+
+VarDef:
+    'let' (name=ID | lhs=TuplePattern) ':' type=TypeRef ('=' value=Value)? ';';
+
+TuplePattern:
+    '(' bindings+=TupleBinding (',' bindings+=TupleBinding)* ')';
+
+TupleBinding:
+    name=ID ':' type=TypeRef;
+
+Value:
+    IntLiteral |
+    FloatLiteral |
+    StringLiteral |
+    BoolLiteral |
+    MemberCall |
+    StructLiteral |
+    ArrayLiteral |
+    MapLiteral |
+    TupleLiteral |
+    CallableLiteral |
+    SiteLiteral;
+
+// An open value (a template site) to be filled before the composite runs: `?` is required,
+// `?(v)` is optional with default v.
+SiteLiteral:
+    {infer SiteLiteral} '?' ('(' default=Value ')')?;
+
+CallableLiteral:
+    callable_type=[RemoteCallableType:ID] '(' (configArgs+=ConfigArg (',' configArgs+=ConfigArg)* ','?)? ')';
+
+ConfigArg:
+    name=ID '=' value=Value;
+
+StructLiteral:
+    '{' (fields+=StructFieldValue (',' fields+=StructFieldValue)* ','?)? '}';
+
+StructFieldValue:
+    name=ID '=' value=Value;
+
+ArrayLiteral:
+    '[' (elements+=Value (',' elements+=Value)* ','?)? ']';
+
+// Map keys are literals so that '{ name = … }' is always a struct literal.
+// An empty '{}' parses as a StructLiteral and is accepted where a map is expected.
+MapLiteral:
+    '{' entries+=MapEntry (',' entries+=MapEntry)* ','? '}';
+
+MapEntry:
+    key=MapKey '=' value=Value;
+
+MapKey:
+    StringLiteral | IntLiteral | FloatLiteral | BoolLiteral;
+
+TupleLiteral:
+    '(' (fields+=TupleFieldValue (',' fields+=TupleFieldValue)* ','?)? ')';
+
+TupleFieldValue:
+    name=ID '=' value=Value;
+
+IntLiteral:
+    value=INT;
+
+FloatLiteral:
+    value=FLOAT;
+
+StringLiteral:
+    value=STRING;
+
+BoolLiteral:
+    value=('true' | 'false');
 
 Unit:
     "unit" name=ID ":" (('[' symbol=STRING ']') | (unit_ref=[Unit]));
 
-SbmlModel:
-    'sbml' name=ID 'file' filepath=STRING
-        ('param' params+=SchemaItem)*
-        ('var' vars+=SchemaItem)*;
-
-PythonPath:
-    'path' path+=ID ("." path+=ID)*;
-
-Parameter:
-    'param' name=ID (':' type_ref=[Type])? '=' default=DefaultValue ("[" unit_ref=[Unit] "]")?;
-
-StoreNode:
-    name=ID (
-        ('=' optional_val=DefaultValue) |
-        (':' optional_type=[Type] ('=' optional_val=DefaultValue)?) |
-        (':' proc_call=ProcCall) |
-        (':' step_call=StepCall) |
-        (':' '{' child_defs+=StoreNode (',' child_defs+=StoreNode)* '}'));
-
-StepDef:
-    'step' name=ID python_path=PythonPath?
-        ('param' params+=SchemaItem)*
-        ('var' vars+=SchemaItem)*
-        ('inputs' inputs+=[SchemaItem]*)?
-        ('outputs' outputs+=[SchemaItem]*)?;
-
-ProcDef:
-    'proc' name=ID python_path=PythonPath?
-        ('param' params+=SchemaItem)*
-        ('var' vars+=SchemaItem)*
-        ('inputs' inputs+=[SchemaItem]*)?
-        ('outputs' outputs+=[SchemaItem]*)?;
-
-StepCall:
-    ('set' '(' (output_node_list=StoreNodeList)? ')')
-    (('as' | '=') step_def_ref=[StepDef])
-    ('[' (config_node_list=ParameterList)? ']')
-    ('(' (input_node_list=StoreNodeList)? ')');
-
-ProcCall:
-    ('update' '(' (output_node_list=StoreNodeList)? ')')
-    (('using' | '<=') proc_def_ref=[ProcDef])
-    ('[' (config_node_list=ParameterList)? ']')
-    ('(' (input_node_list=StoreNodeList)? ')');
-
-ParameterList:
-    (parameter_refs+=[Parameter]) (',' parameter_refs+=[Parameter])*;
-
-StoreNodeList:
-    (store_node_refs+=[StoreNode]) (',' store_node_refs+=[StoreNode])*;
-
-Definition:
-    'def' name=ID ('(' args+=DeclaredParameter (',' args+=DeclaredParameter)* ')')?
-    ':' (builtin='builtin' | (expr=Expression ';'));
-
-DeclaredParameter:
-    name=ID;
-
-type VariableDefinition = DeclaredParameter | SchemaItem;
-
-
-Expression:
-    Addition;
-
-Addition infers Expression:
-    Multiplication ({infer BinaryExpression.left=current} operator=('+' | '-') right=Multiplication)*;
-
-Multiplication infers Expression:
-    Exponentiation ({infer BinaryExpression.left=current} operator=('*' | '/') right=Exponentiation)*;
-
-Exponentiation infers Expression:
-    Modulo ({infer BinaryExpression.left=current} operator='^' right=Modulo)*;
-
-Modulo infers Expression:
-    PrimaryExpression ({infer BinaryExpression.left=current} operator='%' right=PrimaryExpression)*;
-
-PrimaryExpression infers Expression:
-    '(' Expression ')' |
-    {infer NumberLiteral} value=FLOAT |
-    {infer FunctionCall} func=[Definition] ('(' args+=Expression (',' args+=Expression)* ')') |
-    {infer VariableRef} variable=[VariableDefinition:ID];
-
 hidden terminal WS: /\s+/;
-terminal FLOAT returns number: /[0-9]+(\.[0-9]+)?/;
+terminal FLOAT returns number: /-?([0-9]+\.[0-9]*|\.[0-9]+)([eE][+-]?[0-9]+)?/;
+terminal INT returns number: /-?[0-9]+/;
 terminal ID: /[_a-zA-Z][\w_]*/;
-terminal INT returns number: /[0-9]+/;
+
 terminal STRING: /"(\\.|[^"\\])*"|'(\\.|[^'\\])*'/;
 
 hidden terminal ML_COMMENT: /\/\*[\s\S]*?\*\//;

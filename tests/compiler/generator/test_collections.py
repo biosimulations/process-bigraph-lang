@@ -16,42 +16,25 @@ from process_bigraph_lang.compiler.pb_model import (
 )
 from process_bigraph_lang.dsl.ast_model import ASTModel
 from process_bigraph_lang.dsl.langium_pblang import langium_parse_pblang_str
-from tests.fixtures.test_registry.toy_library import AddFloatsStep
 
 flat_expected_config_template = {
-    "composition": {
-        "A": "float",
-        "B": "float",
-        "C": "float",
-        "add_nums_1": {
-            "_type": "process",
-            "address": {
-                "_type": "quote",
-                "_default": "local:!tests.fixtures.test_registry.toy_library.AddFloatsProcess",
-            },
-            "_inputs": {"left_hand_addend": "float", "right_hand_addend": "float"},
-            "_outputs": {"result": "float"},
-        },
-        "add_nums_2": {
-            "_type": "process",
-            "address": {
-                "_type": "quote",
-                "_default": "local:!tests.fixtures.test_registry.toy_library.AddFloatsProcess",
-            },
-            "_inputs": {"left_hand_addend": "float", "right_hand_addend": "float"},
-            "_outputs": {"result": "float"},
-        },
-    },
+    "schema": {"A": "float", "B": "float", "C": "float"},
     "state": {
         "A": 2.07,
         "B": 3.5,
         "add_nums_1": {
             "_type": "process",
+            "_inputs": {"left_hand_addend": "float", "right_hand_addend": "float"},
+            "_outputs": {"result": "float"},
+            "address": "local:!tests.fixtures.test_registry.toy_library.AddFloatsProcess",
             "inputs": {"left_hand_addend": ["A"], "right_hand_addend": ["B"]},
             "outputs": {"result": ["C"]},
         },
         "add_nums_2": {
             "_type": "process",
+            "_inputs": {"left_hand_addend": "float", "right_hand_addend": "float"},
+            "_outputs": {"result": "float"},
+            "address": "local:!tests.fixtures.test_registry.toy_library.AddFloatsProcess",
             "inputs": {"left_hand_addend": ["A"], "right_hand_addend": ["B"]},
             "outputs": {"result": ["C"]},
         },
@@ -60,42 +43,24 @@ flat_expected_config_template = {
 
 
 list_expected_config_template = {
-    "composition": {
-        "A": "float",
-        "B": "float",
-        "C": "float",
-        "adders": {
-            "add_nums_1": {
-                "_type": "process",
-                "address": {
-                    "_type": "quote",
-                    "_default": "local:!tests.fixtures.test_registry.toy_library.AddFloatsProcess",
-                },
-                "_inputs": {"left_hand_addend": "float", "right_hand_addend": "float"},
-                "_outputs": {"result": "float"},
-            },
-            "add_nums_2": {
-                "_type": "process",
-                "address": {
-                    "_type": "quote",
-                    "_default": "local:!tests.fixtures.test_registry.toy_library.AddFloatsProcess",
-                },
-                "_inputs": {"left_hand_addend": "float", "right_hand_addend": "float"},
-                "_outputs": {"result": "float"},
-            },
-        },
-    },
+    "schema": {"A": "float", "B": "float", "C": "float"},
     "state": {
         "A": 2.07,
         "B": 3.5,
         "adders": {
             "add_nums_1": {
                 "_type": "process",
+                "_inputs": {"left_hand_addend": "float", "right_hand_addend": "float"},
+                "_outputs": {"result": "float"},
+                "address": "local:!tests.fixtures.test_registry.toy_library.AddFloatsProcess",
                 "inputs": {"left_hand_addend": ["..", "A"], "right_hand_addend": ["..", "B"]},
                 "outputs": {"result": ["..", "C"]},
             },
             "add_nums_2": {
                 "_type": "process",
+                "_inputs": {"left_hand_addend": "float", "right_hand_addend": "float"},
+                "_outputs": {"result": "float"},
+                "address": "local:!tests.fixtures.test_registry.toy_library.AddFloatsProcess",
                 "inputs": {"left_hand_addend": ["..", "A"], "right_hand_addend": ["..", "B"]},
                 "outputs": {"result": ["..", "C"]},
             },
@@ -105,7 +70,7 @@ list_expected_config_template = {
 
 
 map_expected_config_template = {
-    "composition": {
+    "schema": {
         "A": "float",
         "B": "float",
         "C": "float",
@@ -113,10 +78,6 @@ map_expected_config_template = {
             "_type": "map",
             "_value": {
                 "_type": "process",
-                "address": {
-                    "_type": "quote",
-                    "_default": "local:!tests.fixtures.test_registry.toy_library.AddFloatsProcess",
-                },
                 "_inputs": {"left_hand_addend": "float", "right_hand_addend": "float"},
                 "_outputs": {"result": "float"},
             },
@@ -128,11 +89,17 @@ map_expected_config_template = {
         "adders": {
             "add_nums_1": {
                 "_type": "process",
+                "_inputs": {"left_hand_addend": "float", "right_hand_addend": "float"},
+                "_outputs": {"result": "float"},
+                "address": "local:!tests.fixtures.test_registry.toy_library.AddFloatsProcess",
                 "inputs": {"left_hand_addend": ["..", "A"], "right_hand_addend": ["..", "B"]},
                 "outputs": {"result": ["..", "C"]},
             },
             "add_nums_2": {
                 "_type": "process",
+                "_inputs": {"left_hand_addend": "float", "right_hand_addend": "float"},
+                "_outputs": {"result": "float"},
+                "address": "local:!tests.fixtures.test_registry.toy_library.AddFloatsProcess",
                 "inputs": {"left_hand_addend": ["..", "A"], "right_hand_addend": ["..", "B"]},
                 "outputs": {"result": ["..", "C"]},
             },
@@ -143,9 +110,7 @@ map_expected_config_template = {
 
 def test_flat_initialization() -> None:
     flat_expected_config: dict[str, Any] = deepcopy(flat_expected_config_template)
-    core = pg.ProcessTypes()
-    core = pg.register_types(core)
-    core.register_process("tests.fixtures.test_registry.toy_library.AddFloatsStep", AddFloatsStep)
+    core = pg.allocate_core()
     composite = pg.Composite(config=deepcopy(flat_expected_config), core=core)
     composite.run(10.0)
     assert np.allclose(composite.state["C"], (2.07 + 3.5) * 10 * 2)
@@ -153,9 +118,7 @@ def test_flat_initialization() -> None:
 
 def test_list_initialization() -> None:
     list_expected_config: dict[str, Any] = deepcopy(list_expected_config_template)
-    core = pg.ProcessTypes()
-    core = pg.register_types(core)
-    core.register_process("tests.fixtures.test_registry.toy_library.AddFloatsStep", AddFloatsStep)
+    core = pg.allocate_core()
     composite = pg.Composite(config=deepcopy(list_expected_config), core=core)
     composite.run(10.0)
     assert np.allclose(composite.state["C"], (2.07 + 3.5) * 10 * 2)
@@ -163,9 +126,7 @@ def test_list_initialization() -> None:
 
 def test_map_initialization() -> None:
     map_expected_config: dict[str, Any] = deepcopy(map_expected_config_template)
-    core = pg.ProcessTypes()
-    core = pg.register_types(core)
-    core.register_process("tests.fixtures.test_registry.toy_library.AddFloatsStep", AddFloatsStep)
+    core = pg.allocate_core()
     composite = pg.Composite(config=deepcopy(map_expected_config), core=core)
     composite.run(10.0)
     assert np.allclose(composite.state["C"], (2.07 + 3.5) * 10 * 2)
@@ -233,9 +194,7 @@ def test_flat_generator() -> None:
     generated_config: dict[str, Any] = assemble_pb(pb_model=pb_model)
     assert flattened_expected_config == generated_config
 
-    core = pg.ProcessTypes()
-    core = pg.register_types(core)
-    core.register_process("tests.fixtures.test_registry.toy_library.addFloatsStep", AddFloatsStep)
+    core = pg.allocate_core()
 
     composite = pg.Composite(config=deepcopy(generated_config), core=core)
     composite.run(10)
@@ -306,9 +265,7 @@ def test_list_generator() -> None:
     generated_config: dict[str, Any] = assemble_pb(pb_model=pb_model)
     assert list_expected_config == generated_config
 
-    core = pg.ProcessTypes()
-    core = pg.register_types(core)
-    core.register_process("tests.fixtures.test_registry.toy_library.addFloatsStep", AddFloatsStep)
+    core = pg.allocate_core()
 
     composite = pg.Composite(config=deepcopy(generated_config), core=core)
     composite.run(10)
@@ -367,9 +324,7 @@ def test_map_generator() -> None:
     generated_config: dict[str, Any] = assemble_pb(pb_model=pb_model)
     assert map_expected_config == generated_config
 
-    core = pg.ProcessTypes()
-    core = pg.register_types(core)
-    core.register_process("tests.fixtures.test_registry.toy_library.addFloatsStep", AddFloatsStep)
+    core = pg.allocate_core()
 
     composite = pg.Composite(config=deepcopy(generated_config), core=core)
     composite.run(10)
@@ -380,20 +335,20 @@ def test_map_generator() -> None:
 
 flat_pblang = """
     type float builtin
-    type string builtin
 
-    proc Grow path tests.fixtures.test_registry.toy_library.AddFloatsProcess
-        var left_hand_addend : float
-        var right_hand_addend : float
-        var result : float
-        inputs left_hand_addend right_hand_addend
-        outputs result
+    remote process Grow at "tests.fixtures.test_registry.toy_library.AddFloatsProcess" {
+        inputs (left_hand_addend: float, right_hand_addend: float)
+        outputs (result: float)
+    }
 
-    store A: float = 2.07
-    store B: float = 3.5
-    store C: float
-    store add_nums_1: update (C) using Grow[](A, B)
-    store add_nums_2: update (C) using Grow[](A, B)
+    let A: float = 2.07;
+    let B: float = 3.5;
+    let C: float;
+
+    let add_nums_1: Grow = Grow();
+    let add_nums_2: Grow = Grow();
+    connect add_nums_1 inputs (left_hand_addend = A, right_hand_addend = B) outputs (result = C);
+    connect add_nums_2 inputs (left_hand_addend = A, right_hand_addend = B) outputs (result = C);
 """
 
 
@@ -406,22 +361,23 @@ def test_flat_parser() -> None:
 
 list_pblang = """
     type float builtin
-    type string builtin
 
-    proc Grow path tests.fixtures.test_registry.toy_library.AddFloatsProcess
-        var left_hand_addend : float
-        var right_hand_addend : float
-        var result : float
-        inputs left_hand_addend right_hand_addend
-        outputs result
-
-    store A: float = 2.07
-    store B: float = 3.5
-    store C: float
-    store adders: {
-        add_nums_1: update (C) using Grow[](A, B),
-        add_nums_2: update (C) using Grow[](A, B)
+    remote process Grow at "tests.fixtures.test_registry.toy_library.AddFloatsProcess" {
+        inputs (left_hand_addend: float, right_hand_addend: float)
+        outputs (result: float)
     }
+
+    let A: float = 2.07;
+    let B: float = 3.5;
+    let C: float;
+
+    struct Adders {
+        add_nums_1: Grow;
+        add_nums_2: Grow;
+    }
+    let adders: Adders = { add_nums_1 = Grow(), add_nums_2 = Grow() };
+    connect adders.add_nums_1 inputs (left_hand_addend = A, right_hand_addend = B) outputs (result = C);
+    connect adders.add_nums_2 inputs (left_hand_addend = A, right_hand_addend = B) outputs (result = C);
 """
 
 

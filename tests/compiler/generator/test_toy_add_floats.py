@@ -18,39 +18,24 @@ from process_bigraph_lang.compiler.pb_model import (
 )
 from process_bigraph_lang.dsl.ast_model import ASTModel
 from process_bigraph_lang.dsl.langium_pblang import langium_parse_pblang_file
-from tests.fixtures.test_registry.toy_library import AddFloatsStep, SaveFloatToFileStep
 
 add_floats_step_expected_config_template = {
-    "composition": {
-        "A": "float",
-        "B": "float",
-        "C": "float",
-        "add_nums": {
-            "_type": "step",
-            "address": {"_type": "quote", "_default": "local:!tests.fixtures.test_registry.toy_library.AddFloatsStep"},
-            "_inputs": {"left_hand_addend": "float", "right_hand_addend": "float"},
-            "_outputs": {"result": "float"},
-        },
-        "print_result": {
-            "_type": "step",
-            "address": {
-                "_type": "quote",
-                "_default": "local:!tests.fixtures.test_registry.toy_library.SaveFloatToFileStep",
-            },
-            "_config": {"output_file_path": "string"},
-            "_inputs": {"result": "float"},
-        },
-    },
+    "schema": {"A": "float", "B": "float", "C": "float"},
     "state": {
         "A": 2.07,
         "B": 3.5,
         "add_nums": {
             "_type": "step",
+            "_inputs": {"left_hand_addend": "float", "right_hand_addend": "float"},
+            "_outputs": {"result": "float"},
+            "address": "local:!tests.fixtures.test_registry.toy_library.AddFloatsStep",
             "inputs": {"left_hand_addend": ["A"], "right_hand_addend": ["B"]},
             "outputs": {"result": ["C"]},
         },
         "print_result": {
             "_type": "step",
+            "_inputs": {"result": "float"},
+            "address": "local:!tests.fixtures.test_registry.toy_library.SaveFloatToFileStep",
             "config": {"output_file_path": "output.txt"},
             "inputs": {"result": ["C"]},
         },
@@ -58,39 +43,22 @@ add_floats_step_expected_config_template = {
 }
 
 add_floats_process_expected_config_template = {
-    "composition": {
-        "A": "float",
-        "B": "float",
-        "C": "float",
-        "add_nums": {
-            "_type": "process",
-            "address": {
-                "_type": "quote",
-                "_default": "local:!tests.fixtures.test_registry.toy_library.AddFloatsProcess",
-            },
-            "_inputs": {"left_hand_addend": "float", "right_hand_addend": "float"},
-            "_outputs": {"result": "float"},
-        },
-        "print_result": {
-            "_type": "step",
-            "address": {
-                "_type": "quote",
-                "_default": "local:!tests.fixtures.test_registry.toy_library.SaveFloatToFileStep",
-            },
-            "_config": {"output_file_path": "string"},
-            "_inputs": {"result": "float"},
-        },
-    },
+    "schema": {"A": "float", "B": "float", "C": "float"},
     "state": {
         "A": 2.07,
         "B": 3.5,
         "add_nums": {
             "_type": "process",
+            "_inputs": {"left_hand_addend": "float", "right_hand_addend": "float"},
+            "_outputs": {"result": "float"},
+            "address": "local:!tests.fixtures.test_registry.toy_library.AddFloatsProcess",
             "inputs": {"left_hand_addend": ["A"], "right_hand_addend": ["B"]},
             "outputs": {"result": ["C"]},
         },
         "print_result": {
             "_type": "step",
+            "_inputs": {"result": "float"},
+            "address": "local:!tests.fixtures.test_registry.toy_library.SaveFloatToFileStep",
             "config": {"output_file_path": "output.txt"},
             "inputs": {"result": ["C"]},
         },
@@ -103,10 +71,7 @@ def test_add_floats_step_initialization() -> None:
     with tempfile.TemporaryDirectory() as tmp_dirname:
         output_file_path = Path(tmp_dirname) / "output.txt"
         add_floats_step_expected_config["state"]["out_path"] = output_file_path
-        core = pg.ProcessTypes()
-        core = pg.register_types(core)
-        core.register_process("tests.fixtures.test_registry.toy_library.AddFloatsStep", AddFloatsStep)
-        core.register_process("tests.fixtures.test_registry.toy_library.SaveFloatToFileStep", SaveFloatToFileStep)
+        core = pg.allocate_core()
         composite = pg.Composite(config=deepcopy(add_floats_step_expected_config), core=core)
         composite.run(0.0)
         assert composite.state["C"] == 2.07 + 3.5
@@ -178,10 +143,7 @@ def test_add_floats_step_generator() -> None:
         generated_config: dict[str, Any] = assemble_pb(pb_model=pb_model)
         assert add_floats_step_expected_config == generated_config
 
-        core = pg.ProcessTypes()
-        core = pg.register_types(core)
-        core.register_process("tests.fixtures.test_registry.toy_library.addFloatsStep", AddFloatsStep)
-        core.register_process("tests.fixtures.test_registry.toy_library.SaveFloatToFileStep", SaveFloatToFileStep)
+        core = pg.allocate_core()
 
         composite = pg.Composite(config=deepcopy(generated_config), core=core)
         composite.run(0.0)
@@ -195,10 +157,7 @@ def test_add_floats_process_initialization() -> None:
     with tempfile.TemporaryDirectory() as tmp_dirname:
         output_file_path = Path(tmp_dirname) / "output.txt"
         add_floats_step_expected_config["state"]["print_result"]["config"]["output_file_path"] = str(output_file_path)
-        core = pg.ProcessTypes()
-        core = pg.register_types(core)
-        core.register_process("tests.fixtures.test_registry.toy_library.AddFloatsStep", AddFloatsStep)
-        core.register_process("tests.fixtures.test_registry.toy_library.SaveFloatToFileStep", SaveFloatToFileStep)
+        core = pg.allocate_core()
         composite = pg.Composite(config=deepcopy(add_floats_step_expected_config), core=core)
         composite.run(10.0)
         assert composite.state["C"] == (2.07 + 3.5) * 10
@@ -270,10 +229,7 @@ def test_add_floats_process_generator() -> None:
         generated_config: dict[str, Any] = assemble_pb(pb_model=pb_model)
         assert add_floats_step_expected_config == generated_config
 
-        core = pg.ProcessTypes()
-        core = pg.register_types(core)
-        core.register_process("tests.fixtures.test_registry.toy_library.addFloatsStep", AddFloatsStep)
-        core.register_process("tests.fixtures.test_registry.toy_library.SaveFloatToFileStep", SaveFloatToFileStep)
+        core = pg.allocate_core()
 
         composite = pg.Composite(config=deepcopy(generated_config), core=core)
         composite.run(10)
@@ -286,25 +242,24 @@ add_floats_step_pblang = """
     type float builtin
     type string builtin
 
-    step AddNums path tests.fixtures.test_registry.toy_library.AddFloatsStep
-        var left_hand_addend : float
-        var right_hand_addend : float
-        var result : float
-        inputs left_hand_addend right_hand_addend
-        outputs result
+    remote step AddNums at "tests.fixtures.test_registry.toy_library.AddFloatsStep" {
+        inputs (left_hand_addend: float, right_hand_addend: float)
+        outputs (result: float)
+    }
 
-    step PrintResult path tests.fixtures.test_registry.toy_library.SaveFloatToFileStep
-        param output_file_path: string
-        var result : float
-        inputs result
+    remote step PrintResult at "tests.fixtures.test_registry.toy_library.SaveFloatToFileStep" {
+        config (output_file_path: string)
+        inputs (result: float)
+    }
 
-    param out_path: string = "output.txt"
-    store A: float = 2.07
-    store B: float = 3.5
-    store C: float
+    let A: float = 2.07;
+    let B: float = 3.5;
+    let C: float;
 
-    store add_nums: set (C) as AddNums[](A, B)
-    store print_result: set () as PrintResult[out_path](C)
+    let add_nums: AddNums = AddNums();
+    let print_result: PrintResult = PrintResult(output_file_path = "output.txt");
+    connect add_nums inputs (left_hand_addend = A, right_hand_addend = B) outputs (result = C);
+    connect print_result inputs (result = C);
 """
 
 

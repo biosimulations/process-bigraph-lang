@@ -6,8 +6,8 @@ from process_bigraph_lang.antlr.pblangLexer import pblangLexer
 from process_bigraph_lang.antlr.pblangParser import pblangParser
 
 
-def test_parse_abc(model_path_abc: Path) -> None:
-    input_stream = FileStream(fileName=str(model_path_abc))
+def test_parse_abc(model_path_abc_antlr: Path) -> None:
+    input_stream = FileStream(fileName=str(model_path_abc_antlr))
     lexer = pblangLexer(input_stream)
     stream = CommonTokenStream(lexer)
     parser = pblangParser(stream)

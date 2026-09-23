@@ -100,51 +100,99 @@ export function generateStubPblang(
   /**
    * generates DSL text for pblang for stub of an SBML model
    *
-   *         // Generated SBML Stub
    *         type float builtin
-   *         unit conc_unit: ["10e-6 mole/liter"]
+   *         type string builtin
    *
-   *         sbml model file "../model.sbml"
-   *             param k0: float default 0.1 [conc_unit]
-   *             param k1: float default 1 [conc_unit]
-   *             param n: float default 4 [conc_unit]
-   *             param k2: float default 0.2 [conc_unit]
-   *             var S1: float default 1 [conc_unit]
-   *             var S2: float [conc_unit]
+   *         // SBML model 'model' (concentrations in 10e-6 mole/liter)
+   *         let model_file: string = "../model.sbml";
+   *
+   *         struct model_parameters {
+   *             k0: float = 0.1;
+   *             k1: float = 1;
+   *         }
+   *
+   *         struct model_species {
+   *             S1: float = 1;
+   *             S2: float;
+   *         }
    *
    **/
-  const float_type = "type float builtin";
-  const conc_unit = 'unit conc_unit: ["10e-6 mole/liter"]';
+  const modelName = toIdentifier(name);
   let pblang = "";
-  pblang += `${float_type}\n`;
-  pblang += `${conc_unit}\n`;
-  pblang += `sbml ${name} file "${sbmlFilePath}"\n`;
+  pblang += `type float builtin\n`;
+  pblang += `type string builtin\n`;
   pblang += `\n`;
+  pblang += `// SBML model '${name}' (concentrations in 10e-6 mole/liter)\n`;
+  pblang += `let ${modelName}_file: string = ${JSON.stringify(
+    sbmlFilePath,
+  )};\n`;
+  pblang += `\n`;
+  pblang += `struct ${modelName}_parameters {\n`;
   for (const parameter of sbmlContent.parameters) {
-    pblang += `    param ${parameter.id}: float default ${parameter.value} [conc_unit]\n`;
+    pblang += `    ${field(parameter.id, parameter.value)}\n`;
   }
+  pblang += `}\n`;
+  pblang += `\n`;
+  pblang += `struct ${modelName}_species {\n`;
   for (const species of sbmlContent.species) {
     let initialConcentration: number | undefined;
-    if (species.initialConcentration) {
+    if (species.initialConcentration !== undefined) {
       initialConcentration = species.initialConcentration;
-    } else if (species.initialAmount) {
+    } else if (species.initialAmount !== undefined) {
       // find compartment size for this species
       const compartment = sbmlContent.compartments.find(
         (comp) => comp.id === species.compartment,
       );
-      if (compartment) {
-        const compartmentSize = compartment.size;
-        if (compartmentSize) {
-          initialConcentration = species.initialAmount / compartmentSize;
-        }
+      if (compartment?.size) {
+        initialConcentration = species.initialAmount / compartment.size;
       }
     }
-    if (initialConcentration) {
-      pblang += `    var ${species.id}: float default ${initialConcentration} [conc_unit]\n`;
-    } else {
-      pblang += `    var ${species.id}: float [conc_unit]\n`;
-    }
+    pblang += `    ${field(species.id, initialConcentration)}\n`;
   }
+  pblang += `}\n`;
 
   return pblang;
+}
+
+function field(id: string, value: number | undefined): string {
+  const defaultValue = formatNumber(value);
+  return defaultValue === undefined
+    ? `${toIdentifier(id)}: float;`
+    : `${toIdentifier(id)}: float = ${defaultValue};`;
+}
+
+// DSL keywords that cannot be used as identifiers
+const KEYWORDS = new Set([
+  "array",
+  "at",
+  "builtin",
+  "config",
+  "connect",
+  "false",
+  "init",
+  "inputs",
+  "let",
+  "map",
+  "outputs",
+  "process",
+  "remote",
+  "step",
+  "store",
+  "struct",
+  "true",
+  "type",
+  "unit",
+]);
+
+// SBML ids are already identifiers; other names (e.g. file names) may not be
+function toIdentifier(name: string): string {
+  let id = name.replace(/[^\w]/g, "_");
+  if (!/^[_a-zA-Z]/.test(id)) id = `_${id}`;
+  return KEYWORDS.has(id) ? `${id}_` : id;
+}
+
+// Numbers must match the INT or FLOAT terminal: exponents need a decimal point (1.0e-7)
+function formatNumber(value: number | undefined): string | undefined {
+  if (value === undefined || !Number.isFinite(value)) return undefined;
+  return String(value).replace(/^(-?\d+)e/i, "$1.0e");
 }

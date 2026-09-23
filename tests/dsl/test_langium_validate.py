@@ -14,7 +14,7 @@ def test_validate_abc_should_fail(model_path_abc_error: Path) -> None:
     stdout, stderr = _langium_validate(model_path_abc_error)
     assert stderr == (
         "There are validation errors:\n"
-        "line 22: Could not resolve reference to SchemaItem named 'calciumaaa'. "
+        "line 31: Could not resolve reference to NamedElement named 'calciumaaa'. "
         "[calciumaaa]"
     )
     assert stdout == ""
@@ -29,6 +29,13 @@ def test_validate_add_floats(model_add_floats: Path) -> None:
 
 def test_validate_dfba_single(model_dfba_single: Path) -> None:
     stdout, stderr = _langium_validate(model_dfba_single)
+    assert stderr == ""
+    assert stdout.startswith("Parsed and validated ")
+    assert stdout.endswith("successfully!")
+
+
+def test_validate_caravagna(model_path_caravagna2010: Path) -> None:
+    stdout, stderr = _langium_validate(model_path_caravagna2010)
     assert stderr == ""
     assert stdout.startswith("Parsed and validated ")
     assert stdout.endswith("successfully!")

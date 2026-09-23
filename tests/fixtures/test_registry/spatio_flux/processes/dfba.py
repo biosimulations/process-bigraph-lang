@@ -11,7 +11,7 @@ from typing import Any
 import numpy as np
 import cobra  # type: ignore[import-untyped]
 from cobra.io import load_model  # type: ignore[import-untyped]
-from process_bigraph import Process, ProcessTypes  # type: ignore[import-untyped]
+from process_bigraph import Process  # type: ignore[import-untyped]
 
 # Suppress warnings
 warnings.filterwarnings("ignore", category=UserWarning, module="cobra.util.solver")
@@ -40,7 +40,7 @@ class DynamicFBA(Process):
         "bounds": "map[bounds]",
     }
 
-    def __init__(self, config: dict[str, Any], core: ProcessTypes) -> None:
+    def __init__(self, config: dict[str, Any], core: Any) -> None:
         super().__init__(config, core)
 
         if "xml" not in self.config["model_file"]:
@@ -199,7 +199,7 @@ def get_spatial_dfba_state(
     return {
         "fields": {
             "_type": "map",
-            "_value": {"_type": "array", "_shape": n_bins, "_data": "positive_float"},
+            "_value": {"_type": "positive_array", "_shape": n_bins, "_data": "float"},
             **initial_fields,
         },
         "spatial_dfba": get_spatial_dfba_spec(n_bins=n_bins, mol_ids=mol_ids),

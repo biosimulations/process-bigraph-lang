@@ -4,7 +4,7 @@ COMETS composite made of dFBAs and diffusion-advection processes.
 
 from typing import Any
 
-from process_bigraph import Composite, ProcessTypes  # type: ignore[import-untyped]
+from process_bigraph import Composite  # type: ignore[import-untyped]
 
 # TODO -- need to do this to register???
 
@@ -29,7 +29,7 @@ class COMETS(Composite):
         "n_bins": "tuple",
     }
 
-    def __init__(self, config: dict[str, Any], core: ProcessTypes | None = None) -> None:
+    def __init__(self, config: dict[str, Any], core: Any | None = None) -> None:
         # set up the document here
         _state = {
             "dFBA": {

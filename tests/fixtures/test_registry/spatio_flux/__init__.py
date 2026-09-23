@@ -3,28 +3,41 @@ TODO: import all processes here and add to core
 TODO -- make a "register_types" function that takes a core, registers all types and returns the core.
 """
 
+from dataclasses import dataclass
 from typing import Any
 
-from bigraph_schema import default  # type: ignore[import-untyped]
-from process_bigraph import ProcessTypes  # type: ignore[import-untyped]
+import numpy as np
+from bigraph_schema.methods import apply  # type: ignore[import-untyped]
+from bigraph_schema.schema import Array, Float  # type: ignore[import-untyped]
 
 from tests.fixtures.test_registry.spatio_flux.processes import PROCESS_DICT
 
 
-def apply_non_negative(
-    schema: dict[str, Any],
-    current: float,
-    update: float,
-    top_schema: dict[str, Any],
-    top_state: dict[str, Any],
-    path: list[str],
-    core: ProcessTypes,
-) -> float:
-    new_value = current + update
-    return max(0.0, new_value)
+@dataclass(kw_only=True)
+class PositiveFloat(Float):
+    """A float that accumulates updates and is clamped to be non-negative."""
 
 
-positive_float = {"_inherit": "float", "_apply": apply_non_negative}
+@apply.dispatch
+def _apply_positive_float(schema: PositiveFloat, state: Any, update: Any, path: Any) -> tuple[Any, list[Any]]:
+    if update is None:
+        return state, []
+    return max(0.0, state + update), []
+
+
+@dataclass(kw_only=True)
+class PositiveArray(Array):
+    """An array whose updates are accumulated and clamped elementwise to be non-negative."""
+
+
+@apply.dispatch
+def _apply_positive_array(schema: PositiveArray, state: Any, update: Any, path: Any) -> tuple[Any, list[Any]]:
+    if update is None:
+        return state, []
+    return np.maximum(0.0, state + update), []
+
+
+positive_float = PositiveFloat
 
 
 bounds_type = {"lower": "maybe[float]", "upper": "maybe[float]"}
@@ -34,7 +47,7 @@ particle_type = {
     "id": "string",
     "position": "tuple[float,float]",
     "size": "float",
-    "mass": default("float", 1.0),
+    "mass": {"_type": "float", "_default": 1.0},
     "local": "map[float]",
     "exchange": "map[float]",  # {mol_id: delta_value}
 }
@@ -49,6 +62,7 @@ reaction_type = "map[kinetics]"
 
 TYPES_DICT = {
     "positive_float": positive_float,
+    "positive_array": PositiveArray,
     "bounds": bounds_type,
     "particle": particle_type,
     "boundary_side": boundary_side,
@@ -58,9 +72,7 @@ TYPES_DICT = {
 }
 
 
-def register_types(core: ProcessTypes) -> ProcessTypes:
-    for type_name, type_schema in TYPES_DICT.items():
-        core.register(type_name, type_schema)
-    for process_name, process in PROCESS_DICT.items():
-        core.register_process(process_name, process)
+def register_types(core: Any) -> Any:
+    core.register_types(TYPES_DICT)
+    core.register_links(PROCESS_DICT)
     return core

@@ -1,53 +1,62 @@
-from typing import cast, Any
+from dataclasses import dataclass
+from typing import Any
 
-from process_bigraph_lang.dsl.ast_model import (
-    Type,
-    ASTModel,
-    StoreNode,
-    DefaultValue,
-    ProcDef,
-    StepDef,
-    SchemaItem,
-    EdgeDef,
-    StoreNodeRef,
-    Parameter,
-)
+from process_bigraph_lang.compiler.converter import site
 from process_bigraph_lang.compiler.pb_model import (
     PBModel,
-    PBStepSchema,
-    PBStepState,
     PBProcessSchema,
     PBProcessState,
+    PBStepSchema,
+    PBStepState,
     PBStoreSchema,
     PBStoreState,
 )
+from process_bigraph_lang.dsl.ast_model import (
+    ArrayLiteral,
+    ArrayType,
+    ASTModel,
+    BoolLiteral,
+    CallableLiteral,
+    ConnectStatement,
+    FloatLiteral,
+    InitDecl,
+    IntLiteral,
+    MapLiteral,
+    MapType,
+    MemberCall,
+    PrimitiveType,
+    RemoteCallableType,
+    SimpleTypeRef,
+    SiteLiteral,
+    StoreDecl,
+    StringLiteral,
+    StructLiteral,
+    StructType,
+    TupleLiteral,
+    TupleType,
+    TypeAlias,
+    TypeRef,
+    Value,
+    VarDef,
+)
+
+# DSL primitive type names that differ from their bigraph-schema names
+_PRIMITIVE_SCHEMA_NAMES = {"int": "integer", "bool": "boolean"}
 
 
 def compile_ast(ast_model: ASTModel) -> PBModel:
-    pb_model = PBModel(
-        process_schemas=[],
-        process_states=[],
-        store_schemas=[],
-        store_states=[],
-        step_schemas=[],
-        step_states=[],
-        types=[],
-    )
-    for type_def in ast_model.types:
-        if type_def.builtin:
-            continue
-        type_name = type_def.name
-        if type_name not in pb_model.types:
-            # pb_type = PBType(name=type_name, type=type_def.type)
-            # pb_model.types.append(pb_type)
-            pass
+    """
+    Compile a bound ASTModel (see bind_ast.bind_ast_model) into a PBModel.
 
-    for store_node in ast_model.storeNodes:
-        compile_store_node(store_node, pb_model, [])
-
-    # emitter_step = PBStep()
-    # pb_model.steps.append(emitter_step)
-    return pb_model
+    - every `store` and every `let` whose type is not a remote type becomes a store; struct-typed
+      stores are split into one store per field, nested under the struct's name
+    - a value of a remote type (`Grow(...)`) becomes a step or process at that path
+    - `connect` bindings wire edge ports to store paths, relative to the edge's container
+    - an open value (`?`) becomes a template site, sorted by its store's or config parameter's type,
+      and an instance of an interface (a remote without `at`) gets an open address; the result is a
+      template to fill (process_bigraph.templates) before it runs
+    """
+    return _Compiler(ast_model).compile()
 
 
 def compute_relative_path(target_abs_path: list[str], reference_abs_path: list[str]) -> list[str]:
@@ -75,234 +84,266 @@ def compute_relative_path(target_abs_path: list[str], reference_abs_path: list[s
     return relative_path
 
 
-def compile_store_node(store_node: StoreNode, pb_model: PBModel, store_node_path: list[str]) -> None:
-    opt_type: Type | None = None
-    if store_node.optional_type:
-        opt_type = cast(Type, store_node.optional_type.ref_object)
-        assert isinstance(opt_type, Type)
+def type_schema(type_ref: TypeRef) -> str | dict[str, Any]:
+    """The bigraph-schema type for a DSL type (aliases are replaced by their target type)."""
+    if isinstance(type_ref, SimpleTypeRef):
+        type_def = type_ref.type.ref_object
+        if isinstance(type_def, PrimitiveType):
+            return _PRIMITIVE_SCHEMA_NAMES.get(type_def.name, type_def.name)
+        if isinstance(type_def, TypeAlias):
+            return type_schema(type_def.type)
+        if isinstance(type_def, StructType):
+            return {field.name: type_schema(field.type) for field in type_def.fields}
+        raise ValueError(f"Type '{type_ref.type.ref_text}' has no data schema")
+    if isinstance(type_ref, ArrayType):
+        element = type_schema(type_ref.elementType)
+        return f"list[{element}]" if isinstance(element, str) else {"_type": "list", "_element": element}
+    if isinstance(type_ref, MapType):
+        if type_schema(type_ref.keyType) != "string":
+            raise ValueError("bigraph-schema maps are keyed by strings; map key type must be 'string'")
+        value = type_schema(type_ref.valueType)
+        return f"map[{value}]" if isinstance(value, str) else {"_type": "map", "_value": value}
+    elements = [type_schema(element.type) for element in type_ref.elements]
+    if all(isinstance(element, str) for element in elements):
+        return f"tuple[{','.join(str(element) for element in elements)}]"
+    return {"_type": "tuple", "_values": elements}
 
-    opt_val: DefaultValue | None = store_node.optional_val
-    if opt_val is not None or opt_type is not None:
-        # this is a leaf, add a PBStoreSchema and/or a PBStoreState object
-        pb_store_schema: PBStoreSchema | None = None
-        if opt_type is not None:
-            pb_store_schema = PBStoreSchema(
-                key=store_node.name,
-                path=store_node_path,
-                data_type=opt_type.name if opt_type is not None else None,
-                default_value=None,
-                collection_type=None,
+
+def _unalias(type_ref: TypeRef) -> TypeRef:
+    while isinstance(type_ref, SimpleTypeRef) and isinstance(type_ref.type.ref_object, TypeAlias):
+        type_ref = type_ref.type.ref_object.type
+    return type_ref
+
+
+def _type_def(type_ref: TypeRef) -> Any:
+    type_ref = _unalias(type_ref)
+    return type_ref.type.ref_object if isinstance(type_ref, SimpleTypeRef) else None
+
+
+def _chain_path(member_call: MemberCall) -> list[str]:
+    prefix = _chain_path(member_call.previous) if member_call.previous else []
+    return [*prefix, member_call.element.ref_text]
+
+
+@dataclass
+class _Const:
+    """An already-evaluated value (e.g. a struct field of a referenced constant)."""
+
+    value: Any
+
+
+class _Compiler:
+    def __init__(self, ast_model: ASTModel) -> None:
+        self.ast_model = ast_model
+        self.pb_model = PBModel(
+            process_schemas=[],
+            process_states=[],
+            store_schemas=[],
+            store_states=[],
+            step_schemas=[],
+            step_states=[],
+            types=[],
+        )
+        self.edge_states: dict[tuple[str, ...], PBStepState | PBProcessState] = {}
+        self.inits: dict[int, Value] = {}
+        for element in ast_model.elements:
+            if isinstance(element, InitDecl):
+                store = element.store.ref_object
+                if id(store) in self.inits:
+                    raise ValueError(f"Store '{element.store.ref_text}' is initialized more than once")
+                self.inits[id(store)] = element.value
+
+    def compile(self) -> PBModel:
+        for element in self.ast_model.elements:
+            if isinstance(element, StoreDecl):
+                self._declare(element.name, element.type, self.inits.get(id(element)), [])
+            elif isinstance(element, VarDef):
+                self._declare_var(element)
+        for element in self.ast_model.elements:
+            if isinstance(element, ConnectStatement):
+                self._connect(element)
+        return self.pb_model
+
+    def _declare_var(self, var_def: VarDef) -> None:
+        if var_def.name is not None:
+            self._declare(var_def.name, var_def.type, var_def.value, [])
+        elif var_def.lhs is not None:
+            # destructuring: let (a: A, b: B): (a: A, b: B) = (a = ..., b = ...);
+            values = self._evaluate(var_def.value, var_def.type) if var_def.value is not None else None
+            names = [element.name for element in _unalias(var_def.type).elements]  # type: ignore[union-attr]
+            for binding in var_def.lhs.bindings:
+                value = _Const(values[names.index(binding.name)]) if values is not None else None
+                self._declare(binding.name, binding.type, value, [])
+
+    def _declare(
+        self, key: str, type_ref: TypeRef, value: Value | _Const | None, path: list[str], default: Value | None = None
+    ) -> None:
+        type_def = _type_def(type_ref)
+        if isinstance(value, SiteLiteral) and not isinstance(type_def, RemoteCallableType):
+            # an open store (a struct-typed one stays whole: one site sorted by the struct type)
+            store_schema = PBStoreSchema(
+                key=key,
+                path=path,
+                data_type=type_schema(type_ref),
+                default_value=self._evaluate(default, type_ref) if default is not None else None,
             )
-            pb_model.store_schemas.append(pb_store_schema)
-        if opt_val is not None:
-            pb_model.store_states.append(
-                PBStoreState(
-                    key=store_node.name,
-                    path=store_node_path,
-                    store_schema=pb_store_schema,
-                    value=opt_val.val,
-                )
+            self.pb_model.store_schemas.append(store_schema)
+            self.pb_model.store_states.append(
+                PBStoreState(key=key, path=path, store_schema=store_schema, value=self._site(value, type_ref))
             )
-
-    if store_node.proc_call is not None:
-        proc_call = store_node.proc_call
-        proc_def = cast(ProcDef, proc_call.proc_def_ref.ref_object)
-        assert isinstance(proc_def, ProcDef)
-
-        address, config_schema_info, input_schema_info, output_schema_info = retrieve_edge_def_fields(proc_def)
-        config_schema = {key: val.schema_dict_val for key, val in config_schema_info.items()}
-        input_schema = {key: val.schema_dict_val for key, val in input_schema_info.items()}
-        output_schema = {key: val.schema_dict_val for key, val in output_schema_info.items()}
-
-        proc_config_state: dict[str, int | float | str | bool] = {}
-        if proc_call.config_node_list:
-            for parameter_ref, param in zip(proc_call.config_node_list.parameter_refs, proc_def.params):
-                parameter: Parameter = cast(Parameter, parameter_ref.ref_object)
-                assert isinstance(parameter, Parameter)
-                assert parameter.default
-                proc_config_state[param.name] = parameter.default.val
-
-        proc_input_state: dict[str, Any] = {}
-        if proc_call.input_node_list:
-            for store_node_ref, proc_def_ref in zip(proc_call.input_node_list.store_node_refs, proc_def.inputs):
-                _, _pb_store_schema, _ = retrieve_store_nodes(store_node_ref, pb_model)
-                if _pb_store_schema:
-                    rel_path = compute_relative_path(_pb_store_schema.full_path, store_node_path)
-                    proc_input_state[proc_def_ref.ref_text] = rel_path
-
-        proc_output_state: dict[str, Any] = {}
-        if proc_call.output_node_list:
-            for store_node_ref, proc_def_ref in zip(proc_call.output_node_list.store_node_refs, proc_def.outputs):
-                _, _pb_store_schema, _ = retrieve_store_nodes(store_node_ref, pb_model)
-                if _pb_store_schema:
-                    rel_path = compute_relative_path(_pb_store_schema.full_path, store_node_path)
-                    proc_output_state[proc_def_ref.ref_text] = rel_path
-
-        pb_process_schema = PBProcessSchema(
-            key=store_node.name,
-            path=store_node_path,
-            address=address,
-            config_schema=config_schema,
-            input_schema=input_schema,
-            output_schema=output_schema,
-            default_config_state={},
-            default_input_state={},
-            default_output_state={},
-            collection_info=None,
-        )
-        pb_model.process_schemas.append(pb_process_schema)
-
-        pb_process_state = PBProcessState(
-            key=store_node.name,
-            path=store_node_path,
-            address=address,
-            config_state=proc_config_state,
-            input_state=proc_input_state,
-            output_state=proc_output_state,
-            process_schema=pb_process_schema,
-        )
-        pb_model.process_states.append(pb_process_state)
-
-    if store_node.step_call is not None:
-        step_call = store_node.step_call
-        step_def = cast(StepDef, step_call.step_def_ref.ref_object)
-        assert isinstance(step_def, StepDef)
-
-        address, config_schema_info, input_schema_info, output_schema_info = retrieve_edge_def_fields(step_def)
-        config_schema = {key: val.schema_dict_val for key, val in config_schema_info.items()}
-        input_schema = {key: val.schema_dict_val for key, val in input_schema_info.items()}
-        output_schema = {key: val.schema_dict_val for key, val in output_schema_info.items()}
-
-        step_config_state: dict[str, int | float | str | bool] = {}
-        if step_call.config_node_list:
-            for parameter_ref, param in zip(step_call.config_node_list.parameter_refs, step_def.params):
-                parameter = cast(Parameter, parameter_ref.ref_object)
-                assert isinstance(parameter, Parameter)
-                assert parameter.default
-                step_config_state[param.name] = parameter.default.val
-
-        step_input_state: dict[str, list[str]] = {}
-        if step_call.input_node_list:
-            for store_node_ref, step_def_ref in zip(step_call.input_node_list.store_node_refs, step_def.inputs):
-                _, _pb_store_schema, _ = retrieve_store_nodes(store_node_ref, pb_model)
-                if _pb_store_schema:
-                    rel_path = compute_relative_path(_pb_store_schema.full_path, store_node_path)
-                    step_input_state[step_def_ref.ref_text] = rel_path
-
-        step_output_state: dict[str, list[str]] = {}
-        if step_call.output_node_list:
-            for store_node_ref, step_def_ref in zip(step_call.output_node_list.store_node_refs, step_def.outputs):
-                _, _pb_store_schema, _ = retrieve_store_nodes(store_node_ref, pb_model)
-                if _pb_store_schema:
-                    rel_path = compute_relative_path(_pb_store_schema.full_path, store_node_path)
-                    step_output_state[step_def_ref.ref_text] = rel_path
-
-        pb_step_schema = PBStepSchema(
-            key=store_node.name,
-            path=store_node_path,
-            address=address,
-            config_schema=config_schema,
-            input_schema=input_schema,
-            output_schema=output_schema,
-            default_config_state={},
-            default_input_state={},
-            default_output_state={},
-            collection_info=None,
-        )
-        pb_model.step_schemas.append(pb_step_schema)
-
-        pb_step_state = PBStepState(
-            key=store_node.name,
-            path=store_node_path,
-            address=address,
-            config_state=step_config_state,
-            input_state=step_input_state,
-            output_state=step_output_state,
-            step_schema=pb_step_schema,
-        )
-        pb_model.step_states.append(pb_step_state)
-
-    for child_node in store_node.child_defs or []:
-        compile_store_node(child_node, pb_model, store_node_path + [store_node.name])
-
-
-def retrieve_store_nodes(
-    store_node_ref: StoreNodeRef, pb_model: PBModel
-) -> tuple[StoreNode, PBStoreSchema | None, PBStoreState | None]:
-    store_node = cast(StoreNode, store_node_ref.ref_object)
-    assert isinstance(store_node, StoreNode)
-    pb_store_schema: PBStoreSchema | None = next(
-        (store_schema for store_schema in pb_model.store_schemas if store_schema.key == store_node.name), None
-    )
-    pb_store_state: PBStoreState | None = next(
-        (store_state for store_state in pb_model.store_states if store_state.key == store_node.name), None
-    )
-    if not pb_store_schema and not pb_store_state:
-        raise ValueError(f"Store definition {store_node.name} not found in model")
-    return store_node, pb_store_schema, pb_store_state
-
-
-class SchemaAndState:
-    schema_type: Type | None
-    state_val: DefaultValue | None
-
-    def __init__(self, schema_type: Type | None, state_val: DefaultValue | None):
-        self.schema_type = schema_type
-        self.state_val = state_val
-
-    @property
-    def schema_dict_val(self) -> int | float | bool | str:
-        if self.schema_type:
-            return self.schema_type.name
-        elif self.state_val:
-            return self.state_val.val
+        elif isinstance(type_def, RemoteCallableType):
+            if not isinstance(value, CallableLiteral):
+                raise ValueError(f"'{'.'.join([*path, key])}' must be initialized with {type_def.name}(...)")
+            self._declare_edge(key, type_def, value, path)
+        elif isinstance(type_def, StructType):
+            field_values: dict[str, Value | _Const] = {}
+            if isinstance(value, StructLiteral):
+                field_values = {field.name: field.value for field in value.fields}
+            elif value is not None:
+                evaluated = value.value if isinstance(value, _Const) else self._evaluate(value, type_ref)
+                field_values = {name: _Const(field_value) for name, field_value in evaluated.items()}
+            for field in type_def.fields:
+                self._declare(field.name, field.type, field_values.get(field.name), [*path, key], field.default)
         else:
-            raise ValueError("SchemaAndState has no schema type or state value")
+            store_schema = PBStoreSchema(
+                key=key,
+                path=path,
+                data_type=type_schema(type_ref),
+                default_value=self._evaluate(default, type_ref) if default is not None else None,
+            )
+            self.pb_model.store_schemas.append(store_schema)
+            if value is not None:
+                self.pb_model.store_states.append(
+                    PBStoreState(
+                        key=key,
+                        path=path,
+                        store_schema=store_schema,
+                        value=value.value if isinstance(value, _Const) else self._evaluate(value, type_ref),
+                    )
+                )
 
+    def _declare_edge(self, key: str, remote: RemoteCallableType, literal: CallableLiteral, path: list[str]) -> None:
+        def schema(ports: TupleType | None) -> dict[str, Any]:
+            return {port.name: type_schema(port.type) for port in ports.elements} if ports else {}
 
-def retrieve_edge_def_fields(
-    edge_def: EdgeDef,
-) -> tuple[str, dict[str, SchemaAndState], dict[str, SchemaAndState], dict[str, SchemaAndState]]:
-    if not edge_def.python_path:
-        raise ValueError(f"Process or Step definition {edge_def.name} has no python path")
-    address: str = ".".join(edge_def.python_path.path)
-    config_schema_and_state: dict[str, SchemaAndState] = {}
-    input_schema_and_state: dict[str, SchemaAndState] = {}
-    output_schema_and_state: dict[str, SchemaAndState] = {}
-    for param_item in edge_def.params:
-        config_schema_and_state[param_item.name] = get_schema_item_schema_and_state(edge_def, param_item)
-    for input_item in edge_def.inputs:
-        # get var with same name as input item
-        var_item = next((var for var in edge_def.vars if var.name == input_item.ref_text), None)
-        if var_item is None:
-            raise ValueError(f"Process definition {edge_def.name} has no var with name {input_item.ref_text}")
-        input_schema_and_state[input_item.ref_text] = get_schema_item_schema_and_state(edge_def, var_item)
-    for output_item in edge_def.outputs:
-        # get var with same name as output item
-        var_item = next((var for var in edge_def.vars if var.name == output_item.ref_text), None)
-        if var_item is None:
-            raise ValueError(f"Process definition {edge_def.name} has no var with name {output_item.ref_text}")
-        output_schema_and_state[output_item.ref_text] = get_schema_item_schema_and_state(edge_def, var_item)
-    return address, config_schema_and_state, input_schema_and_state, output_schema_and_state
+        config_types = {param.name: param.type for param in remote.config.elements} if remote.config else {}
+        config_state = {
+            arg.name: (
+                self._site(arg.value, config_types[arg.name])
+                if isinstance(arg.value, SiteLiteral)
+                else self._evaluate(arg.value, config_types.get(arg.name))
+            )
+            for arg in literal.configArgs
+        }
+        edge_fields: dict[str, Any] = dict(
+            key=key,
+            path=path,
+            address=remote.address,
+            config_schema=schema(remote.config),
+            input_schema=schema(remote.inputs),
+            output_schema=schema(remote.outputs),
+            default_config_state={},
+            default_input_state={},
+            default_output_state={},
+            collection_info=None,
+        )
+        state_fields: dict[str, Any] = dict(
+            key=key, path=path, address=remote.address, config_state=config_state, input_state={}, output_state={}
+        )
+        state: PBStepState | PBProcessState
+        if remote.kind == "step":
+            step_schema = PBStepSchema(**edge_fields)
+            state = PBStepState(**state_fields, step_schema=step_schema)
+            self.pb_model.step_schemas.append(step_schema)
+            self.pb_model.step_states.append(state)
+        else:
+            process_schema = PBProcessSchema(**edge_fields)
+            state = PBProcessState(**state_fields, process_schema=process_schema)
+            self.pb_model.process_schemas.append(process_schema)
+            self.pb_model.process_states.append(state)
+        self.edge_states[tuple([*path, key])] = state
 
+    def _connect(self, connect: ConnectStatement) -> None:
+        instance_path = _chain_path(connect.instance)
+        state = self.edge_states.get(tuple(instance_path))
+        if state is None:
+            raise ValueError(f"'{'.'.join(instance_path)}' is not a step or process instance")
+        for bindings, wires in (
+            (connect.inputBindings, state.input_state),
+            (connect.outputBindings, state.output_state),
+        ):
+            for binding in bindings:
+                if binding.name in wires:
+                    raise ValueError(
+                        f"Port '{binding.name}' of '{'.'.join(instance_path)}' is connected more than once"
+                    )
+                target_path = _chain_path(binding.variable)
+                if not self._is_store_path(target_path):
+                    raise ValueError(f"'{'.'.join(target_path)}' is not a store")
+                wires[binding.name] = compute_relative_path(target_path, state.path)
 
-def get_schema_item_schema_and_state(proc_or_step_def: EdgeDef, schema_item: SchemaItem) -> SchemaAndState:
-    opt_type: Type | None = None
-    if schema_item.type_ref is not None:
-        opt_type = cast(Type, schema_item.type_ref.ref_object)
-        assert isinstance(opt_type, Type)
-        if not opt_type.builtin:
-            raise ValueError(f"Process or Step definition {proc_or_step_def.name} has non-builtin type {opt_type.name}")
-    default_value: DefaultValue | None = schema_item.default
-    if opt_type is None and default_value is None:
-        raise ValueError(f"Process or Step definition {proc_or_step_def.name} has no type and no default value")
-    return SchemaAndState(schema_type=opt_type, state_val=default_value)
+    def _is_store_path(self, path: list[str]) -> bool:
+        # a leaf store, or a struct-typed store containing leaf stores
+        return any(schema.full_path[: len(path)] == path for schema in self.pb_model.store_schemas)
 
+    def _site(self, value: SiteLiteral, type_ref: TypeRef) -> dict[str, Any]:
+        default = self._evaluate(value.default, type_ref) if value.default is not None else None
+        return site(type_schema(type_ref), default)
 
-def _determine_builtin_default(type_to_infer: Type) -> Any:
-    if type_to_infer.name == "float":
-        return 0.0
-    elif type_to_infer.name == "int":
-        return 0
-    else:
-        raise ValueError(f"Unknown built-in default for type `{type_to_infer}`")
+    def _evaluate(self, value: Value, type_ref: TypeRef | None = None) -> Any:
+        """Evaluate a constant value; `type_ref` (if known) orders tuples and widens ints to floats."""
+        type_ref = _unalias(type_ref) if type_ref is not None else None
+        type_def = type_ref.type.ref_object if isinstance(type_ref, SimpleTypeRef) else None
+        if isinstance(value, IntLiteral):
+            return (
+                float(value.value) if isinstance(type_def, PrimitiveType) and type_def.name == "float" else value.value
+            )
+        if isinstance(value, (FloatLiteral, StringLiteral)):
+            return value.value
+        if isinstance(value, BoolLiteral):
+            return value.value == "true"
+        if isinstance(value, StructLiteral):
+            field_types = (
+                {field.name: field.type for field in type_def.fields} if isinstance(type_def, StructType) else {}
+            )
+            return {field.name: self._evaluate(field.value, field_types.get(field.name)) for field in value.fields}
+        if isinstance(value, ArrayLiteral):
+            element_type = type_ref.elementType if isinstance(type_ref, ArrayType) else None
+            return [self._evaluate(element, element_type) for element in value.elements]
+        if isinstance(value, MapLiteral):
+            value_type = type_ref.valueType if isinstance(type_ref, MapType) else None
+            return {self._evaluate(entry.key): self._evaluate(entry.value, value_type) for entry in value.entries}
+        if isinstance(value, TupleLiteral):
+            fields = {field.name: field.value for field in value.fields}
+            if isinstance(type_ref, TupleType):
+                return tuple(self._evaluate(fields[element.name], element.type) for element in type_ref.elements)
+            return tuple(self._evaluate(field_value) for field_value in fields.values())
+        if isinstance(value, MemberCall):
+            return self._evaluate_reference(value)
+        if isinstance(value, SiteLiteral):
+            raise ValueError("an open value (?) has no value to use as a constant")
+        raise ValueError(f"'{value.callable_type.ref_text}(...)' cannot be used as a constant value")
+
+    def _evaluate_reference(self, member_call: MemberCall) -> Any:
+        path = _chain_path(member_call)
+        root = member_call
+        while root.previous is not None:
+            root = root.previous
+        declaration = root.element.ref_object
+        value = declaration.value if isinstance(declaration, VarDef) else self.inits.get(id(declaration))
+        if value is None:
+            raise ValueError(f"'{path[0]}' has no value to use as a constant")
+        result = self._evaluate(value, declaration.type)
+        type_ref: TypeRef | None = declaration.type
+        for name in path[1:]:
+            type_ref = _unalias(type_ref) if type_ref is not None else None
+            if isinstance(type_ref, TupleType):
+                names = [element.name for element in type_ref.elements]
+                type_ref = type_ref.elements[names.index(name)].type
+                result = result[names.index(name)]
+            else:
+                type_def = type_ref.type.ref_object if isinstance(type_ref, SimpleTypeRef) else None
+                field_types = {f.name: f.type for f in type_def.fields} if isinstance(type_def, StructType) else {}
+                type_ref = field_types.get(name)
+                result = result[name]
+        return result

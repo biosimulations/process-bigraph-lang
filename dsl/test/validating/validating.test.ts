@@ -19,11 +19,21 @@ beforeAll(async () => {
   // await services.shared.workspace.WorkspaceManager.initializeWorkspace([]);
 });
 
+const model = `
+            type float builtin
+            struct Point { x: float; y: float; }
+            remote process Grow at "pkg.Grow" {
+                inputs (size: float)
+                outputs (size: float)
+            }
+            store origin: Point;
+            init origin = { x = 1.0, y = 2.0 };
+            let grow: Grow = Grow();`;
+
 describe("Validating", () => {
   test("check no errors", async () => {
-    document = await parse(`
-            def add(a, b) : a + b;
-            def double(a) : add(a, a);
+    document = await parse(`${model}
+            connect grow inputs (size = origin.x) outputs (size = origin.y);
         `);
 
     expect(
@@ -36,10 +46,9 @@ describe("Validating", () => {
     ).toHaveLength(0);
   });
 
-  test("check capital letter validation", async () => {
-    document = await parse(`
-            def add(a, b) : a + b;
-            def double(a) : add(a2, a);
+  test("check unresolved member reference", async () => {
+    document = await parse(`${model}
+            connect grow inputs (size = origin.z) outputs (size = origin.y);
         `);
 
     expect(
@@ -48,7 +57,7 @@ describe("Validating", () => {
     ).toEqual(
       // 'expect.stringContaining()' makes our test robust against future additions of further validation rules
       expect.stringContaining(s`
-                [2:32..2:34]: Could not resolve reference to VariableDefinition named 'a2'.
+                [10:47..10:48]: Could not resolve reference to NamedElement named 'z'.
             `),
     );
   });

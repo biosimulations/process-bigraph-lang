@@ -1,5 +1,6 @@
 from tests.fixtures.dsl_model_fixtures import (  # noqa: F401
     model_path_abc,
+    model_path_abc_antlr,
     model_path_abc_error,
     model_add_floats,
     model_dfba_single,
