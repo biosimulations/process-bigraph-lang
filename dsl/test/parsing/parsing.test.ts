@@ -47,7 +47,9 @@ describe("Parsing tests", () => {
         s`
                 Elements:
                   ${document.parseResult.value?.elements
-                    ?.map((e) => `${e.$type} ${"name" in e ? e.name : ""}`.trim())
+                    ?.map((e) =>
+                      `${e.$type} ${"name" in e ? e.name : ""}`.trim(),
+                    )
                     ?.join("\n")}
             `,
     ).toBe(s`

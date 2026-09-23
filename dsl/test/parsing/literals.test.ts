@@ -31,7 +31,9 @@ beforeAll(async () => {
   const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
   try {
     services = createProcessBigraphLanguageServices(EmptyFileSystem);
-    const doc = await parseHelper<Model>(services.ProcessBigraphLanguage)(sample);
+    const doc = await parseHelper<Model>(services.ProcessBigraphLanguage)(
+      sample,
+    );
     expect(doc.parseResult.parserErrors).toHaveLength(0);
     clearDocuments(services.shared, [doc]);
     parserBuildOutput = [...log.mock.calls, ...warn.mock.calls]
@@ -122,8 +124,9 @@ describe("struct and map literals", () => {
       `),
     ).toEqual([]);
     const literal = (name: string) =>
-      document!.parseResult.value.elements.filter(isVarDef).find((v) => v.name === name)
-        ?.value as { value: number } | undefined;
+      document!.parseResult.value.elements
+        .filter(isVarDef)
+        .find((v) => v.name === name)?.value as { value: number } | undefined;
     expect(literal("i")?.value).toBe(-3);
     expect(literal("f")?.value).toBe(-2.5);
     expect(literal("g")?.value).toBe(-0.0005);

@@ -237,13 +237,13 @@ export function validateValueAgainstType(
 
     case "tuple": {
       if (!isTupleLiteral(value)) {
-        accept("error", `Expected a tuple literal`, {node: value});
+        accept("error", `Expected a tuple literal`, { node: value });
         return false;
       }
 
       let hasError = false;
       const expectedFields = new Map(
-          expected.elements.map((e) => [e.name, e.type]),
+        expected.elements.map((e) => [e.name, e.type]),
       );
       const seen = new Set<string>();
 
@@ -276,7 +276,7 @@ export function validateValueAgainstType(
 
       for (const [name] of expectedFields) {
         if (!seen.has(name)) {
-          accept("error", `Missing tuple field '${name}'`, {node: value});
+          accept("error", `Missing tuple field '${name}'`, { node: value });
           hasError = true;
         }
       }

@@ -46,9 +46,7 @@ function renderChain(call: MemberCall): string {
 }
 
 function linkingErrors(doc: LangiumDocument<Model>): string[] {
-  return doc.references
-    .filter((r) => r.error)
-    .map((r) => r.error!.message);
+  return doc.references.filter((r) => r.error).map((r) => r.error!.message);
 }
 
 describe("Member access scoping", () => {

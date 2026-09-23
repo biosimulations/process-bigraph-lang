@@ -149,7 +149,11 @@ async function validationErrors(pblang: string): Promise<string[]> {
 
 describe("SBML stub generation", () => {
   test("generates a stub in the current DSL syntax", async () => {
-    const stub = generateStubPblang(parseSBML(sbmlstr), "model", "../model.sbml");
+    const stub = generateStubPblang(
+      parseSBML(sbmlstr),
+      "model",
+      "../model.sbml",
+    );
     expect(stub).toBe(
       [
         "type float builtin",
@@ -184,10 +188,7 @@ describe("SBML stub generation", () => {
         { id: "store", compartment: "cell", initialConcentration: -1e-7 },
       ],
       reactions: [],
-      parameters: [
-        { id: "kf", value: 2.5e-8 },
-        { id: "kr" },
-      ],
+      parameters: [{ id: "kf", value: 2.5e-8 }, { id: "kr" }],
     };
     const stub = generateStubPblang(content, "BIOMD-0912.v2", "models/m.xml");
     expect(stub).toContain('let BIOMD_0912_v2_file: string = "models/m.xml";');

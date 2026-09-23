@@ -123,7 +123,9 @@ export function generateStubPblang(
   pblang += `type string builtin\n`;
   pblang += `\n`;
   pblang += `// SBML model '${name}' (concentrations in 10e-6 mole/liter)\n`;
-  pblang += `let ${modelName}_file: string = ${JSON.stringify(sbmlFilePath)};\n`;
+  pblang += `let ${modelName}_file: string = ${JSON.stringify(
+    sbmlFilePath,
+  )};\n`;
   pblang += `\n`;
   pblang += `struct ${modelName}_parameters {\n`;
   for (const parameter of sbmlContent.parameters) {
@@ -161,9 +163,25 @@ function field(id: string, value: number | undefined): string {
 
 // DSL keywords that cannot be used as identifiers
 const KEYWORDS = new Set([
-  "array", "at", "builtin", "config", "connect", "false", "init", "inputs",
-  "let", "map", "outputs", "process", "remote", "step", "store", "struct",
-  "true", "type", "unit",
+  "array",
+  "at",
+  "builtin",
+  "config",
+  "connect",
+  "false",
+  "init",
+  "inputs",
+  "let",
+  "map",
+  "outputs",
+  "process",
+  "remote",
+  "step",
+  "store",
+  "struct",
+  "true",
+  "type",
+  "unit",
 ]);
 
 // SBML ids are already identifiers; other names (e.g. file names) may not be

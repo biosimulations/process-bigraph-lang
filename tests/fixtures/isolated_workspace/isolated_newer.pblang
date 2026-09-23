@@ -58,4 +58,3 @@ struct StoreType {
 let my_store: StoreType = { A=1.0, B=2.0, C=3.0 };
 let abc: float = my_store.A;
 connect my_float_step inputs (left=my_store.A, right=my_store.B) outputs (result=my_store.C);
-

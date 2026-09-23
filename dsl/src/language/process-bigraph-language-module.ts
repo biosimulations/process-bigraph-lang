@@ -14,7 +14,7 @@ import {
 import { UnitValidator } from "./validation/unit-validator.js";
 import { registerValidationChecks } from "./validation/validator.js";
 import { TypeValidator } from "./validation/type-validator.js";
-import { MyScopeProvider } from './validation/scope-provider.js';
+import { MyScopeProvider } from "./validation/scope-provider.js";
 
 /**
  * Declaration of custom services - add your own service classes here.
@@ -48,7 +48,7 @@ export const ProcessBigraphLanguageModule: Module<
   },
   references: {
     ScopeProvider: (services) => new MyScopeProvider(services),
-  }
+  },
 };
 
 /**
