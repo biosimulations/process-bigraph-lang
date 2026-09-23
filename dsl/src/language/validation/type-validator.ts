@@ -21,7 +21,7 @@ import {
   typeToString,
   validateValueAgainstType,
 } from "./type-resolver.js";
-import { inferType } from "./scope-provider.js";
+import { inferType, memberCallText } from "./scope-provider.js";
 
 export class TypeValidator {
   checkVarDef(varDef: VarDef, accept: ValidationAcceptor): void {
@@ -119,12 +119,17 @@ export class TypeValidator {
 
     for (const [name] of paramMap) {
       if (!seen.has(name)) {
-        accept("error", `Missing required argument '${name}'`, { node: callable_literal });
+        accept("error", `Missing required argument '${name}'`, {
+          node: callable_literal,
+        });
       }
     }
   }
 
-  validateRemoteCallableType(remote: RemoteCallableType, accept: ValidationAcceptor) {
+  validateRemoteCallableType(
+    remote: RemoteCallableType,
+    accept: ValidationAcceptor,
+  ) {
     if (
       remote.address &&
       !/^[a-zA-Z_][\w]*(\.[a-zA-Z_][\w]*)*$/.test(remote.address)
@@ -189,12 +194,14 @@ export class TypeValidator {
     connect: ConnectStatement,
     accept: ValidationAcceptor,
   ): void {
-    const instance = connect.instance?.ref?.ref;
-    if (!instance) return; // unresolved instance is reported by the linker
+    if (!connect.instance) return;
+    const instanceTypeRef = inferType(connect.instance);
+    if (!instanceTypeRef) return; // unresolved instance is reported by the linker
+    const instanceName = memberCallText(connect.instance);
 
     let instanceType: ResolvedType;
     try {
-      instanceType = resolveType(instance.type);
+      instanceType = resolveType(instanceTypeRef);
     } catch (err) {
       accept("error", `Type resolution error: ${(err as Error).message}`, {
         node: connect.instance,
@@ -205,7 +212,9 @@ export class TypeValidator {
     if (instanceType.kind !== "remoteCallable") {
       accept(
         "error",
-        `'${instance.name}' is not a remote step or process instance (type ${typeToString(instanceType)})`,
+        `'${instanceName}' is not a remote step or process instance (type ${typeToString(
+          instanceType,
+        )})`,
         { node: connect.instance },
       );
       return;
@@ -235,13 +244,19 @@ export class TypeValidator {
       (ports ?? [])
         .map((p) => p.name)
         .filter((name) => !bindings.some((b) => b.name === name));
-    for (const name of missing(remote.inputs?.elements, connect.inputBindings)) {
+    for (const name of missing(
+      remote.inputs?.elements,
+      connect.inputBindings,
+    )) {
       accept("error", `Missing input binding '${name}' for '${remote.name}'`, {
         node: connect,
         property: "inputBindings",
       });
     }
-    for (const name of missing(remote.outputs?.elements, connect.outputBindings)) {
+    for (const name of missing(
+      remote.outputs?.elements,
+      connect.outputBindings,
+    )) {
       accept("error", `Missing output binding '${name}' for '${remote.name}'`, {
         node: connect,
         property: "outputBindings",
@@ -286,7 +301,13 @@ export class TypeValidator {
         if (!isCompatible(boundType, portType)) {
           accept(
             "error",
-            `Type mismatch for ${direction} '${binding.name}': bound element has type ${typeToString(boundType)}, '${remoteName}' ${direction} has type ${typeToString(portType)}`,
+            `Type mismatch for ${direction} '${
+              binding.name
+            }': bound element has type ${typeToString(
+              boundType,
+            )}, '${remoteName}' ${direction} has type ${typeToString(
+              portType,
+            )}`,
             { node: binding, property: "variable" },
           );
         }

@@ -112,9 +112,7 @@ describe("connect statement type checking", () => {
       await errors(
         `connect s inputs (left=s.A, right=s.B) outputs (result=s.C);`,
       ),
-    ).toEqual([
-      "'s' is not a remote step or process instance (type struct S)",
-    ]);
+    ).toEqual(["'s' is not a remote step or process instance (type struct S)"]);
   });
 
   test("leaves unresolved references to the linker", async () => {
@@ -130,9 +128,9 @@ describe("connect statement type checking", () => {
   });
 
   test("accepts an empty outputs clause for a remote with no outputs", async () => {
-    expect(
-      await errors(`connect emit inputs (value=s.A) outputs ();`),
-    ).toEqual([]);
+    expect(await errors(`connect emit inputs (value=s.A) outputs ();`)).toEqual(
+      [],
+    );
   });
 
   test("reports ports left unbound by an omitted or empty clause", async () => {
@@ -161,6 +159,27 @@ describe("connect statement type checking", () => {
   test("still requires config arguments when the remote declares config", async () => {
     const result = await errors(`let bad: Emit = Emit();`);
     expect(result.length).toBeGreaterThan(0);
-    expect(result.every((m) => m === "Missing required argument 'unused'")).toBe(true);
+    expect(
+      result.every((m) => m === "Missing required argument 'unused'"),
+    ).toBe(true);
+  });
+
+  test("connects an instance nested in a struct", async () => {
+    expect(
+      await errors(`
+        struct Adders { first: Add; second: AddAlias; }
+        let adders: Adders = { first = Add(unused="x"), second = Add(unused="y") };
+        connect adders.first inputs (left=s.A, right=s.B) outputs (result=s.C);
+        connect adders.second inputs (left=s.A, right=s.B) outputs (result=s.C);
+      `),
+    ).toEqual([]);
+  });
+
+  test("rejects a nested member that is not a remote instance", async () => {
+    expect(
+      await errors(
+        `connect s.A inputs (left=s.A, right=s.B) outputs (result=s.C);`,
+      ),
+    ).toEqual(["'s.A' is not a remote step or process instance (type float)"]);
   });
 });

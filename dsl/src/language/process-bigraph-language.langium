@@ -15,7 +15,7 @@ RemoteCallableType:
     '}';
 
 ConnectStatement:
-    'connect' instance=VarRef
+    'connect' instance=MemberCall
     ('inputs' '(' (inputBindings+=Binding (',' inputBindings+=Binding)*)? ')')?
     ('outputs' '(' (outputBindings+=Binding (',' outputBindings+=Binding)*)? ')')?
     ';';
@@ -134,9 +134,6 @@ StringLiteral:
 
 BoolLiteral:
     value=('true' | 'false');
-
-VarRef:
-    ref=[VarDef];
 
 Unit:
     "unit" name=ID ":" (('[' symbol=STRING ']') | (unit_ref=[Unit]));

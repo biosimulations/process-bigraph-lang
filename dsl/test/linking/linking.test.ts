@@ -63,25 +63,36 @@ describe("Linking tests", () => {
       //  the referenced AST element as well as for a potential error message;
       checkDocumentValid(document) ||
         [
-          ...model.elements.filter(isStoreDecl).map((d) => `store ${d.name}: ${typeName(d.type)}`),
-          ...model.elements.filter(isInitDecl).map((d) => `init -> ${d.store.ref?.$type}:${d.store.ref?.name}`),
-          ...model.elements.filter(isVarDef).map((d) => `let ${d.name}: ${typeName(d.type)}`),
+          ...model.elements
+            .filter(isStoreDecl)
+            .map((d) => `store ${d.name}: ${typeName(d.type)}`),
+          ...model.elements
+            .filter(isInitDecl)
+            .map((d) => `init -> ${d.store.ref?.$type}:${d.store.ref?.name}`),
+          ...model.elements
+            .filter(isVarDef)
+            .map((d) => `let ${d.name}: ${typeName(d.type)}`),
           ...model.elements
             .filter(isVarDef)
             .map((d) => d.value)
             .filter(isCallableLiteral)
-            .map((v) => `instance of ${v.callable_type.ref?.$type}:${v.callable_type.ref?.name}`),
+            .map(
+              (v) =>
+                `instance of ${v.callable_type.ref?.$type}:${v.callable_type.ref?.name}`,
+            ),
           ...model.elements
             .filter(isVarDef)
             .map((d) => d.value)
             .filter(isMemberCall)
             .map((v) => `value ${chain(v)}`),
-          ...model.elements.filter(isConnectStatement).flatMap((c) => [
-            `connect ${c.instance.ref.ref?.$type}:${c.instance.ref.ref?.name}`,
-            ...[...c.inputBindings, ...c.outputBindings].map(
-              (b) => `  ${b.name} = ${chain(b.variable)}`,
-            ),
-          ]),
+          ...model.elements
+            .filter(isConnectStatement)
+            .flatMap((c) => [
+              `connect ${chain(c.instance)}`,
+              ...[...c.inputBindings, ...c.outputBindings].map(
+                (b) => `  ${b.name} = ${chain(b.variable)}`,
+              ),
+            ]),
         ].join("\n"),
     ).toBe(s`
         store origin: Point
