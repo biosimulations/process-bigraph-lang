@@ -192,6 +192,19 @@ describe("reader", () => {
         .$kind,
     ).toBe("site");
   });
+  test("a bare state tree (no schema, no state key) is read as the state", () => {
+    const bare = parseJson(
+      '{"a": 1.0, "total": 0.0, "add": {"_type": "process", "address": "local:Add", "inputs": {"x": ["a"]}, "outputs": {"y": ["total"]}}}',
+    ) as Dict;
+    const document = readDocument(bare);
+    expect([...document.root.children.keys()]).toEqual(["a", "total", "add"]);
+    expect(document.root.children.get("add")?.$kind).toBe("edge");
+    expect(document.extras.size).toBe(0);
+    // a mapping without edges is still a document (an empty one with extras), not a state
+    const plain = parseJson('{"fields": {"A": 1.0}}') as Dict;
+    expect(readDocument(plain).root.children.size).toBe(0);
+  });
+
   test("a map of edges keeps its type; a nested composite is read into its edge", () => {
     const adders = readDocument(
       doc(`{"schema": {"adders": {"_type": "map", "_value": {"_type": "process", "_inputs": {"a": "float"}}}},

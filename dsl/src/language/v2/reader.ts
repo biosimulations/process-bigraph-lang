@@ -57,12 +57,18 @@ const EDGE_KEYS = [
 ];
 const NESTED_CONFIG_KEYS = ["state", "schema", "bridge", "interface"];
 
-/** Read a `{"schema", "state"}` document. `source` is `authoring`, `saved` or `auto` (detect the saved form). */
+/**
+ * Read a `{"schema", "state"}` document. `source` is `authoring`, `saved` or `auto` (detect the saved form). A bare
+ * state tree (no `schema` and no `state` key, edges somewhere below; what a prebuilt simulator image such as
+ * viva-pde-particle's takes as its `.pbg`) is read as the state of a document with an empty schema.
+ */
 export function readDocument(
   doc: Dict,
   source: Source | "auto" = "auto",
   params: Set<string> = new Set(),
 ): Document {
+  if (!doc.has("state") && !doc.has("schema") && containsEdgeOrSite(doc))
+    doc = new Map<string, unknown>([["state", doc]]);
   const schema = doc.get("schema") ?? new Map();
   const state = doc.get("state") ?? new Map();
   const resolved: Source =

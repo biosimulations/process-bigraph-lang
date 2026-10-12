@@ -102,7 +102,10 @@ export interface Decompiled {
   assets: Record<string, string>;
 }
 
-/** A document or CompositeSpec: JSON or YAML text (lossless: ints stay ints), or an already parsed value. */
+/**
+ * A document or CompositeSpec: JSON or YAML text (lossless: ints stay ints), or an already parsed value. A bare state
+ * tree (no `schema`/`state` keys, as a prebuilt simulator image takes it) reads as the state of a document.
+ */
 export type DocumentSource = string | object;
 
 export type GraphSource = { text: string } | { document: DocumentSource };
