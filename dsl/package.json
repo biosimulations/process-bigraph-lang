@@ -38,7 +38,7 @@
         "language-configuration.json"
     ],
     "bin": {
-        "process-bigraph-language-cli": "./bin/cli.js"
+        "process-bigraph-language-cli": "bin/cli.js"
     },
     "scripts": {
         "build": "tsc -b tsconfig.src.json && node esbuild.mjs",
