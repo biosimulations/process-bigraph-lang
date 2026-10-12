@@ -654,31 +654,51 @@ exit 0 = no errors; 1 = errors; 2 = tool failure
 
 `fmt`, `compile`, `decompile`, `describe` and `doc` share the same envelope.
 
-## 5.4 Scheduling attributes (the Stepper as syntax)
+## 5.4 Operator splitting as a construct (the Stepper and the SplittingCoordinator as syntax)
 
-viva-pde-particle's `Stepper` wraps a process to reproduce vcell-fvsolver's lagged coupling: it is a process with
-interval `dt` that does nothing on `k−1` of every `k` ticks and, on the `phase`-th tick, calls its child with
-interval `k·dt`, so the child reads its inputs at `T + phase·dt` and has its outputs applied one `dt` later while
-advancing its own clock by `k·dt`. process-bigraph's single knob, `interval`, cannot say that. The Stepper is
-therefore three scheduling numbers around a real component, and the DSL puts them on the use of the process:
+viva-pde-particle couples its engines with two wrappers whose faces are their children's: `Stepper` (run a
+child on every k-th tick of a `dt` clock, phase-shifted, so that it reads the field at `T + (k−1)·dt` and has its
+counts applied at `T + k·dt`, vcell-fvsolver's lagged coupling) and `SplittingCoordinator` (run both engines and
+the adapters in an explicit order over one coupling interval `τ = k·dt` on a private copy of the stores). The
+coordinator's schemes are:
+
+| Scheme               | One interval `τ = k·dt`                                                                                                                                               |
+| -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `jacobi`             | PDE for `(k−1)·dt`; particles for `τ` reading the field now, update held back; PDE for `dt`; commit the particles. Equals the two-process composite with the Stepper. |
+| `gs_particles_first` | particles for `τ`; PDE for `τ` seeing the new particles                                                                                                               |
+| `gs_pde_first`       | PDE for `τ`; particles for `τ` seeing the new field                                                                                                                   |
+| `strang`             | PDE for `τ/2`; particles for `τ`; PDE for `τ/2` with the new particles (`k` even)                                                                                     |
+
+Only Jacobi is a per-process clock setting. Gauss–Seidel and Strang are **sequential** compositions inside one
+interval: the second engine sees the first one's result before the interval ends, which process-bigraph's
+scheduler cannot express because every process reads the state at the start of its interval. A splitting scheme is
+therefore a composition operator over a group of processes, not an attribute of one of them, and the DSL gives it a
+construct that says the physics as an ordered sequence per coupling interval:
 
 ```text
-process particles : SmoldynHybrid every dt stride k phase k - 1 { config {…} inputs {…} outputs {…} }
+split coupling every 4 * dt {
+  run pde for 3 * dt;
+  run particles for 4 * dt, hold;   // reads the field now; its update is applied at commit
+  run pde for dt;
+  commit particles;
+}
 ```
 
-Meaning: scheduled every `dt`; on slots where `tick mod stride == phase` it runs with interval `stride·dt`,
-reading inputs at the start of that slot and having outputs applied at its end. `every dt` alone is stride 1,
-phase 0.
+Gauss–Seidel is `run particles for τ; run pde for τ;` (or the reverse) and Strang is
+`run pde for τ/2; run particles for τ; run pde for τ/2;`. Adapters run whenever a store they read changed, the rule
+process-bigraph applies to steps, so they need no mention unless an order is pinned. Named schemes are sugar
+(`split coupling every 4 * dt scheme strang { pde, particles }`) whose expansion the formatter and hover show.
+`pde` and `particles` are ordinary processes declared in the composite, with static headers.
 
-Today this is sugar: the compiler emits the `local:Stepper` node with `config.process = {address, config}`, `dt`,
-`every` and `phase`, and the decompiler prints that shape back as the attribute. What it buys is static checking:
-the component named in the text has a static header, so the child's config, its wires and the schedule's
-invariants (`0 ≤ phase < stride`, `step_multiplier == stride` for Smoldyn, the wrapper's `interval == dt`) are
-checked before anything runs, instead of as `ValueError`s in `initialize()`. Because the syntax names the schedule
-and not the wrapper, the same text can compile to native scheduling once process-bigraph grows `stride` and
-`phase` on a process node (an upstream ask); until then the desugaring target should live in a shared package
-rather than in viva-pde-particle. `SplittingCoordinator` is the same idea over a group of processes (a
-`schedule` block on a node), a later item.
+What the construct buys statically: the participants' config and wires are checked as usual, and the schedule itself
+is checked, which today happens as `ValueError`s in `initialize()`: each engine's `for` durations sum to `τ` per
+interval, Strang's `k` is even, every `hold` has a `commit`, and the adapters' faces bridge the engines' stores.
+
+What it compiles to: Jacobi can go to the two-process form with the Stepper (the PDE stays a normal process that
+emitters see every `dt`); the other schemes go to the `SplittingCoordinator` node with its `pde`, `particles`,
+`adapters` and `scheme` config. The decompiler prints both shapes back as `split`. Either way the wrappers are
+desugaring targets and should live in a shared package rather than in viva-pde-particle; if process-bigraph grows
+ordered sub-steps within an interval, the same text compiles to that instead.
 
 ## 6. Open questions
 
