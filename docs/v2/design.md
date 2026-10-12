@@ -700,6 +700,26 @@ emitters see every `dt`); the other schemes go to the `SplittingCoordinator` nod
 desugaring targets and should live in a shared package rather than in viva-pde-particle; if process-bigraph grows
 ordered sub-steps within an interval, the same text compiles to that instead.
 
+**Decisions (2026-10-11):** the sequence is optional, the named schemes stay, and no scheme means the lagged
+Jacobi scheme (`split coupling every τ { pde, particles }`), which is the coordinator's default and the Stepper
+form. Scheme names should keep the distinction visible: `lagged` (viva's `jacobi`, kept as an alias),
+`sequential` with the order, `strang`.
+
+### 5.4.1 Superposition on a shared store is native, not `split`
+
+Several processes adding increments to one store is process-bigraph's default model: the apply semantics for
+numbers, arrays and maps of them are additive, and every delta that lands at the same time is summed onto the
+store. Numerically that is simultaneous (Jacobi, additive) splitting, for `du/dt = A(u) + B(u)` the step
+`u(T+Δ) = u(T) + Δ·A(u(T)) + Δ·B(u(T))`, multirate when intervals differ. It needs no construct. What the
+language says about it is the store's apply semantics, which the type already carries (`float` and
+`array<float>` accumulate, `overwrite<T>` replaces), and what the checker does about it is the writer analysis of
+the registry design: two overwriting writers on one store (`W221`, an ordering race), an additive writer mixed
+with an overwriting one (`W220`/`E-MIXED-APPLY`), and a step publishing a whole array with accumulate semantics
+(`W223`). `pblang doc` lists writers and readers per store with those badges.
+
+`split` is only for the other coupling style: engines that own their variables and exchange whole values
+through ports and adapters, where the question is _when_ each engine reads the other's result within an interval.
+
 ## 6. Open questions
 
 1. **Params referenced at several positions in template mode.** Substitute at compile time by default (`--set`);
