@@ -1,11 +1,14 @@
-# Publishes dsl/ to npm as `process-bigraph-lang` when a GitHub release is published, at the release's version (the
-# same event and version as the Python package in on-release-main.yml).
+# Stages dsl/ on npm as `process-bigraph-lang` when a GitHub release is published, at the release's version (the
+# same event and version as the Python package in on-release-main.yml). A maintainer then approves the staged
+# version on npmjs.com (Staged Packages, with 2FA), and only then is it public.
 #
 # Trusted publishing (OIDC): no npm token anywhere. On npmjs.com the package's Trusted Publisher is GitHub Actions,
 # organization `biosimulations`, repository `process-bigraph-lang`, workflow filename `publish-npm.yml`, no
-# environment. `id-token: write` lets the job mint the OIDC token npm checks against that entry; provenance is
-# attached automatically (public repository, public package). The package's Publishing access on npmjs.com should
-# be "Require two-factor authentication and disallow tokens" once this workflow has published once.
+# environment; its default allowed action is `npm stage publish`, which is what this runs. `id-token: write` lets
+# the job mint the OIDC token npm checks against that entry; provenance is attached automatically (public
+# repository, public package). The package's Publishing access on npmjs.com should be "Require two-factor
+# authentication and disallow tokens" once this workflow has staged once. Staging needs npm 11.15 or later: Node 24
+# bundles a newer one.
 name: publish-npm
 
 on:
@@ -14,7 +17,7 @@ on:
   workflow_dispatch:
     inputs:
       dry_run:
-        description: "Build and pack, but do not publish"
+        description: "Build and pack, but do not stage"
         type: boolean
         default: true
 
@@ -33,16 +36,19 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Set up Node.js
+        id: node
         uses: actions/setup-node@v4
         with:
           node-version: 24
           cache: npm
           cache-dependency-path: dsl/package-lock.json
 
-      - name: Use an npm that supports trusted publishing (11.5.1 or later)
+      - name: Check the npm version (staged publishing needs 11.15 or later)
         run: |
-          npm install -g npm@latest
           npm --version
+          node -e 'const [a, b] = process.env.V.split(".").map(Number); if (a < 11 || (a === 11 && b < 15)) { console.error("npm too old"); process.exit(1) }' 
+        env:
+          V: ${{ steps.node.outputs.npm-version }}
 
       - name: Install dependencies
         run: npm ci
@@ -62,6 +68,6 @@ jobs:
         if: github.event_name == 'workflow_dispatch' && inputs.dry_run
         run: npm publish --dry-run
 
-      - name: Publish
+      - name: Stage for approval
         if: github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && !inputs.dry_run)
-        run: npm publish
+        run: npm stage publish

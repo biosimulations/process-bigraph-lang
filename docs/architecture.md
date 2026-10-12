@@ -92,9 +92,9 @@ runs `deno compile` to produce a standalone `dist/cli-native` executable that do
 
 ### Embedding in another application
 
-`dsl/` is also the npm package `process-bigraph-lang`, published on every GitHub release at the release's version by
-`.github/workflows/publish-npm.yml` through npm's trusted publishing (OIDC, no token; see `dsl/README.md`,
-"Releasing"); `npm run pack` writes an unreleased build's tarball to `dist/`. Nothing in
+`dsl/` is also the npm package `process-bigraph-lang`, staged on npm by every GitHub release at the release's version by
+`.github/workflows/publish-npm.yml` through npm's trusted publishing (OIDC, no token) and approved by a maintainer
+(see `dsl/README.md`, "Releasing"); `npm run pack` writes an unreleased build's tarball to `dist/`. Nothing in
 `src/language/` or `src/api.ts` touches the file system, so the whole language runs in a browser. The package exports:
 
 | Export                                        | What it is                                                                                                                                                                 |

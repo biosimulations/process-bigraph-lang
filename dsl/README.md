@@ -27,11 +27,14 @@ For an editor, start `process-bigraph-lang/worker` in a web worker and connect i
 
 ### Releasing
 
-`.github/workflows/publish-npm.yml` publishes to npm when a GitHub release is published, at the release's tag as the
-version, by [trusted publishing](https://docs.npmjs.com/trusted-publishers) (OIDC): there is no npm token. The
-package's Trusted Publisher on npmjs.com is GitHub Actions, organization `biosimulations`, repository
-`process-bigraph-lang`, workflow `publish-npm.yml`, no environment; provenance is attached automatically. A manual
-`workflow_dispatch` run packs without publishing (`dry_run`), or publishes the committed version when `dry_run` is off.
+`.github/workflows/publish-npm.yml` stages the package on npm when a GitHub release is published, at the release's
+tag as the version, by [trusted publishing](https://docs.npmjs.com/trusted-publishers) (OIDC): there is no npm
+token. A maintainer then approves the staged version on npmjs.com (Staged Packages, with 2FA;
+[staged publishing](https://docs.npmjs.com/staged-publishing)), and only then is it public. The package's Trusted
+Publisher on npmjs.com is GitHub Actions, organization `biosimulations`, repository `process-bigraph-lang`, workflow
+`publish-npm.yml`, no environment, allowed action `npm stage publish`; provenance is attached automatically. A
+manual `workflow_dispatch` run packs without staging (`dry_run`), or stages the committed version when `dry_run` is
+off.
 
 ## CLI
 
