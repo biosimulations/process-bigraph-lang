@@ -18,14 +18,18 @@ import {
   isV2ModelMeta,
   isV2ModelTime,
   isV2NullLiteral,
+  isV2Statement,
   isV2StringLiteral,
   isV2TupleLiteral,
 } from "../generated/ast.js";
-import { fromAst, parseType, type TypeExpr } from "./types.js";
+import { fromAst, parseType, surface, type TypeExpr } from "./types.js";
 
 export interface ConfigField {
   type?: TypeExpr;
   hasDefault: boolean;
+  /** the default as data, when it is a literal (for hover and docs) */
+  default?: unknown;
+  doc?: string;
 }
 
 export interface InterfaceDecl {
@@ -37,6 +41,7 @@ export interface InterfaceDecl {
   inputs?: Record<string, TypeExpr>;
   outputs?: Record<string, TypeExpr>;
   dynamicPorts: boolean;
+  doc?: string;
 }
 
 export const MODEL_BLOCKS = ["compartments", "species", "parameters"] as const;
@@ -97,8 +102,10 @@ function fromManifestEntry(entry: Record<string, unknown>): InterfaceDecl {
       type: field.type != null ? parseType(field.type) : undefined,
       hasDefault: "default" in field,
     };
+    if ("default" in field) config[key].default = field.default;
+    if (typeof field.doc === "string") config[key].doc = field.doc;
   }
-  return {
+  const decl: InterfaceDecl = {
     name: String(entry.name),
     kind: String(entry.kind ?? "process"),
     address: typeof entry.address === "string" ? entry.address : undefined,
@@ -108,6 +115,8 @@ function fromManifestEntry(entry: Record<string, unknown>): InterfaceDecl {
     outputs: portsFromManifest(entry.outputs),
     dynamicPorts: Boolean(entry.dynamic_ports),
   };
+  if (typeof entry.doc === "string") decl.doc = entry.doc;
+  return decl;
 }
 
 function portsFromManifest(
@@ -122,15 +131,23 @@ function portsFromManifest(
 
 // --- from the AST ---------------------------------------------------------------------------------------------
 
-export function interfaceFromAst(node: V2Interface): InterfaceDecl {
+export function interfaceFromAst(
+  node: V2Interface,
+  module?: string,
+): InterfaceDecl {
   const decl: InterfaceDecl = {
     name: node.name,
     kind: node.kind,
     address:
       node.address !== undefined ? normalizeAddress(node.address) : undefined,
+    module,
     config: fieldsOf(node.config),
     dynamicPorts: false,
   };
+  const doc = docText(
+    isV2Statement(node.$container) ? node.$container.docs : [],
+  );
+  if (doc !== undefined) decl.doc = doc;
   if (node.inputs) {
     if (node.inputs.open) decl.dynamicPorts = true;
     else decl.inputs = portTypes(node.inputs.fields);
@@ -167,12 +184,26 @@ export function modelFromAst(node: V2ModelDecl): ModelDecl {
 
 export function fieldsOf(fields: V2Field[]): Record<string, ConfigField> {
   const out: Record<string, ConfigField> = {};
-  for (const field of fields)
-    out[field.name] = {
+  for (const field of fields) {
+    const entry: ConfigField = {
       type: fromAst(field.type),
       hasDefault: field.default !== undefined,
     };
+    if (field.default !== undefined) {
+      const value = literalValue(field.default);
+      if (value !== undefined) entry.default = value;
+    }
+    const doc = docText(field.docs);
+    if (doc !== undefined) entry.doc = doc;
+    out[field.name] = entry;
+  }
   return out;
+}
+
+/** The text of `///` doc comments, without the markers. */
+export function docText(docs: string[]): string | undefined {
+  if (docs.length === 0) return undefined;
+  return docs.map((d) => d.replace(/^\/\/\/ ?/, "").trimEnd()).join("\n");
 }
 
 function portTypes(fields: V2Field[]): Record<string, TypeExpr> {
@@ -203,4 +234,42 @@ export function dictValue(dict: {
   const out: Record<string, unknown> = {};
   for (const entry of dict.entries) out[entry.key] = literalValue(entry.value);
   return out;
+}
+
+// --- rendering ------------------------------------------------------------------------------------------------
+
+/** The declaration in DSL spelling, as a header file prints it (for hover). */
+export function renderInterface(decl: InterfaceDecl): string {
+  const lines: string[] = [];
+  const at =
+    decl.address !== undefined ? ` at ${JSON.stringify(decl.address)}` : "";
+  lines.push(`${decl.kind} ${decl.name}${at} {`);
+  const config = Object.entries(decl.config);
+  if (config.length > 0)
+    lines.push(
+      `  config { ${config.map(([k, f]) => renderField(k, f)).join(" ")} }`,
+    );
+  for (const [label, ports] of [
+    ["inputs", decl.inputs],
+    ["outputs", decl.outputs],
+  ] as const) {
+    if (ports === undefined) {
+      if (decl.dynamicPorts) lines.push(`  ${label} { ... }`);
+      continue;
+    }
+    const fields = Object.entries(ports).map(
+      ([k, t]) => `${k}: ${surface(t)};`,
+    );
+    lines.push(`  ${label} { ${fields.join(" ")} }`);
+  }
+  lines.push("}");
+  return lines.join("\n");
+}
+
+export function renderField(name: string, field: ConfigField): string {
+  let text = `${name}: ${field.type ? surface(field.type) : "any"}`;
+  if (field.default !== undefined)
+    text += ` = ${JSON.stringify(field.default)}`;
+  else if (field.hasDefault) text += " = ...";
+  return `${text};`;
 }

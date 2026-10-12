@@ -18,6 +18,8 @@ import { TypeValidator } from "./validation/type-validator.js";
 import { MyScopeProvider } from "./validation/scope-provider.js";
 import { V2ScopeComputation } from "./pblang-v2-scope.js";
 import { registerV2Checks, V2Registry, V2Validator } from "./v2/validator.js";
+import { V2HoverProvider } from "./v2/hover.js";
+import { V2CompletionProvider } from "./v2/completion.js";
 
 /**
  * Declaration of custom services - add your own service classes here.
@@ -36,7 +38,7 @@ export type ProcessBigraphLanguageAddedServices = {
 export type ProcessBigraphLanguageServices = LangiumServices &
   ProcessBigraphLanguageAddedServices;
 
-/** The v2 language (.pbl files): the static checker (headers, wires, writers, units, emit paths, model sites). */
+/** The v2 language (.pbl files): the static checker (headers, wires, writers, units, emit paths, model sites), hover and completion. */
 export type PblangV2AddedServices = {
   validation: {
     V2Registry: V2Registry;
@@ -54,8 +56,12 @@ export const PblangV2Module: Module<
     ScopeComputation: (services) => new V2ScopeComputation(services),
   },
   validation: {
-    V2Registry: () => new V2Registry(),
+    V2Registry: (services) => new V2Registry(services),
     V2Validator: (services) => new V2Validator(services.validation.V2Registry),
+  },
+  lsp: {
+    HoverProvider: (services) => new V2HoverProvider(services),
+    CompletionProvider: (services) => new V2CompletionProvider(services),
   },
 };
 

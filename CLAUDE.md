@@ -173,7 +173,10 @@ There is **one grammar and one checker**, both TypeScript: `dsl/src/language/pbl
 parses v2 text and checks documents by calling `cli-native` (`process_bigraph_lang/v2/langium.py`, `check.py`);
 the Lark parser and the Python checker are gone. Units in the checker use mathjs. Compliance suite:
 `dsl/test/v2/check.test.ts`; the Python tests under `tests/v2/` run the same expectations through the CLI and
-skip when no CLI is built.
+skip when no CLI is built. Hover and completion (`dsl/src/language/v2/{hover,completion}.ts`) share the checker's
+resolution (`resolve.ts`: which header an edge is declared by, how a path walks the tree); `V2Registry` answers an
+import from manifests (CLI `--interfaces`) or from header `.pbl` files open in the workspace (`module a.b;` +
+`X` is `local:!a.b.X`). Tests: `dsl/test/v2/hover-completion.test.ts`.
 `dsl/` holds **two Langium languages**: v1 (`.pblang`, `process-bigraph-language.langium`, unchanged) and v2
 (`.pbl`, `pblang-v2.langium`, rule names prefixed `V2` because both share one generated `ast.ts`). The same
 language server and `cli-native` serve both; the CLI picks the language by extension. `process_bigraph_lang/v2/langium.py`

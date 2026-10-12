@@ -612,6 +612,19 @@ worker) and the CLI's `check --json` envelope. Its inputs are data only: the par
 provides without Node or Deno at run time (Deno compiles it once when the wheel is built). There is one grammar
 and one checker; the compliance suite is `dsl/test/v2/check.test.ts`, mirrored by the Python tests through the CLI.
 
+**Editor services.** Hover and completion are built on the same resolution the checker uses
+(`dsl/src/language/v2/resolve.ts`: which header an edge is declared by, and how a path walks the composite
+tree). Hover shows an edge's header as a header file would print it, a port's declared type and the store it is
+wired to, the store or node a path segment names, a header's config field under a config key, and the
+declarations of stores, params, models and emitter aliases, with their `///` docs. Completion offers the header's
+unwired ports in `inputs { }` / `outputs { }`, its config fields in `config { }` (required first, `key = `
+inserted), the stores and nodes of the edge's parent in a wire path and the keys below a dict store, the emitter
+aliases after `emit`, and interfaces at `process x : ` from the registry and from header files open in the
+workspace, with the `import` they need added as an additional edit. The keywords a key may coincide with
+(`every`, `process`, ...) are not proposed in key positions. In the editor, header `.pbl` files in the workspace
+answer `import a.b.{X}` directly (a document with `module a.b;` declaring `X` is `local:!a.b.X`), so a composite
+next to its generated headers is checked without a manifest; the CLI takes manifests with `--interfaces`.
+
 ### 5.3 `pblang check`
 
 ```text

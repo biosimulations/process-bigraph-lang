@@ -256,8 +256,8 @@ The Langium v2 grammar exists (`dsl/src/language/pblang-v2.langium`, language id
 coexisting with v1 in the same language server, VS Code extension and CLI. It parses every snapshot with no
 parse or linking errors (`dsl/test/v2/`), and `process_bigraph_lang/v2/langium.py` binds its JSON AST to the same
 model the Lark grammar builds; `tests/v2/test_langium.py` requires identical prints from both. Not yet in the
-Langium side: validators beyond parsing and name resolution (the Python checker does those), hover and completion,
-and the cutover of `.pblang` to v2.
+Langium side at that point: validators beyond parsing and name resolution, hover and completion, and the cutover of
+`.pblang` to v2.
 
 The checker was then ported to TypeScript (`dsl/src/language/v2/{types,headers,units,check,validator}.ts`) and
 registered as a Langium validation of `V2Module`, so the editor, the browser and the CLI (`check --json`) share one
@@ -267,6 +267,15 @@ tests keep the same expectations through the CLI. `lark` and `pint` are no longe
 change surfaced by the shipped growth-division example: a wire to `..` from a root edge is the idiom for "the
 parent store", which process-bigraph resolves by clamping at the root, so going above the root is `W110`, a
 warning, rather than an error.
+
+Hover and completion followed (`dsl/src/language/v2/{resolve,hover,completion}.ts`, see the design's section
+5.3, "Editor services"), and header files open in the workspace now answer imports in the editor
+(`V2Registry` falls back to the index of `V2Interface` declarations by module). Still open: the cutover of
+`.pblang` to v2, and where the Python datamodel ends up. With the checker in TypeScript, the Python package
+keeps the model only as the decompiler's pivot; a Python tool could still build a model and write a document
+without ever producing checked text, so either the public compile path becomes text -> check -> document with
+the writer as its back end, or reader, writer and printer move into `cli-native` as well and Python keeps only
+`describe` (introspection) and thin wrappers.
 
 ## Verification
 

@@ -12,44 +12,32 @@
 import type { AstNode } from "langium";
 import type {
   V2Composite,
-  V2CompositeEdge,
   V2ConfigBlock,
   V2DictLiteral,
   V2Emit,
   V2InnerBlock,
-  V2PortsBlock,
   V2Module,
   V2Node,
   V2NodeDecl,
   V2Path,
-  V2PlainEdge,
-  V2SharedEdge,
   V2Store,
-  V2Value,
   V2Wire,
   V2WireBlock,
 } from "../generated/ast.js";
 import {
-  isV2ArrayLiteral,
   isV2Composite,
   isV2CompositeEdge,
   isV2ConfigBlock,
-  isV2DictLiteral,
   isV2Emit,
-  isV2Import,
   isV2Index,
   isV2InnerBlock,
   isV2InputsBlock,
-  isV2Interface,
-  isV2ListLiteral,
-  isV2ModelDecl,
   isV2ModelRef,
   isV2Node,
   isV2OutputsBlock,
   isV2Param,
   isV2ParamRef,
   isV2PlainEdge,
-  isV2PortsBlock,
   isV2SharedEdge,
   isV2SiteValue,
   isV2Store,
@@ -57,16 +45,21 @@ import {
 import {
   type ConfigField,
   type InterfaceDecl,
-  interfaceFromAst,
-  isCompositeAddress,
   MODEL_BLOCKS,
   type ModelDecl,
-  modelFromAst,
-  normalizeAddress,
   Registry,
 } from "./headers.js";
 import {
-  arrayDataType,
+  declaredPorts,
+  descend,
+  type EdgeNode,
+  edgeAddress,
+  moduleContext,
+  type ModuleContext,
+  resolveEdge,
+  type Step,
+} from "./resolve.js";
+import {
   containsArray,
   fromAst,
   mapValueType,
@@ -91,12 +84,10 @@ export interface Diagnostic {
   property?: string;
 }
 
-type EdgeNode = V2PlainEdge | V2SharedEdge | V2CompositeEdge;
 type Entry =
   | { kind: "store"; node: V2Store }
   | { kind: "node"; node: V2Node }
   | { kind: "edge"; node: EdgeNode };
-type Step = string | number;
 
 interface Target {
   absolute: Step[];
@@ -138,9 +129,7 @@ export function pathText(path: Step[]): string {
 
 class Checker {
   readonly diagnostics: Diagnostic[] = [];
-  private readonly interfaces = new Map<string, InterfaceDecl>();
-  private readonly imports = new Map<string, string>();
-  private readonly models = new Map<string, ModelDecl>();
+  private readonly ctx: ModuleContext;
   private readonly paramUnits = new Map<string, string>();
   private index = new Map<string, Entry>();
   private writers = new Map<string, Writer[]>();
@@ -151,25 +140,16 @@ class Checker {
   constructor(
     private readonly module: V2Module,
     private readonly registry: Registry,
-  ) {}
+  ) {
+    this.ctx = moduleContext(module);
+  }
 
   run(): void {
     const composites: V2Composite[] = [];
     const emits: V2Emit[] = [];
     for (const statement of this.module.statements) {
       const body = statement.body;
-      if (isV2Import(body)) {
-        const module =
-          body.modulePath !== undefined
-            ? body.modulePath.slice(0, -2)
-            : body.module ?? "";
-        for (const imported of body.names)
-          this.imports.set(imported.name, module);
-      } else if (isV2Interface(body))
-        this.interfaces.set(body.name, interfaceFromAst(body));
-      else if (isV2ModelDecl(body))
-        this.models.set(body.name, modelFromAst(body));
-      else if (isV2Param(body)) {
+      if (isV2Param(body)) {
         const units = unitsOf(fromAst(body.type));
         if (units !== undefined) this.paramUnits.set(body.name, units);
       } else if (isV2Composite(body)) composites.push(body);
@@ -287,24 +267,8 @@ class Checker {
         | undefined
     )?.block;
     if (decl) this.config(config, decl, path, edge);
-    const ports = edge.items.find((item) => isV2PortsBlock(item)) as
-      | V2PortsBlock
-      | undefined;
     for (const [label, wires] of this.wireBlocks(edge)) {
-      let declared = decl
-        ? label === "inputs"
-          ? decl.inputs
-          : decl.outputs
-        : undefined;
-      const own = ports
-        ? label === "inputs"
-          ? ports.inputs
-          : ports.outputs
-        : [];
-      if (own.length > 0) {
-        declared = {};
-        for (const field of own) declared[field.name] = fromAst(field.type);
-      }
+      const declared = declaredPorts(edge, label, decl);
       for (const wire of wires.wires) {
         const portPath = [...path, label, wire.port];
         const portType = declared?.[wire.port];
@@ -315,10 +279,11 @@ class Checker {
             "unknown-port",
             "error",
             portPath,
-            `${decl?.name ?? edgeAddress(edge)} has no ${label.slice(
-              0,
-              -1,
-            )} port '${wire.port}' (declared: ${known})`,
+            `${
+              decl?.name ?? `'${edgeAddress(edge, this.ctx) ?? "?"}'`
+            } has no ${label.slice(0, -1)} port '${
+              wire.port
+            }' (declared: ${known})`,
             wire,
             "port",
           );
@@ -354,62 +319,43 @@ class Checker {
   }
 
   private declaration(edge: EdgeNode, path: Step[]): InterfaceDecl | undefined {
-    if (isV2CompositeEdge(edge)) return undefined;
-    const head = edge.head;
-    if (head.sharedRef !== undefined) return undefined;
-    if (head.address?.site) {
-      this.report(
-        "I300",
-        "open-address",
-        "info",
-        path,
-        "the address is an open site; ports are checked against its sort later",
-        head,
-      );
-      return undefined;
-    }
-    const ifaceName = head.iface?.$refText;
-    if (ifaceName !== undefined && this.interfaces.has(ifaceName)) {
-      const declared = this.interfaces.get(ifaceName)!;
-      if (declared.dynamicPorts)
+    const resolution = resolveEdge(edge, this.ctx, this.registry);
+    switch (resolution.kind) {
+      case "open":
         this.report(
-          "I210",
-          "dynamic-ports",
+          "I300",
+          "open-address",
           "info",
           path,
-          `${declared.name}: ports depend on an instance; only the declared ones are checked`,
+          "the address is an open site; ports are checked against its sort later",
+          (edge as { head: AstNode }).head,
+        );
+        return undefined;
+      case "unknown":
+        this.report(
+          "S020",
+          "unknown-component",
+          "info",
+          path,
+          `'${resolution.address}' is not in the registry; its ports and config are not checked`,
           edge,
         );
-      return declared;
+        return undefined;
+      case "inline":
+      case "registry":
+        if (resolution.decl.dynamicPorts)
+          this.report(
+            "I210",
+            "dynamic-ports",
+            "info",
+            path,
+            `${resolution.decl.name}: ports depend on an instance; only the declared ones are checked`,
+            edge,
+          );
+        return resolution.decl;
+      default:
+        return undefined;
     }
-    let address: string | undefined;
-    if (ifaceName !== undefined && this.imports.has(ifaceName))
-      address = `local:!${this.imports.get(ifaceName)}.${ifaceName}`;
-    else if (head.address?.literal !== undefined)
-      address = normalizeAddress(head.address.literal);
-    if (address === undefined || isCompositeAddress(address)) return undefined;
-    const decl = this.registry.lookup(address);
-    if (!decl) {
-      this.report(
-        "S020",
-        "unknown-component",
-        "info",
-        path,
-        `'${address}' is not in the registry; its ports and config are not checked`,
-        edge,
-      );
-      return undefined;
-    }
-    if (decl.dynamicPorts)
-      this.report(
-        "I210",
-        "dynamic-ports",
-        "info",
-        path,
-        `${decl.name}: ports depend on an instance; only the declared ones are checked`,
-        edge,
-      );
-    return decl;
   }
 
   private config(
@@ -448,8 +394,8 @@ class Checker {
     }
   }
 
-  private wireBlocks(edge: EdgeNode): [string, V2WireBlock][] {
-    const out: [string, V2WireBlock][] = [];
+  private wireBlocks(edge: EdgeNode): ["inputs" | "outputs", V2WireBlock][] {
+    const out: ["inputs" | "outputs", V2WireBlock][] = [];
     for (const item of edge.items) {
       if (isV2InputsBlock(item)) out.push(["inputs", item.block]);
       else if (isV2OutputsBlock(item)) out.push(["outputs", item.block]);
@@ -596,7 +542,8 @@ class Checker {
       store.type.options[0].$type === "V2NamedType"
         ? (store.type.options[0] as { name: string }).name
         : undefined;
-    const sort = typeName !== undefined ? this.models.get(typeName) : undefined;
+    const sort =
+      typeName !== undefined ? this.ctx.models.get(typeName) : undefined;
     if (!sort || !sort.isSort) return;
     if (store.value && isV2SiteValue(store.value)) {
       this.report(
@@ -612,7 +559,7 @@ class Checker {
     }
     if (!store.value || !isV2ModelRef(store.value)) return;
     const name = store.value.model.$refText;
-    const header = this.models.get(name);
+    const header = this.ctx.models.get(name);
     if (!header || header.isSort) {
       this.report(
         "G300",
@@ -897,11 +844,6 @@ function paramName(text: string): string {
   return text.slice(2, -1);
 }
 
-function edgeAddress(edge: EdgeNode): string {
-  if (isV2CompositeEdge(edge)) return `'${edge.address ?? "local:Composite"}'`;
-  return `'${edge.head.address?.literal ?? edge.head.iface?.$refText ?? "?"}'`;
-}
-
 /** `a/b/0`: the form `fill_sites` and CompositeSpec `emitters.paths` use. */
 export function pathSlash(path: V2Path): string {
   return path.segments
@@ -926,32 +868,4 @@ export function pathSource(path: V2Path): string {
     if (isV2Index(segment)) previous = segment.index;
   }
   return text;
-}
-
-/** Follow the remaining path into a store's value (dict keys) and type (map values, array elements). */
-function descend(
-  store: V2Store,
-  rest: Step[],
-): { type?: TypeExpr; declared: boolean } {
-  let type: TypeExpr | undefined = store.type ? fromAst(store.type) : undefined;
-  if (!type && store.value && isV2SiteValue(store.value) && store.value.sort)
-    type = fromAst(store.value.sort);
-  let value: V2Value | undefined = store.value;
-  for (const step of rest) {
-    if (typeof step === "number") {
-      type = arrayDataType(type);
-      value = undefined;
-      continue;
-    }
-    if (value && isV2DictLiteral(value)) {
-      const entry = value.entries.find((e) => e.key === step);
-      if (!entry) return { declared: false };
-      value = entry.value;
-    } else if (value && !isV2ArrayLiteral(value) && !isV2ListLiteral(value)) {
-      return { declared: false };
-    }
-    type =
-      type && type.kind === "struct" ? type.fields[step] : mapValueType(type);
-  }
-  return { type, declared: true };
 }
