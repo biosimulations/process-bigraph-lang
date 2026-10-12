@@ -107,6 +107,9 @@ file load true false`.
 
 ### 2.2 Grammar sketch
 
+The executable form of the subset the prototype prints is the Lark grammar in `process_bigraph_lang/v2/parser.py`,
+verified against every snapshot in `tests/fixtures/data/v2/snapshots/`. The sketch below is the full target.
+
 ```text
 Module:        ('module' QualifiedName ';')? TopLevel*;
 TopLevel:      Import | Param | TypeDecl | Let | InterfaceDecl | RootComposite | Emit | Options | Meta;

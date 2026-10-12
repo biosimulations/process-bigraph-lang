@@ -169,9 +169,14 @@ round-trip prototype that validates the design on real documents without a parse
 - `model.py` is the v2 object model (stores, nodes, edges, sites, params, emitters), the pivot of the round trip.
 - `reader.py` reads a `{"schema", "state"}` document (authoring or saved form) or a CompositeSpec mapping into it;
   `writer.py` writes it back, exactly for every v1 expected document.
-- `printer.py` prints canonical `.pblang` v2 text (large arrays and texts go to sidecar assets).
-- `normalize.py` defines document equivalence through bigraph-schema (`equivalent`, `diff_documents`).
-- `python -m process_bigraph_lang.v2 print <doc.json | x.composite.yaml>` and `… diff a.json b.json`.
+- `printer.py` prints canonical `.pblang` v2 text (large arrays and texts go to sidecar assets); `parser.py`
+  (a Lark grammar for that subset) reads it back, so the round trip can start from text.
+- `interfaces.py` generates interface declarations from a module's step/process classes (`describe_module`) and
+  holds the registry (with a JSON manifest) the printer resolves addresses in, printing `import`s instead of inline
+  declarations.
+- `normalize.py` defines document equivalence (`equivalent`, `diff_documents`).
+- `python -m process_bigraph_lang.v2 print <doc.json | x.composite.yaml> [--interfaces manifest.json]`,
+  `… diff a.json b.json` and `… describe <module> --manifest m.json --out m.pblang`.
 
 `tests/v2/test_roundtrip_corpus.py` runs the corpus in `tests/fixtures/data/v2/corpus/` (a viva-smoldyn
 CompositeSpec, a viva-pde-particle hybrid, a nested growth-division composite, the spatio-flux grids, template

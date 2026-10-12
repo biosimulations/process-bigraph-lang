@@ -161,9 +161,12 @@ stub. Entry points: `main.ts` (LSP), `main-browser.ts` (Monaco demo, `npm run de
 ## v2 (in progress): `process_bigraph_lang/v2/`
 
 The language is being redesigned; `docs/v2/` holds the research notes, the language design, the registry/authoring
-design and the plan. The code so far is a round-trip prototype with no parser: `reader.py` (document or
-CompositeSpec → `model.Document`), `writer.py` (→ document / CompositeSpec, exact for every v1 expected document),
-`printer.py` (→ canonical `.pblang` v2 text + sidecar assets) and `normalize.py` (`equivalent` via bigraph-schema).
+design and the plan. The code so far is a round-trip prototype: `reader.py` (document or CompositeSpec →
+`model.Document`), `writer.py` (→ document / CompositeSpec, exact for every v1 expected document), `printer.py`
+(→ canonical `.pblang` v2 text + sidecar assets), `parser.py` (a Lark grammar that reads that text back; the
+executable form of the grammar sketch), `interfaces.py` (`describe_module` + `InterfaceRegistry` with a JSON
+manifest; resolved addresses print as `import`s) and `normalize.py` (`equivalent` of two documents).
+The Langium grammar in `dsl/` is still v1; the v2 Langium grammar comes later and binds to the same model.
 
 - `tests/v2/` covers it; `tests/fixtures/data/v2/corpus/` is the corpus (see its README for provenance) and
   `tests/fixtures/data/v2/snapshots/` the printed text, regenerated with `PBLANG_UPDATE_SNAPSHOTS=1 pytest tests/v2`.

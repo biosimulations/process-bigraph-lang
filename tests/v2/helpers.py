@@ -11,7 +11,7 @@ import numpy as np
 import process_bigraph as pg  # type: ignore[import-untyped]
 from bigraph_schema import json_codec  # type: ignore[import-untyped]
 
-from process_bigraph_lang.v2 import equivalent
+from process_bigraph_lang.v2 import InterfaceRegistry, equivalent
 from process_bigraph_lang.v2.model import ExternalRef
 from process_bigraph_lang.v2.printer import Printed
 
@@ -19,6 +19,11 @@ FIXTURES = Path(__file__).resolve().parent.parent / "fixtures" / "data" / "v2"
 CORPUS = FIXTURES / "corpus"
 SNAPSHOTS = FIXTURES / "snapshots"
 UPDATE = os.environ.get("PBLANG_UPDATE_SNAPSHOTS") == "1"
+
+# the interfaces of the processes the corpus uses; edges that resolve here print as imports
+REGISTRY = InterfaceRegistry.from_modules(
+    "tests.fixtures.test_registry.toy_library", "tests.fixtures.test_registry.spatio_flux.processes"
+)
 
 
 def load_corpus_json(name: str) -> dict[str, Any]:
@@ -50,15 +55,27 @@ def asset_loader(printed: Printed) -> Any:
     """An `assets` callback for the writer that resolves the printer's sidecar references."""
 
     def load(ref: ExternalRef) -> Any:
-        content = printed.assets[ref.path]
-        if ref.kind == "text":
-            return content.decode()
-        payload = json.loads(content)
-        if ref.kind == "array":
-            return np.asarray(payload["data"], dtype=payload["dtype"]).reshape(payload["shape"])
-        return payload
+        return _decode_asset(ref, printed.assets[ref.path])
 
     return load
+
+
+def snapshot_asset_loader() -> Any:
+    """An `assets` callback that reads the committed sidecar files of the snapshots."""
+
+    def load(ref: ExternalRef) -> Any:
+        return _decode_asset(ref, (SNAPSHOTS / ref.path).read_bytes())
+
+    return load
+
+
+def _decode_asset(ref: ExternalRef, content: bytes) -> Any:
+    if ref.kind == "text":
+        return content.decode()
+    payload = json.loads(content)
+    if ref.kind == "array":
+        return np.asarray(payload["data"], dtype=payload["dtype"]).reshape(payload["shape"])
+    return payload
 
 
 def realized_equivalent(a: dict[str, Any], b: dict[str, Any], core: Any) -> bool:

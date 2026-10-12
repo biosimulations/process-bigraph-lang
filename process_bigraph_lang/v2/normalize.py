@@ -13,12 +13,19 @@ from __future__ import annotations
 import difflib
 import json
 import math
-import re
 from typing import Any
 
 import numpy as np
 
-from process_bigraph_lang.v2.values import COMPOSITE_OPTION_KEYS, EDGE_KINDS, RUNTIME_EDGE_KEYS, is_edge_node, is_site
+from process_bigraph_lang.v2.types import Group, Named, Struct, TypeExpr, UnionType, parse_type
+from process_bigraph_lang.v2.values import (
+    COMPOSITE_OPTION_KEYS,
+    EDGE_KINDS,
+    MISSING,
+    RUNTIME_EDGE_KEYS,
+    is_edge_node,
+    is_site,
+)
 
 _EdgeTable = dict[tuple[str, ...], dict[str, Any]]
 
@@ -104,44 +111,77 @@ def _norm_schema(schema: Any, core: Any, path: tuple[str, ...], table: _EdgeTabl
 
 
 def _canon_type(spec: Any, core: Any) -> Any:
+    """
+    One canonical shape for every spelling of a type: `float{3.5}` and `{"_type": "float", "_default": 3.5}`,
+    `map[string,float]` and `map[float]`, `a:float|b:float` and `{"a": "float", "b": "float"}`,
+    `array[(2|3),T]` and `{"_type": "array", "_shape": [2, 3], "_data": T}`. The canonical form is built from
+    the parsed type tree, so unknown (custom) type names survive.
+    """
     try:
-        rendered = core.render(core.access(spec), defaults=True)
-    except Exception:  # noqa: BLE001 - an unknown dict-form type; fall back to a plain canonical dict
+        expr = parse_type(spec)
+    except (TypeError, ValueError, KeyError, IndexError):
         return _canon(spec, core)
-    if isinstance(rendered, str) and ("|" in rendered or ":" in rendered):
-        try:
-            rendered = core.render(core.access(rendered), defaults=True)
-        except Exception:  # noqa: BLE001
-            pass
-    if isinstance(rendered, str):
-        rendered = _split_default(rendered)
-    return _canon(rendered, core)
+    return _canon_expr(expr, core)
 
 
-_TRAILING_DEFAULT = re.compile(r"^([^{}]*)\{(.*)\}$")
+def _canon_expr(expr: TypeExpr, core: Any) -> Any:
+    if isinstance(expr, Named):
+        return _canon_named(expr, core)
+    if isinstance(expr, Struct):
+        return {k: _canon_expr(v, core) for k, v in sorted(expr.fields.items())}
+    if isinstance(expr, UnionType):
+        return {"_type": "union", "_options": [_canon_expr(o, core) for o in expr.options]}
+    if isinstance(expr, Group):
+        return [int(i) if str(i).lstrip("-").isdigit() else i for i in expr.items]
+    out: dict[str, Any] = {}
+    for key, value in sorted(expr.attrs.items(), key=lambda kv: str(kv[0])):
+        if key in ("_inputs", "_outputs"):
+            out[key] = _canon_ports(value, core)
+        elif key in ("_value", "_element", "_data", "_sort", "_key", "_leaf") and isinstance(value, (str, dict)):
+            out[key] = _canon_type(value, core)
+        else:
+            out[key] = _canon(value, core)
+    return out
 
 
-def _split_default(rendered: str) -> Any:
-    """`float{3.5}` -> `{"_type": "float", "_default": 3.5}`, so both default spellings collide."""
-    match = _TRAILING_DEFAULT.match(rendered.strip())
-    if not match:
-        return rendered
-    try:
-        default = json.loads(match.group(2))
-    except ValueError:
-        default = match.group(2)
-    return {"_type": match.group(1), "_default": default}
+def _canon_named(expr: Named, core: Any) -> Any:
+    name = _TYPE_ALIASES.get(expr.name, expr.name)
+    groups = [a for a in expr.args if isinstance(a, Group)]
+    others = [a for a in expr.args if not isinstance(a, Group)]
+    if name == "map" and len(others) == 2 and isinstance(others[0], Named) and others[0].name == "string":
+        others = others[1:]
+    out: Any
+    numeric = [a for a in others if isinstance(a, Named) and a.name.lstrip("-").isdigit()]
+    if name == "array" or groups or expr.units is not None:
+        dims = _canon_expr(groups[0], core) if groups else [int(a.name) for a in numeric]
+        data = [a for a in others if a not in numeric]
+        out = {"_type": name, "_shape": dims or [1], "_data": _canon_expr(data[-1], core) if data else "float"}
+        if expr.units is not None:
+            out["_units"] = expr.units
+    elif others:
+        out = {"_type": name, "_args": [_canon_expr(a, core) for a in others]}
+    else:
+        out = name
+    if expr.default is not MISSING:
+        out = {"_type": out} if isinstance(out, str) else out
+        out["_default"] = _canon(expr.default, core)
+    return out
 
 
 def _canon_ports(ports: Any, core: Any) -> Any:
     if isinstance(ports, str):
         try:
-            ports = core.render(core.access(ports), defaults=True)
-        except Exception:  # noqa: BLE001
+            parsed = parse_type(ports)
+        except (TypeError, ValueError, KeyError, IndexError):
             return ports
+        ports = parsed.fields if isinstance(parsed, Struct) else {}
+        return {str(k): _canon_expr(v, core) for k, v in sorted(ports.items())}
     if isinstance(ports, dict):
         return {str(k): _canon_type(v, core) for k, v in sorted(ports.items(), key=lambda kv: str(kv[0]))}
     return _canon(ports, core)
+
+
+_TYPE_ALIASES = {"int": "integer", "bool": "boolean"}
 
 
 # --- state half --------------------------------------------------------------------------------------------------

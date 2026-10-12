@@ -197,7 +197,21 @@ Stretch step 10 is also done in a minimal form: `process_bigraph_lang/v2/interfa
 (`pblang-manifest/0`), and `python -m process_bigraph_lang.v2 describe <module> --manifest m.json --out m.pblang`.
 The printer resolves edge addresses against a registry and prints `import module.{Name};` instead of an inline
 declaration; the spatio-flux and saved-toy snapshots show it, and `toy_library.interfaces.pblang` is the first
-generated interface file. Not done: step 11 (Lark parser) and hand-written override files for dynamic ports.
+generated interface file.
+
+Stretch step 11 is done too: `process_bigraph_lang/v2/parser.py` is a Lark LALR grammar for the printed subset
+(imports, params, meta/options, inline interface declarations, stores, nodes, edges, nested composites with bridges,
+sites, `ports`, `extra`, `schema`, `emit`, the `array(...)`/`file(...)` value forms, and the type spelling). Every
+committed snapshot parses back into a model that prints to the same text and writes a document equivalent to the
+corpus original (`tests/v2/test_parser.py`), so the round trip now runs from text. The grammar is the executable form
+of the sketch in the design and the acceptance spec for the Langium v2 grammar. Not covered yet: expressions,
+`replicate`, `{default}` suffixes on types, `when` / `of config.x` faces, and hand-written override files for
+dynamic ports.
+
+Two decisions made while building the parser: the normalizer canonicalizes types from the parsed type tree rather
+than through bigraph-schema's renderer (the renderer drops custom type names such as `positive_float` and fails on
+unknown dict-form types, so the two spellings of one type no longer collided), and `///` doc comments are joined with
+spaces when parsed because the printer wraps them.
 
 ## Verification
 

@@ -20,6 +20,7 @@ pydantic = "^2.11.3"
 antlr4-python3-runtime = "^4.13.2"
 bigraph-schema = "^1.6.0"
 numpy = ">=1.26"
+lark = ">=1.1"
 
 [tool.poetry.build]
 script = "build.py"
