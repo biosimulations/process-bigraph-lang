@@ -122,7 +122,7 @@ store-not-declared`, `T121 config-missing`, `W220/W221/W223` writers, `W240/W241
   and `decompile` (text + assets). Documents cross the CLI as `json_codec` JSON with `__tuple__` tags
   (`dumps` / `loads`).
 - `interfaces.py`: `describe_module` → `InterfaceDecl`s with types in bigraph-schema's own form → manifest JSON
-  (`pblang-manifest/0`); `render_interfaces` via the CLI. `describe_env.py` is the standalone form (standard library
+  (`pbg-interfaces/1`, a shared format: JSON Schema in `docs/schemas/`, `pblang-manifest/0` still read); `render_interfaces` via the CLI. `describe_env.py` is the standalone form (standard library
   only, never imports this package, so it runs as a plain script inside any image): every module under some roots →
   one manifest per environment, with an `environment` block and `errors`. Keep it free of package imports; the
   per-class helpers are shared with `interfaces.py`. `sbml.py`: `describe_sbml` → JSON (`pblang-model/0`);

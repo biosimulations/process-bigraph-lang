@@ -75,7 +75,33 @@ describe("registry", () => {
     ).toThrow(/pblang-manifest\/9/);
     expect(registry.lookup("local:FVReactionDiffusion")).toBeDefined();
     expect(registry.lookup("local:AddFloatsProcess")).toBeUndefined();
-    expect(MANIFEST_VERSION).toBe("pblang-manifest/0");
+    expect(MANIFEST_VERSION).toBe("pbg-interfaces/1");
+  });
+
+  test("reads the shared format's config_schema and description, and the earlier pblang-manifest/0", () => {
+    const registry = new Registry();
+    registry.setManifests([pde]);
+    const fv = registry.lookup("local:FVReactionDiffusion");
+    expect(fv?.config.dt).toMatchObject({ hasDefault: true, default: 0.01 });
+    expect(fv?.config.grid?.hasDefault).toBe(false);
+    expect(fv?.doc).toMatch(/^PDE half/);
+    registry.addManifest({
+      schema_version: "pblang-manifest/0",
+      components: [
+        {
+          name: "Old",
+          kind: "step",
+          address: "local:!old.Old",
+          config: { rate: { type: "float", default: 2.0 } },
+          inputs: { x: "float" },
+          outputs: null,
+          doc: "An old entry.",
+        },
+      ],
+    });
+    const old = registry.lookup("local:Old");
+    expect(old?.config.rate).toMatchObject({ hasDefault: true, default: 2.0 });
+    expect(old?.doc).toBe("An old entry.");
   });
 
   test("a session's setManifests switches what its checks resolve", async () => {

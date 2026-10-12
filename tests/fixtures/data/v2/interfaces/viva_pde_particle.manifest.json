@@ -1,31 +1,22 @@
 {
-  "schema_version": "pblang-manifest/0",
+  "$schema": "https://biosimulations.github.io/process-bigraph-lang/schemas/pbg-interfaces-1.schema.json",
+  "schema_version": "pbg-interfaces/1",
   "components": [
     {
       "name": "FVReactionDiffusion",
       "kind": "process",
       "address": "local:!viva_pde_particle.processes.fv_reaction_diffusion.FVReactionDiffusion",
       "module": "viva_pde_particle.processes.fv_reaction_diffusion",
-      "config": {
-        "grid": {
-          "type": "map"
-        },
-        "pde": {
-          "type": "map"
-        },
+      "config_schema": {
+        "grid": "map",
+        "pde": "map",
         "dt": {
-          "type": {
-            "_type": "float",
-            "_default": 0.01
-          },
-          "default": 0.01
+          "_type": "float",
+          "_default": 0.01
         },
         "domain": {
-          "type": {
-            "_type": "map",
-            "_default": {}
-          },
-          "default": {}
+          "_type": "map",
+          "_default": {}
         }
       },
       "inputs": {
@@ -36,57 +27,36 @@
         "fields": "map[overwrite[array[float]]]"
       },
       "dynamic_ports": false,
-      "doc": "PDE half of a hybrid model (see :func:`viva_pde_particle.model.partition`)."
+      "description": "PDE half of a hybrid model (see :func:`viva_pde_particle.model.partition`)."
     },
     {
       "name": "SmoldynHybrid",
       "kind": "process",
       "address": "local:!viva_pde_particle.processes.smoldyn_hybrid.SmoldynHybrid",
       "module": "viva_pde_particle.processes.smoldyn_hybrid",
-      "config": {
-        "grid": {
-          "type": "map"
-        },
-        "config_text": {
-          "type": "string"
-        },
-        "particle_species": {
-          "type": "list[string]"
-        },
+      "config_schema": {
+        "grid": "map",
+        "config_text": "string",
+        "particle_species": "list[string]",
         "field_species": {
-          "type": {
-            "_type": "list[string]",
-            "_default": []
-          },
-          "default": []
+          "_type": "list[string]",
+          "_default": []
         },
         "dt": {
-          "type": {
-            "_type": "float",
-            "_default": 0.01
-          },
-          "default": 0.01
+          "_type": "float",
+          "_default": 0.01
         },
         "step_multiplier": {
-          "type": {
-            "_type": "integer",
-            "_default": 1
-          },
-          "default": 1
+          "_type": "integer",
+          "_default": 1
         },
         "quiet": {
-          "type": {
-            "_type": "boolean",
-            "_default": true
-          },
-          "default": true
+          "_type": "boolean",
+          "_default": true
         },
         "emit_positions": {
-          "type": {
-            "_type": "boolean",
-            "_default": false
-          },
-          "default": false
+          "_type": "boolean",
+          "_default": false
         }
       },
       "inputs": {
@@ -98,33 +68,23 @@
         "particle_positions": "map[overwrite[array[float]]]"
       },
       "dynamic_ports": false,
-      "doc": "Particle half of a hybrid model."
+      "description": "Particle half of a hybrid model."
     },
     {
       "name": "Stepper",
       "kind": "process",
       "address": "local:!viva_pde_particle.processes.stepper.Stepper",
       "module": "viva_pde_particle.processes.stepper",
-      "config": {
-        "process": {
-          "type": "map"
-        },
-        "dt": {
-          "type": "float"
-        },
+      "config_schema": {
+        "process": "map",
+        "dt": "float",
         "every": {
-          "type": {
-            "_type": "integer",
-            "_default": 1
-          },
-          "default": 1
+          "_type": "integer",
+          "_default": 1
         },
         "phase": {
-          "type": {
-            "_type": "integer",
-            "_default": 0
-          },
-          "default": 0
+          "_type": "integer",
+          "_default": 0
         }
       },
       "inputs": null,
@@ -136,36 +96,21 @@
       "kind": "process",
       "address": "local:!viva_pde_particle.processes.splitting.SplittingCoordinator",
       "module": "viva_pde_particle.processes.splitting",
-      "config": {
-        "pde": {
-          "type": "map"
-        },
-        "particles": {
-          "type": "map"
-        },
+      "config_schema": {
+        "pde": "map",
+        "particles": "map",
         "adapters": {
-          "type": {
-            "_type": "map",
-            "_default": {}
-          },
-          "default": {}
+          "_type": "map",
+          "_default": {}
         },
         "scheme": {
-          "type": {
-            "_type": "string",
-            "_default": "jacobi"
-          },
-          "default": "jacobi"
+          "_type": "string",
+          "_default": "jacobi"
         },
-        "dt": {
-          "type": "float"
-        },
+        "dt": "float",
         "step_multiplier": {
-          "type": {
-            "_type": "integer",
-            "_default": 1
-          },
-          "default": 1
+          "_type": "integer",
+          "_default": 1
         }
       },
       "inputs": null,
@@ -177,49 +122,27 @@
       "kind": "process",
       "address": "local:!viva_pde_particle.processes.recorder.GridRecorder",
       "module": "viva_pde_particle.processes.recorder",
-      "config": {
-        "out_dir": {
-          "type": "string"
-        },
-        "base_dt": {
-          "type": "float"
-        },
-        "every": {
-          "type": "integer"
-        },
-        "layout": {
-          "type": "map"
-        },
-        "species": {
-          "type": "list[string]"
-        },
+      "config_schema": {
+        "out_dir": "string",
+        "base_dt": "float",
+        "every": "integer",
+        "layout": "map",
+        "species": "list[string]",
         "particle_species": {
-          "type": {
-            "_type": "list[string]",
-            "_default": []
-          },
-          "default": []
+          "_type": "list[string]",
+          "_default": []
         },
         "membranes": {
-          "type": {
-            "_type": "map",
-            "_default": {}
-          },
-          "default": {}
+          "_type": "map",
+          "_default": {}
         },
         "region": {
-          "type": {
-            "_type": "string",
-            "_default": "cell"
-          },
-          "default": "cell"
+          "_type": "string",
+          "_default": "cell"
         },
         "source": {
-          "type": {
-            "_type": "string",
-            "_default": ""
-          },
-          "default": ""
+          "_type": "string",
+          "_default": ""
         }
       },
       "inputs": {
@@ -228,56 +151,34 @@
       },
       "outputs": {},
       "dynamic_ports": false,
-      "doc": "Records ``fields`` on a Cartesian grid (``layout.kind == \"grid\"``)."
+      "description": "Records ``fields`` on a Cartesian grid (``layout.kind == \"grid\"``)."
     },
     {
       "name": "MeshRecorder",
       "kind": "process",
       "address": "local:!viva_pde_particle.processes.recorder.MeshRecorder",
       "module": "viva_pde_particle.processes.recorder",
-      "config": {
-        "out_dir": {
-          "type": "string"
-        },
-        "base_dt": {
-          "type": "float"
-        },
-        "every": {
-          "type": "integer"
-        },
-        "layout": {
-          "type": "map"
-        },
-        "species": {
-          "type": "list[string]"
-        },
+      "config_schema": {
+        "out_dir": "string",
+        "base_dt": "float",
+        "every": "integer",
+        "layout": "map",
+        "species": "list[string]",
         "particle_species": {
-          "type": {
-            "_type": "list[string]",
-            "_default": []
-          },
-          "default": []
+          "_type": "list[string]",
+          "_default": []
         },
         "membranes": {
-          "type": {
-            "_type": "map",
-            "_default": {}
-          },
-          "default": {}
+          "_type": "map",
+          "_default": {}
         },
         "region": {
-          "type": {
-            "_type": "string",
-            "_default": "cell"
-          },
-          "default": "cell"
+          "_type": "string",
+          "_default": "cell"
         },
         "source": {
-          "type": {
-            "_type": "string",
-            "_default": ""
-          },
-          "default": ""
+          "_type": "string",
+          "_default": ""
         }
       },
       "inputs": {
@@ -286,23 +187,17 @@
       },
       "outputs": {},
       "dynamic_ports": false,
-      "doc": "Records ``field_dofs`` on a P1 mesh (``layout.kind == \"mesh\"``)."
+      "description": "Records ``field_dofs`` on a P1 mesh (``layout.kind == \"mesh\"``)."
     },
     {
       "name": "ExtendGridField",
       "kind": "step",
       "address": "local:!viva_pde_particle.steps.transfer.ExtendGridField",
       "module": "viva_pde_particle.steps.transfer",
-      "config": {
-        "grid": {
-          "type": "map"
-        },
-        "species": {
-          "type": "list[string]"
-        },
-        "staircase": {
-          "type": "map"
-        }
+      "config_schema": {
+        "grid": "map",
+        "species": "list[string]",
+        "staircase": "map"
       },
       "inputs": {
         "fields": "map[array[float]]"
@@ -311,26 +206,19 @@
         "lookup_fields": "map[overwrite[array[float]]]"
       },
       "dynamic_ports": false,
-      "doc": "Grid fields \u2192 lookup fields for the particle engine, extended past a staircase PDE domain (7e.5)."
+      "description": "Grid fields \u2192 lookup fields for the particle engine, extended past a staircase PDE domain (7e.5)."
     },
     {
       "name": "GridCountsToConcentration",
       "kind": "step",
       "address": "local:!viva_pde_particle.steps.transfer.GridCountsToConcentration",
       "module": "viva_pde_particle.steps.transfer",
-      "config": {
-        "grid": {
-          "type": "map"
-        },
-        "species": {
-          "type": "list[string]"
-        },
+      "config_schema": {
+        "grid": "map",
+        "species": "list[string]",
         "staircase": {
-          "type": {
-            "_type": "map",
-            "_default": {}
-          },
-          "default": {}
+          "_type": "map",
+          "_default": {}
         }
       },
       "inputs": {
@@ -340,23 +228,17 @@
         "particle_conc": "map[overwrite[array[float]]]"
       },
       "dynamic_ports": false,
-      "doc": "Per-node particle counts \u2192 \u00b5M on the same grid (``count / (V_element \u00b7 602.214)``)."
+      "description": "Per-node particle counts \u2192 \u00b5M on the same grid (``count / (V_element \u00b7 602.214)``)."
     },
     {
       "name": "GridCountsToMeshConcentration",
       "kind": "step",
       "address": "local:!viva_pde_particle.steps.transfer.GridCountsToMeshConcentration",
       "module": "viva_pde_particle.steps.transfer",
-      "config": {
-        "grid": {
-          "type": "map"
-        },
-        "mesh": {
-          "type": "map"
-        },
-        "species": {
-          "type": "list[string]"
-        }
+      "config_schema": {
+        "grid": "map",
+        "mesh": "map",
+        "species": "list[string]"
       },
       "inputs": {
         "particle_counts": "map[array[float]]"
@@ -365,23 +247,17 @@
         "particle_conc": "map[overwrite[array[float]]]"
       },
       "dynamic_ports": false,
-      "doc": "Grid histogram \u2192 P1 DOF concentrations through the transfer matrix: (P\u1d40\u00b7counts)/(M_L\u00b7602.214)."
+      "description": "Grid histogram \u2192 P1 DOF concentrations through the transfer matrix: (P\u1d40\u00b7counts)/(M_L\u00b7602.214)."
     },
     {
       "name": "MeshToGridField",
       "kind": "step",
       "address": "local:!viva_pde_particle.steps.transfer.MeshToGridField",
       "module": "viva_pde_particle.steps.transfer",
-      "config": {
-        "grid": {
-          "type": "map"
-        },
-        "mesh": {
-          "type": "map"
-        },
-        "species": {
-          "type": "list[string]"
-        }
+      "config_schema": {
+        "grid": "map",
+        "mesh": "map",
+        "species": "list[string]"
       },
       "inputs": {
         "field_dofs": "map[array[float]]"
@@ -390,23 +266,17 @@
         "fields": "map[overwrite[array[float]]]"
       },
       "dynamic_ports": false,
-      "doc": "P1 DOF fields \u2192 grid fields for the particle engine's rate lookups: u_grid = P\u00b7u."
+      "description": "P1 DOF fields \u2192 grid fields for the particle engine's rate lookups: u_grid = P\u00b7u."
     },
     {
       "name": "PositionsToMeshConcentration",
       "kind": "step",
       "address": "local:!viva_pde_particle.steps.transfer.PositionsToMeshConcentration",
       "module": "viva_pde_particle.steps.transfer",
-      "config": {
-        "grid": {
-          "type": "map"
-        },
-        "mesh": {
-          "type": "map"
-        },
-        "species": {
-          "type": "list[string]"
-        }
+      "config_schema": {
+        "grid": "map",
+        "mesh": "map",
+        "species": "list[string]"
       },
       "inputs": {
         "particle_positions": "map[array[float]]"
@@ -415,7 +285,7 @@
         "particle_conc": "map[overwrite[array[float]]]"
       },
       "dynamic_ports": false,
-      "doc": "Molecule positions \u2192 P1 DOF concentrations by the exact point load \u03a3_p \u03c6_j(x_p)/(M_L,j\u00b7602.214)."
+      "description": "Molecule positions \u2192 P1 DOF concentrations by the exact point load \u03a3_p \u03c6_j(x_p)/(M_L,j\u00b7602.214)."
     }
   ]
 }

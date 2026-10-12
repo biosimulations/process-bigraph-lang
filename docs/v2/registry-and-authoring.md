@@ -44,13 +44,13 @@ Three principles:
 They are located without importing the package, through `importlib.metadata.distribution(name).files`. That is the
 difference from `bigraph_schema/package/discover.py` and the workbench's `env_worker.py`, which both import.
 
-### 1.2 Manifest (`pblang-manifest/1`)
+### 1.2 Manifest (design target; what ships is section 1.7)
 
-JSON Schema to live at `docs/schemas/manifest.schema.json`.
+The fields below are the target for later versions of the shared format that section 1.7 describes (shipping: `pbg-interfaces/1`, with its JSON Schema in `docs/schemas/`).
 
 ```json
 {
-  "schema_version": "pblang-manifest/1",
+  "schema_version": "pbg-interfaces/2",
   "package": {
     "name": "viva-pde-particle",
     "module": "viva_pde_particle",
@@ -186,12 +186,24 @@ computes fingerprints, writes `manifest.json` and renders `interfaces.pblang` wi
 - `pblang preflight` in the execution env compares the installed version to the lock, then runs stage A for only the
   referenced classes and compares fingerprints, reporting a port-level diff when an interface is stale.
 
-### 1.7 What ships today: `pblang-manifest/0`, one manifest per environment
+### 1.7 What ships today: the shared interface manifest (`pbg-interfaces/1`), one per environment
 
 Decided 2026-10-12 (see the [stage two plan](authoring-plan.md)). Sections 1.1 to 1.6 remain the target; what exists
-is smaller, and one decision changes the unit: **a manifest describes an environment, not a package.** `describe` must
-import the classes inside the environment that will run the document, and environments differ (compose-api's shared
-image carries process-bigraph 1.0.5, viva-pde-particle's image 1.8.x and its own core).
+is smaller, and two decisions shape it.
+
+**A manifest describes an environment, not a package.** `describe` must import the classes inside the environment
+that will run the document, and environments differ (compose-api's shared image carries process-bigraph 1.0.5,
+viva-pde-particle's image 1.8.x and its own core).
+
+**The format is shared, not this DSL's.** It is named for the process-bigraph ecosystem (`pbg-interfaces`), carries no
+`.pblang` syntax, and has a published JSON Schema:
+[`pbg-interfaces-1.schema.json`](../schemas/pbg-interfaces-1.schema.json)
+(`https://biosimulations.github.io/process-bigraph-lang/schemas/pbg-interfaces-1.schema.json`, which each manifest
+names in `$schema`). Types stay in bigraph-schema's own string or dict forms and addresses in process-bigraph's
+`local:!module.Class` form, exactly as the classes declare them, and the component keys follow the workbench's registry
+(`name`, `address`, `kind`, `description`, `config_schema`, `inputs`, `outputs`). So any tool that reads a bigraph-schema
+type can use a manifest as it is: a core's `access`, the workbench, compose-api, a prompt-driven skill, another
+checker. Readers ignore keys they do not know, so a producer may add more.
 
 - **Producer.** `process_bigraph_lang/v2/describe_env.py` is stage A in its smallest form: one file, standard library
   only, importing nothing from this package, so it runs as a plain script in any image or env:
@@ -199,29 +211,26 @@ image carries process-bigraph 1.0.5, viva-pde-particle's image 1.8.x and its own
   every module under the given roots (a failed import is recorded, never fatal), keeps the step and process classes each
   module defines, and shares its per-class code with `describe_module`. compose-api runs it in CI inside each
   environment it offers and serves the result at `GET /registry/environments/{name}/manifest`.
-- **Consumers.** `Pblang.addManifest` / `setManifests` (main thread) and the language server's `pblang/setManifests`
-  notification (`SET_MANIFESTS_NOTIFICATION`; a host editor sends it when the environment is known or changes, and every
-  open document is re-checked). A component with a known address replaces the earlier one; another `schema_version` is
-  rejected.
+- **Consumers here.** `Pblang.addManifest` / `setManifests` (main thread) and the language server's
+  `pblang/setManifests` notification (`SET_MANIFESTS_NOTIFICATION`; a host editor sends it when the environment is
+  known or changes, and every open document is re-checked); the CLI's `--interfaces`. A component with a known address
+  replaces the earlier one. The earlier, pblang-only `pblang-manifest/0` (`config: {key: {type, default}}`, `doc`) is
+  still read; anything else is rejected.
 
-The format carries no DSL syntax: types stay in bigraph-schema's own string or dict forms, addresses in
-process-bigraph's `local:!module.Class` form, so any tool that can read a bigraph-schema type (a core's `access`, the
-workbench, a prompt-driven skill, another checker) can use it as it is.
+| Key                                     | Content                                                                                                                          |
+| --------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| `$schema`, `schema_version`             | the schema's URL; `"pbg-interfaces/1"`                                                                                           |
+| `environment`                           | `{name, image, python, process_bigraph, bigraph_schema, packages {dist: version}, roots, generated_by}` (from `describe_env.py`) |
+| `components[]`                          | one per step or process class, sorted by address                                                                                 |
+| `.name`, `.kind`, `.address`, `.module` | class name; `process` or `step` (by MRO); `local:!module.Class`; the defining module                                             |
+| `.description`                          | the first paragraph of the class docstring, when there is one                                                                    |
+| `.config_schema`                        | the class's `config_schema` as authored, key by key (`null` for a value that is not a type expression); a default is in the type |
+| `.inputs`, `.outputs`                   | `{port: type}` from `inputs()` / `outputs()` called with the class as `self`; `null` when they need an instance                  |
+| `.dynamic_ports`                        | `true` when the ports need an instance (config-dependent or children's)                                                          |
+| `errors[]`                              | `{module, error}` per module or class that failed (from `describe_env.py`)                                                       |
 
-| Key                                     | Content                                                                                                                                                                             |
-| --------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `schema_version`                        | `"pblang-manifest/0"`                                                                                                                                                               |
-| `environment`                           | `{name, image, python, process_bigraph, bigraph_schema, packages {dist: version}, roots, generated_by}` (from `describe_env.py`)                                                    |
-| `components[]`                          | one per step or process class, sorted by address                                                                                                                                    |
-| `.name`, `.kind`, `.address`, `.module` | class name; `process` or `step` (by MRO); `local:!module.Class`; the defining module                                                                                                |
-| `.config`                               | `{key: {type, default?}}` from `config_schema`: the type as authored (string or dict, else `null`), the default when the type carries one (`{"_type": T, "_default": v}` or `T{v}`) |
-| `.inputs`, `.outputs`                   | `{port: type}` from `inputs()` / `outputs()` called with the class as `self`; `null` when they need an instance                                                                     |
-| `.dynamic_ports`                        | `true` when the ports need an instance (config-dependent or children's)                                                                                                             |
-| `.doc`                                  | the first paragraph of the class docstring, when there is one                                                                                                                       |
-| `errors[]`                              | `{module, error}` per module or class that failed (from `describe_env.py`)                                                                                                          |
-
-Not yet in `/0`, compared with section 1.2: units and contracts, port semantics, adapter metadata, fingerprints, a
-published JSON Schema.
+Not yet in version 1, compared with section 1.2: units and contracts, port semantics, adapter metadata, fingerprints.
+Section 1.2 is the design target for later versions of this same format.
 
 ## 2. Adapters as first-class entries
 

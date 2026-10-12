@@ -1,5 +1,5 @@
 """
-Describe the process-bigraph components an environment provides, as a `pblang-manifest/0` JSON manifest.
+Describe the process-bigraph components an environment provides, as an interface manifest (`pbg-interfaces/1`).
 
 This file depends on the Python standard library only and imports nothing from this package, so it runs as a plain
 script inside any environment that has the components installed (a simulator image, a pixi or conda env), whatever
@@ -9,8 +9,11 @@ versions of process-bigraph and bigraph-schema it carries:
 
 It imports every module under the given roots, keeps the step and process classes each one defines, and reads their
 `config_schema` and ports the same way `interfaces.describe_module` does (which shares these helpers). A module that
-fails to import is recorded under `errors` and skipped, never fatal. Types stay in bigraph-schema's own form; a config
-default is recorded when the type carries one (`{"_type": ..., "_default": v}` or `float{0.5}`).
+fails to import is recorded under `errors` and skipped, never fatal.
+
+The format is not tied to any one tool: types stay in bigraph-schema's own forms and addresses in process-bigraph's,
+exactly as the classes declare them, so anything that reads bigraph-schema types can use it. Its JSON Schema is
+published at `SCHEMA_URL` (source: `docs/schemas/` in process-bigraph-lang).
 """
 
 from __future__ import annotations
@@ -22,13 +25,11 @@ import inspect
 import json
 import pkgutil
 import platform
-import re
 import sys
 from typing import Any
 
-MANIFEST_VERSION = "pblang-manifest/0"
-NO_DEFAULT: Any = object()
-_TRAILING_DEFAULT = re.compile(r"^([^{}]*)\{(.*)\}$")
+MANIFEST_VERSION = "pbg-interfaces/1"
+SCHEMA_URL = "https://biosimulations.github.io/process-bigraph-lang/schemas/pbg-interfaces-1.schema.json"
 
 
 # --- one class -------------------------------------------------------------------------------------------------
@@ -71,48 +72,9 @@ def doc_of(cls: type) -> str | None:
     return first or None
 
 
-def default_of(spec: Any) -> Any:
-    """The default a bigraph-schema type carries, or `NO_DEFAULT`: `{"_type": T, "_default": v}` or `T{v}`."""
-    if isinstance(spec, dict):
-        return spec["_default"] if "_type" in spec and "_default" in spec else NO_DEFAULT
-    if not isinstance(spec, str):
-        return NO_DEFAULT
-    match = _TRAILING_DEFAULT.match(spec.strip())
-    if not match or not _is_single_name(match.group(1).strip()):
-        return NO_DEFAULT
-    try:
-        return json.loads(match.group(2))
-    except ValueError:
-        return match.group(2)
-
-
-def _is_single_name(text: str) -> bool:
-    """`name` or `name[args]`: no top-level union (`|`, `~`), field (`:`) or tuple, where a default cannot attach."""
-    if not text or text.startswith("("):
-        return False
-    depth = 0
-    for char in text:
-        if char in "[(":
-            depth += 1
-        elif char in "])":
-            depth -= 1
-        elif depth == 0 and char in "|~:,":
-            return False
-    return True
-
-
-def config_entry(schema: Any, default: Any = default_of) -> dict[str, dict[str, Any]]:
-    """A `config_schema` as manifest config fields: the type (string or dict form, else null) and its default."""
-    if not isinstance(schema, dict):
-        return {}
-    fields: dict[str, dict[str, Any]] = {}
-    for key, spec in schema.items():
-        value = default(spec)
-        fields[str(key)] = {
-            "type": spec if isinstance(spec, (str, dict)) else None,
-            **({} if value is NO_DEFAULT else {"default": value}),
-        }
-    return fields
+def json_type(spec: Any) -> Any:
+    """A type as authored when it is JSON (bigraph-schema's string or dict form), else null."""
+    return spec if isinstance(spec, (str, dict)) else None
 
 
 def component(cls: type, module_name: str | None = None, name: str | None = None) -> dict[str, Any]:
@@ -125,15 +87,21 @@ def component(cls: type, module_name: str | None = None, name: str | None = None
         "kind": kind_of(cls),
         "address": f"local:!{module_name}.{name}",
         "module": module_name,
-        "config": config_entry(getattr(cls, "config_schema", None) or {}),
+        "config_schema": config_schema_of(cls),
         "inputs": inputs,
         "outputs": outputs,
         "dynamic_ports": dynamic,
     }
     doc = doc_of(cls)
     if doc:
-        entry["doc"] = doc
+        entry["description"] = doc
     return entry
+
+
+def config_schema_of(cls: type) -> dict[str, Any]:
+    """The class's `config_schema` as authored, key by key (a value that is not a type expression becomes null)."""
+    schema = getattr(cls, "config_schema", None) or {}
+    return {str(key): json_type(spec) for key, spec in schema.items()} if isinstance(schema, dict) else {}
 
 
 # --- an environment --------------------------------------------------------------------------------------------
@@ -222,6 +190,7 @@ def environment(roots: list[str], name: str | None, image: str | None) -> dict[s
 def describe_environment(roots: list[str], name: str | None = None, image: str | None = None) -> dict[str, Any]:
     components, errors = describe_roots(roots)
     return {
+        "$schema": SCHEMA_URL,
         "schema_version": MANIFEST_VERSION,
         "environment": environment(roots, name, image),
         "components": components,

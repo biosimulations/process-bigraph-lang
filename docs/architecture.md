@@ -124,7 +124,7 @@ text and submits the document. Manifests come from `describe_env.py` run inside 
   its sidecar assets. There is no Python model of a composite and no way to a runnable document that skips the
   checker: a Python tool that builds composites targets the DSL text.
 - **`interfaces.py`** generates interface declarations from a module's step/process classes (`describe_module`,
-  the publish-time step that imports the classes) as the JSON manifest (`pblang-manifest/0`) the CLI reads;
+  the publish-time step that imports the classes) as the JSON interface manifest (`pbg-interfaces/1`, a format shared with other tools; JSON Schema in `docs/schemas/`) the CLI reads;
   `render_interfaces` has the CLI print the `.pblang` header file. **`sbml.py`** describes an SBML model as
   JSON (`pblang-model/0`); the CLI renders the model header.
 - **`check.py`** wraps `cli-native check --json`; **`normalize.py`** defines document equivalence (`equivalent`,

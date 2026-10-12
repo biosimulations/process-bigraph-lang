@@ -37,7 +37,10 @@ export type {
   GraphStore,
 } from "./language/v2/graph.js";
 export type { InterfaceDecl } from "./language/v2/headers.js";
-export { MANIFEST_VERSION } from "./language/v2/headers.js";
+export {
+  MANIFEST_SCHEMA_URL,
+  MANIFEST_VERSION,
+} from "./language/v2/headers.js";
 export {
   SET_MANIFESTS_NOTIFICATION,
   type SetManifestsParams,
@@ -188,7 +191,7 @@ export class Pblang {
     return this.services.validation.HeaderRegistry;
   }
 
-  /** Add a header manifest (`pblang-manifest/0`, as JSON text or parsed); a known address is replaced. */
+  /** Add a header manifest (`pbg-interfaces/1` or the earlier `pblang-manifest/0`, as JSON text or parsed); a known address is replaced. */
   addManifest(manifest: string | object): this {
     this.registry.addManifest(
       typeof manifest === "string" ? JSON.parse(manifest) : manifest,
