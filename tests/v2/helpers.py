@@ -28,14 +28,14 @@ REGISTRY = InterfaceRegistry.from_modules(
 )
 REGISTRY.decls.extend(
     InterfaceRegistry.from_manifest(
-        json.loads((FIXTURES / "interfaces" / "viva_pde_particle.manifest.json").read_text())
+        json.loads((FIXTURES / "interfaces" / "viva_pde_particle.manifest.json").read_text(encoding="utf-8"))
     ).decls
 )
 
 
 def load_corpus_json(name: str) -> dict[str, Any]:
     """A corpus document dumped with `bigraph_schema.json_codec` (numpy arrays come back as arrays)."""
-    loaded = json_codec.loads((CORPUS / name).read_text())
+    loaded = json_codec.loads((CORPUS / name).read_text(encoding="utf-8"))
     assert isinstance(loaded, dict)
     return loaded
 
@@ -45,13 +45,15 @@ def assert_snapshot(name: str, printed: Printed) -> None:
     expected_text = SNAPSHOTS / f"{name}.pblang"
     if UPDATE:
         SNAPSHOTS.mkdir(parents=True, exist_ok=True)
-        expected_text.write_text(printed.text)
+        expected_text.write_text(printed.text, encoding="utf-8")
         for asset_name, content in printed.assets.items():
             target = SNAPSHOTS / asset_name
             target.parent.mkdir(parents=True, exist_ok=True)
             target.write_bytes(content)
     assert expected_text.exists(), f"no snapshot {expected_text}; run with PBLANG_UPDATE_SNAPSHOTS=1"
-    assert printed.text == expected_text.read_text(), f"snapshot {name} differs (PBLANG_UPDATE_SNAPSHOTS=1 to update)"
+    assert printed.text == expected_text.read_text(
+        encoding="utf-8"
+    ), f"snapshot {name} differs (PBLANG_UPDATE_SNAPSHOTS=1 to update)"
     for asset_name, content in printed.assets.items():
         # pre-commit's end-of-file fixer appends a newline to committed assets; that is not a difference
         committed = (SNAPSHOTS / asset_name).read_bytes().rstrip(b"\n")

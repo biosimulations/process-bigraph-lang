@@ -25,7 +25,7 @@ from viva_pde_particle.viz3d.record import attach_recorder  # type: ignore[impor
 def main(out: Path) -> None:
     doc = two_way_exchange(core=None)
     doc = attach_recorder(doc, Path(tempfile.gettempdir()) / "hybrid_fixture_out", output_dt=0.1)
-    out.write_text(json_codec.dumps({"state": doc}, indent=1))
+    out.write_text(json_codec.dumps({"state": doc}, indent=1), encoding="utf-8")
     print(f"wrote {out} ({out.stat().st_size} bytes); top-level nodes: {sorted(doc)}")
 
 

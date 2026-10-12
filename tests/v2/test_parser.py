@@ -47,7 +47,7 @@ def _original(name: str) -> dict[str, Any]:
 
 @pytest.mark.parametrize("name", DOCUMENT_SNAPSHOTS)
 def test_snapshot_text_round_trips(name: str, spatio_core: Any) -> None:
-    text = (SNAPSHOTS / f"{name}.pblang").read_text()
+    text = (SNAPSHOTS / f"{name}.pblang").read_text(encoding="utf-8")
     model = read_text(text, registry=REGISTRY)
     assert print_document(model, name=name, registry=REGISTRY).text == text  # the printer is a fixpoint
     written = write_document(model, assets=snapshot_asset_loader())
@@ -59,10 +59,10 @@ def test_snapshot_text_round_trips(name: str, spatio_core: Any) -> None:
 
 
 def test_composite_spec_text_round_trips(core: Any) -> None:
-    text = (SNAPSHOTS / "reversible-dimerization.pblang").read_text()
+    text = (SNAPSHOTS / "reversible-dimerization.pblang").read_text(encoding="utf-8")
     model = read_text(text)
     assert print_document(model, name="reversible-dimerization").text == text
-    spec = yaml.safe_load((CORPUS / "reversible-dimerization.composite.yaml").read_text())
+    spec = yaml.safe_load((CORPUS / "reversible-dimerization.composite.yaml").read_text(encoding="utf-8"))
     back = write_composite_spec(model)
     for key in ("name", "description", "tags", "requires", "emitters"):
         assert deep_equal(back[key], spec[key]), key
@@ -70,7 +70,7 @@ def test_composite_spec_text_round_trips(core: Any) -> None:
 
 
 def test_saved_toy_text_round_trips() -> None:
-    text = (SNAPSHOTS / "saved_toy_add_floats.pblang").read_text()
+    text = (SNAPSHOTS / "saved_toy_add_floats.pblang").read_text(encoding="utf-8")
     model = read_text(text, registry=REGISTRY)
     assert print_document(model, name="saved_toy_add_floats", registry=REGISTRY).text == text
     add = model.root.children["add_nums"]

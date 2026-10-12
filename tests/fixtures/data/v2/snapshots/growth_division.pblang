@@ -1,4 +1,4 @@
-// pblang v2 — printed from growth_division
+// pblang v2 - printed from growth_division
 
 composite {
   store environment = {};

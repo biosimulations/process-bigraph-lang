@@ -27,7 +27,7 @@ def _codes(text: str) -> dict[str, list[str]]:
 
 
 def test_generated_header_parses_and_prints_back() -> None:
-    doc = read_text((SNAPSHOTS / "Caravagna2010.model.pblang").read_text())
+    doc = read_text((SNAPSHOTS / "Caravagna2010.model.pblang").read_text(encoding="utf-8"))
     (header,) = doc.models
     assert header.name == "Caravagna2010" and header.source == "Caravagna2010.xml" and not header.is_sort
     assert header.time_units == "day" and set(header.species) == {"T", "E", "I"}

@@ -1,4 +1,4 @@
-// pblang v2 — printed from spatio_flux_III
+// pblang v2 - printed from spatio_flux_III
 
 import tests.fixtures.test_registry.spatio_flux.processes.{DiffusionAdvection};
 

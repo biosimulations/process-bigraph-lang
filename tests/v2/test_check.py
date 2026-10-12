@@ -213,7 +213,7 @@ def test_reversible_dimerization_emits_are_clean() -> None:
 
     from tests.v2.helpers import CORPUS
 
-    spec = yaml.safe_load((CORPUS / "reversible-dimerization.composite.yaml").read_text())
+    spec = yaml.safe_load((CORPUS / "reversible-dimerization.composite.yaml").read_text(encoding="utf-8"))
     codes = _spec_codes(spec)
     assert not {"W240", "W241"} & set(codes)
 

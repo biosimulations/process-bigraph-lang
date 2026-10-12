@@ -1,4 +1,4 @@
-// pblang v2 — printed from template_sites
+// pblang v2 - printed from template_sites
 
 process Interface_s {
   inputs { x: float; }

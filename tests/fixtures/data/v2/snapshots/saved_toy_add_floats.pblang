@@ -1,4 +1,4 @@
-// pblang v2 — printed from saved_toy_add_floats
+// pblang v2 - printed from saved_toy_add_floats
 
 import tests.fixtures.test_registry.toy_library.{AddFloatsProcess};
 

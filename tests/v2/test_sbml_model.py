@@ -62,7 +62,7 @@ def test_amounts_and_substance_only_species(tmp_path: Path) -> None:
   </model>
 </sbml>"""
     path = tmp_path / "m.xml"
-    path.write_text(sbml)
+    path.write_text(sbml, encoding="utf-8")
     header = describe_sbml(path)
     assert (
         header.species["A"].initial == 2.0

@@ -1,4 +1,4 @@
-// pblang v2 — printed from hybrid_two_way_exchange
+// pblang v2 - printed from hybrid_two_way_exchange
 
 import viva_pde_particle.processes.fv_reaction_diffusion.{FVReactionDiffusion};
 import viva_pde_particle.processes.recorder.{GridRecorder};

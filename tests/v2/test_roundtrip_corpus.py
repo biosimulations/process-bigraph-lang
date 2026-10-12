@@ -48,7 +48,7 @@ def _round_trip(name: str, original: dict[str, Any], core: Any) -> dict[str, Any
 
 
 def test_reversible_dimerization_spec(core: Any) -> None:
-    spec = yaml.safe_load((CORPUS / "reversible-dimerization.composite.yaml").read_text())
+    spec = yaml.safe_load((CORPUS / "reversible-dimerization.composite.yaml").read_text(encoding="utf-8"))
     model = read_composite_spec(deepcopy(spec))
     assert_snapshot("reversible-dimerization", print_document(model, name="reversible-dimerization"))
     back = write_composite_spec(model)

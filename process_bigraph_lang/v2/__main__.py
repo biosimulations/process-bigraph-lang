@@ -25,7 +25,7 @@ from process_bigraph_lang.v2 import (
 
 
 def _load(path: Path) -> tuple[dict[str, Any], bool]:
-    text = path.read_text()
+    text = path.read_text(encoding="utf-8")
     if path.suffix in (".yaml", ".yml"):
         import yaml
 
@@ -45,11 +45,11 @@ def _print(args: argparse.Namespace) -> int:
     if args.interfaces:
         import json
 
-        registry = InterfaceRegistry.from_manifest(json.loads(Path(args.interfaces).read_text()))
+        registry = InterfaceRegistry.from_manifest(json.loads(Path(args.interfaces).read_text(encoding="utf-8")))
     printed = print_document(model, name=path.stem.replace(".composite", ""), registry=registry)
     if args.out:
         out = Path(args.out)
-        out.write_text(printed.text)
+        out.write_text(printed.text, encoding="utf-8")
         for asset_name, content in printed.assets.items():
             target = out.parent / asset_name
             target.parent.mkdir(parents=True, exist_ok=True)
@@ -79,7 +79,9 @@ def _describe(args: argparse.Namespace) -> int:
 
     registry = InterfaceRegistry.from_modules(*args.modules)
     if args.manifest:
-        Path(args.manifest).write_text(json.dumps(registry.to_manifest(), indent=2, default=str) + "\n")
+        Path(args.manifest).write_text(
+            json.dumps(registry.to_manifest(), indent=2, default=str) + "\n", encoding="utf-8"
+        )
     files = {
         module: print_interfaces([d for d in registry.decls if d.module == module], module) for module in args.modules
     }
@@ -87,10 +89,10 @@ def _describe(args: argparse.Namespace) -> int:
         out_dir = Path(args.out)
         out_dir.mkdir(parents=True, exist_ok=True)
         for module, text in files.items():
-            (out_dir / f"{module}.pblang").write_text(text)
+            (out_dir / f"{module}.pblang").write_text(text, encoding="utf-8")
         print(f"wrote {len(files)} interface file(s) to {out_dir}", file=sys.stderr)
     elif args.out:
-        Path(args.out).write_text(next(iter(files.values())))
+        Path(args.out).write_text(next(iter(files.values())), encoding="utf-8")
     else:
         sys.stdout.write("".join(files.values()))
     return 0
@@ -108,7 +110,9 @@ def _check(args: argparse.Namespace) -> int:
     if args.interfaces:
         registry = InterfaceRegistry()
         for manifest in args.interfaces:
-            registry.decls.extend(InterfaceRegistry.from_manifest(json.loads(Path(manifest).read_text())).decls)
+            registry.decls.extend(
+                InterfaceRegistry.from_manifest(json.loads(Path(manifest).read_text(encoding="utf-8"))).decls
+            )
     diagnostics = check_document(model, registry)
     for diagnostic in diagnostics:
         print(diagnostic)
@@ -124,10 +128,10 @@ def _describe_model(args: argparse.Namespace) -> int:
 
     header = describe_sbml(args.model)
     if args.manifest:
-        Path(args.manifest).write_text(json.dumps(header.to_dict(), indent=2) + "\n")
+        Path(args.manifest).write_text(json.dumps(header.to_dict(), indent=2) + "\n", encoding="utf-8")
     text = print_model_header(header)
     if args.out:
-        Path(args.out).write_text(text)
+        Path(args.out).write_text(text, encoding="utf-8")
     else:
         sys.stdout.write(text)
     return 0
