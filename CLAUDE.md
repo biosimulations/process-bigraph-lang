@@ -59,10 +59,9 @@ Run `langium:generate` after every grammar change; `src/language/generated/` is 
 `cd dsl && npm run build:native && cp dist/cli-native ../process_bigraph_lang/bin/`. The Python tests skip when
 no CLI is built.
 
-## The language (`dsl/src/language/pblang-v2.langium`)
+## The language (`dsl/src/language/pblang.langium`)
 
-Language id `pblang-v2`, files `.pblang` (and `.pbl`). Rule names carry a `V2` prefix from the time the v1 and v2
-grammars coexisted (`V2Module`, `V2Store`, ...). A module is a flat list of statements:
+Language id `pblang`, files `.pblang` (and `.pbl`). A module is a flat list of statements:
 
 - `module a.b;` (headers), `import a.b.{X, Y};` (`a.b.{` lexes as one `IMPORT_PATH` token), `param x: T = v;`
   (`= ?` open, `choices [...]`), `meta { ... }`, `options { ... }`, `emit alias { paths } with { ... };`.
@@ -99,9 +98,11 @@ store-not-declared`, `T121 config-missing`, `W220/W221/W223` writers, `W240/W241
   (model → text + sidecar assets; `format.ts` reproduces Python's float repr and `json.dumps` so snapshots
   stay byte-identical), `bind.ts` (AST → model), `assets.ts` (sidecar decoding), `graph.ts`, `modelheader.ts`.
 - `resolve.ts` is shared by the checker, `hover.ts` and `completion.ts`: which header an edge is declared by
-  (inline, import, registry), how a path walks the tree. `V2Registry` answers imports from manifests
+  (inline, import, registry), how a path walks the tree. `WorkspaceRegistry` (`validator.ts`) answers imports from manifests
   (CLI `--interfaces`) or from header `.pblang` files open in the workspace (`module a.b;` + `X` is
   `local:!a.b.X`).
+- The generated AST's names (`Store`, `Node`, `Path`, `Composite`, ...) coincide with the object model's, so every
+  consumer imports it as a namespace: `import * as ast from "../generated/ast.js"`, then `ast.Store`, `ast.isPlainEdge`.
 - **Adding a check:** add it in `check.ts`, add a case to `dsl/test/v2/check.test.ts`; the Python tests under
   `tests/v2/` run the same expectations through the CLI.
 

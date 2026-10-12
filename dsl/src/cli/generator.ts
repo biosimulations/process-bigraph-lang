@@ -1,4 +1,4 @@
-import type { V2Module } from "../language/generated/ast.js";
+import * as ast from "../language/generated/ast.js";
 import * as fs from "node:fs";
 import * as path from "node:path";
 import { extractDestinationAndName } from "./cli-util.js";
@@ -7,7 +7,7 @@ import { createProcessBigraphLanguageServices } from "../language/process-bigrap
 
 /** Write the linked AST of a module as JSON (a debugging aid; the Python side no longer reads it). */
 export function generateJson(
-  model: V2Module,
+  model: ast.Module,
   filePath: string,
   destination: string | undefined,
 ): string {
@@ -21,9 +21,8 @@ export function generateJson(
   return generatedFilePath;
 }
 
-export function generate(model: V2Module): string {
-  const services =
-    createProcessBigraphLanguageServices(NodeFileSystem).PblangV2;
+export function generate(model: ast.Module): string {
+  const services = createProcessBigraphLanguageServices(NodeFileSystem).Pblang;
   return services.serializer.JsonSerializer.serialize(model, {
     space: 2,
     sourceText: true,

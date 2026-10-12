@@ -50,7 +50,7 @@ function startLanguageClient(context: vscode.ExtensionContext): LanguageClient {
 
   // Options to control the language client
   const clientOptions: LanguageClientOptions = {
-    documentSelector: [{ scheme: "*", language: "pblang-v2" }],
+    documentSelector: [{ scheme: "*", language: "pblang" }],
   };
 
   // Create the language client and start the client.

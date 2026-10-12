@@ -3,66 +3,7 @@
  * against the interfaces declared in the text); `${name}` strings become parameter references once the params
  * are known; emitter aliases become addresses.
  */
-import type {
-  V2Address,
-  V2CompositeEdge,
-  V2CompositeItem,
-  V2DictLiteral,
-  V2EdgeHead,
-  V2Emit,
-  V2Field,
-  V2Interface,
-  V2ModelDecl,
-  V2Module,
-  V2NodeDecl,
-  V2Param,
-  V2Path,
-  V2PlainEdge,
-  V2Scalar,
-  V2SharedEdge,
-  V2Store,
-  V2Value,
-  V2WireBlock,
-} from "../generated/ast.js";
-import {
-  isV2ArrayLiteral,
-  isV2BoolLiteral,
-  isV2BridgeBlock,
-  isV2Composite,
-  isV2CompositeEdge,
-  isV2ConfigBlock,
-  isV2DictLiteral,
-  isV2Emit,
-  isV2ExtraBlock,
-  isV2FileLiteral,
-  isV2FloatLiteral,
-  isV2Import,
-  isV2Index,
-  isV2InnerBlock,
-  isV2InputsBlock,
-  isV2Interface,
-  isV2InterfaceBlock,
-  isV2IntLiteral,
-  isV2ListLiteral,
-  isV2Meta,
-  isV2ModelDecl,
-  isV2ModelRef,
-  isV2Node,
-  isV2NullLiteral,
-  isV2Options,
-  isV2OptionsBlock,
-  isV2OutputsBlock,
-  isV2Param,
-  isV2ParamRef,
-  isV2PlainEdge,
-  isV2PortsBlock,
-  isV2SchemaBlock,
-  isV2SharedEdge,
-  isV2SiteValue,
-  isV2Store,
-  isV2StringLiteral,
-  isV2TupleLiteral,
-} from "../generated/ast.js";
+import * as ast from "../generated/ast.js";
 import {
   docText,
   type InterfaceDecl,
@@ -115,7 +56,7 @@ const ALIAS_ADDRESSES: Record<string, string> = Object.fromEntries(
 /** A `?` without `as`: the sort comes from the store's type, the edge's face, or defaults to `node`. */
 const UNSORTED: Named = { kind: "named", name: "__unsorted__", args: [] };
 
-export function bindModule(module: V2Module, registry?: Registry): Document {
+export function bindModule(module: ast.Module, registry?: Registry): Document {
   return new Binder(registry).module(module);
 }
 
@@ -129,29 +70,29 @@ class Binder {
 
   // --- module --------------------------------------------------------------------------------------------------
 
-  module(ast: V2Module): Document {
-    if (ast.name !== undefined) this.document.module = ast.name;
-    for (const statement of ast.statements) {
+  module(module: ast.Module): Document {
+    if (module.name !== undefined) this.document.module = module.name;
+    for (const statement of module.statements) {
       const body = statement.body;
       const doc = docText(statement.docs);
-      if (isV2Import(body)) {
+      if (ast.isImport(body)) {
         if (body.modulePath !== undefined) {
           const module = body.modulePath.slice(0, -2); // strip the `.{`
           for (const imported of body.names)
             this.imports.set(imported.name, module);
         }
-      } else if (isV2Param(body)) this.param(body, doc);
-      else if (isV2Meta(body)) this.meta(this.dict(body.block));
-      else if (isV2Options(body))
+      } else if (ast.isParam(body)) this.param(body, doc);
+      else if (ast.isMeta(body)) this.meta(this.dict(body.block));
+      else if (ast.isOptions(body))
         for (const [k, v] of this.dict(body.block))
           this.document.options.set(k, v);
-      else if (isV2Interface(body)) this.interface(body);
-      else if (isV2ModelDecl(body)) this.model(body);
-      else if (isV2Composite(body)) {
+      else if (ast.isInterface(body)) this.interface(body);
+      else if (ast.isModelDecl(body)) this.model(body);
+      else if (ast.isComposite(body)) {
         if (body.name !== undefined) this.document.name = body.name;
         this.document.description = doc ?? "";
         this.document.root = this.composite(body.decls);
-      } else if (isV2Emit(body)) this.emit(body);
+      } else if (ast.isEmit(body)) this.emit(body);
     }
     this.params = new Set(this.document.params.map((p) => p.name));
     if (this.params.size > 0) this.substitute(this.document.root);
@@ -167,7 +108,7 @@ class Binder {
       if (k !== "tags" && k !== "requires") this.document.extras.set(k, v);
   }
 
-  private param(node: V2Param, doc: string | undefined): void {
+  private param(node: ast.Param, doc: string | undefined): void {
     const defaultValue =
       node.default !== undefined ? this.value(node.default) : MISSING;
     this.document.params.push({
@@ -181,7 +122,7 @@ class Binder {
     });
   }
 
-  private emit(node: V2Emit): void {
+  private emit(node: ast.Emit): void {
     const address =
       node.address !== undefined
         ? parseAddress(node.address)
@@ -197,30 +138,30 @@ class Binder {
 
   // --- interfaces and models ---------------------------------------------------------------------------------
 
-  private interface(node: V2Interface): void {
+  private interface(node: ast.Interface): void {
     const decl = interfaceFromAst(node, undefined);
     this.interfaces.set(decl.name, decl);
     this.document.interfaces.push(decl);
   }
 
-  private model(node: V2ModelDecl): void {
+  private model(node: ast.ModelDecl): void {
     this.document.models.push(modelFromAst(node));
   }
 
-  private fieldType(field: V2Field): TypeExpr {
+  private fieldType(field: ast.Field): TypeExpr {
     return fromAst(field.type);
   }
 
   // --- tree ----------------------------------------------------------------------------------------------------
 
-  private composite(decls: V2NodeDecl[]): Composite {
+  private composite(decls: ast.NodeDecl[]): Composite {
     const composite = newComposite();
     for (const decl of decls) {
       const body = decl.body;
       const doc = docText(decl.docs);
       let element: Element | undefined;
-      if (isV2Store(body)) element = this.store(body, doc);
-      else if (isV2Node(body)) {
+      if (ast.isStore(body)) element = this.store(body, doc);
+      else if (ast.isNode(body)) {
         const node: Node = {
           $kind: "node",
           name: body.name,
@@ -230,12 +171,12 @@ class Binder {
         if (doc !== undefined) node.doc = doc;
         element = node;
       } else if (
-        isV2PlainEdge(body) ||
-        isV2SharedEdge(body) ||
-        isV2CompositeEdge(body)
+        ast.isPlainEdge(body) ||
+        ast.isSharedEdge(body) ||
+        ast.isCompositeEdge(body)
       )
         element = this.edge(body, doc);
-      else if (isV2SchemaBlock(body))
+      else if (ast.isSchemaBlock(body))
         for (const [k, v] of this.dict(body.block))
           composite.schemaExtras.set(k, v);
       if (element !== undefined) composite.children.set(element.name, element);
@@ -243,7 +184,7 @@ class Binder {
     return composite;
   }
 
-  private store(node: V2Store, doc: string | undefined): Store {
+  private store(node: ast.Store, doc: string | undefined): Store {
     const type = node.type !== undefined ? fromAst(node.type) : undefined;
     const value = node.value !== undefined ? this.value(node.value) : undefined;
     const store: Store = { $kind: "store", name: node.name, value: MISSING };
@@ -267,11 +208,11 @@ class Binder {
   }
 
   private edge(
-    node: V2PlainEdge | V2SharedEdge | V2CompositeEdge,
+    node: ast.PlainEdge | ast.SharedEdge | ast.CompositeEdge,
     doc: string | undefined,
   ): Edge {
     let edge: Edge;
-    if (isV2CompositeEdge(node)) {
+    if (ast.isCompositeEdge(node)) {
       edge = newEdge(node.name, "process");
       edge.address = parseAddress(node.address ?? "local:Composite");
       const interval = this.scalar(node.interval);
@@ -280,10 +221,10 @@ class Binder {
     } else {
       edge = newEdge(
         node.name,
-        isV2SharedEdge(node) ? "shared_process" : node.kind,
+        ast.isSharedEdge(node) ? "shared_process" : node.kind,
       );
       this.applyHead(edge, node.head);
-      if (isV2PlainEdge(node)) {
+      if (ast.isPlainEdge(node)) {
         const interval = this.scalar(node.interval);
         if (interval !== undefined) edge.interval = interval;
         const priority = this.scalar(node.priority);
@@ -296,7 +237,7 @@ class Binder {
     return edge;
   }
 
-  private applyHead(edge: Edge, head: V2EdgeHead): void {
+  private applyHead(edge: Edge, head: ast.EdgeHead): void {
     if (head.sharedRef !== undefined) {
       edge.kind = "shared_process_ref";
       edge.extras.set("process_id", head.sharedRef);
@@ -338,14 +279,14 @@ class Binder {
     }
   }
 
-  private applyItems(edge: Edge, items: V2CompositeItem[]): void {
+  private applyItems(edge: Edge, items: ast.CompositeItem[]): void {
     for (const item of items) {
-      if (isV2ConfigBlock(item))
+      if (ast.isConfigBlock(item))
         for (const [k, v] of this.dict(item.block))
           edge.config.set(k, plainSites(v));
-      else if (isV2InputsBlock(item)) edge.inputs = this.wires(item.block);
-      else if (isV2OutputsBlock(item)) edge.outputs = this.wires(item.block);
-      else if (isV2PortsBlock(item)) {
+      else if (ast.isInputsBlock(item)) edge.inputs = this.wires(item.block);
+      else if (ast.isOutputsBlock(item)) edge.outputs = this.wires(item.block);
+      else if (ast.isPortsBlock(item)) {
         const face: Face = {};
         if (
           item.inputs.length > 0 ||
@@ -362,23 +303,23 @@ class Binder {
             item.outputs.map((f) => [f.name, this.fieldType(f)]),
           );
         edge.ports = face;
-      } else if (isV2ExtraBlock(item))
+      } else if (ast.isExtraBlock(item))
         for (const [k, v] of this.dict(item.block)) edge.extras.set(k, v);
-      else if (isV2BridgeBlock(item)) {
+      else if (ast.isBridgeBlock(item)) {
         const bridge: Dict = new Map();
         for (const [k, v] of this.wires(item.block))
           bridge.set(k, wireToDocument(v));
         edge.bridge = bridge;
-      } else if (isV2InterfaceBlock(item))
+      } else if (ast.isInterfaceBlock(item))
         edge.interface = this.dict(item.block);
-      else if (isV2OptionsBlock(item))
+      else if (ast.isOptionsBlock(item))
         for (const [k, v] of this.dict(item.block)) edge.config.set(k, v);
-      else if (isV2InnerBlock(item)) edge.inner = this.composite(item.decls);
+      else if (ast.isInnerBlock(item)) edge.inner = this.composite(item.decls);
     }
   }
 
   private address(
-    node: V2Address | undefined,
+    node: ast.Address | undefined,
   ): Site | ParamRef | ReturnType<typeof parseAddress> | undefined {
     if (node === undefined) return undefined;
     if (node.site !== undefined) return this.value(node.site) as Site;
@@ -388,7 +329,7 @@ class Binder {
   }
 
   private scalar(
-    node: V2Scalar | undefined,
+    node: ast.Scalar | undefined,
   ): number | bigint | ParamRef | undefined {
     if (node === undefined) return undefined;
     if (node.param !== undefined)
@@ -397,7 +338,7 @@ class Binder {
     return BigInt(node.$cstNode?.text.trim() ?? String(node.int));
   }
 
-  private wires(block: V2WireBlock): Map<string, Wire> {
+  private wires(block: ast.WireBlock): Map<string, Wire> {
     const out = new Map<string, Wire>();
     for (const wire of block.wires)
       out.set(
@@ -409,10 +350,10 @@ class Binder {
     return out;
   }
 
-  private path(node: V2Path): Path {
+  private path(node: ast.Path): Path {
     const steps: (string | number)[] = [];
     for (const segment of node.segments) {
-      if (isV2Index(segment)) steps.push(segment.index);
+      if (ast.isIndex(segment)) steps.push(segment.index);
       else if (segment.up) steps.push("..");
       else if (segment.star) steps.push("*");
       else steps.push(segment.key ?? "");
@@ -422,26 +363,26 @@ class Binder {
 
   // --- values --------------------------------------------------------------------------------------------------
 
-  private dict(block: V2DictLiteral): Dict {
+  private dict(block: ast.DictLiteral): Dict {
     const out: Dict = new Map();
     for (const entry of block.entries)
       out.set(entry.key, this.value(entry.value));
     return out;
   }
 
-  private value(node: V2Value): unknown {
-    if (isV2IntLiteral(node))
+  private value(node: ast.Value): unknown {
+    if (ast.isIntLiteral(node))
       return BigInt(node.$cstNode?.text.trim() ?? String(node.value));
-    if (isV2FloatLiteral(node)) return node.value;
-    if (isV2StringLiteral(node)) return node.value;
-    if (isV2BoolLiteral(node)) return node.value === "true";
-    if (isV2NullLiteral(node)) return null;
-    if (isV2ParamRef(node))
+    if (ast.isFloatLiteral(node)) return node.value;
+    if (ast.isStringLiteral(node)) return node.value;
+    if (ast.isBoolLiteral(node)) return node.value === "true";
+    if (ast.isNullLiteral(node)) return null;
+    if (ast.isParamRef(node))
       return {
         $kind: "param",
         name: node.value.slice(2, -1),
       } satisfies ParamRef;
-    if (isV2SiteValue(node)) {
+    if (ast.isSiteValue(node)) {
       const site: Site = {
         $kind: "site",
         sort: node.sort !== undefined ? fromAst(node.sort) : UNSORTED,
@@ -450,11 +391,11 @@ class Binder {
       };
       return site;
     }
-    if (isV2DictLiteral(node)) return this.dict(node);
-    if (isV2ListLiteral(node)) return node.items.map((v) => this.value(v));
-    if (isV2TupleLiteral(node))
+    if (ast.isDictLiteral(node)) return this.dict(node);
+    if (ast.isListLiteral(node)) return node.items.map((v) => this.value(v));
+    if (ast.isTupleLiteral(node))
       return { $kind: "tuple", items: node.items.map((v) => this.value(v)) };
-    if (isV2ArrayLiteral(node)) {
+    if (ast.isArrayLiteral(node)) {
       const options: Dict = new Map();
       for (const entry of node.options)
         options.set(entry.key, this.value(entry.value));
@@ -476,7 +417,7 @@ class Binder {
       }
       return ndarray(data, dtype);
     }
-    if (isV2FileLiteral(node)) {
+    if (ast.isFileLiteral(node)) {
       const ref: ExternalRef = {
         $kind: "external",
         path: node.path,
@@ -484,7 +425,7 @@ class Binder {
       };
       return ref;
     }
-    if (isV2ModelRef(node))
+    if (ast.isModelRef(node))
       return { $kind: "model", name: node.model.$refText };
     throw new Error(`unexpected value ${(node as { $type: string }).$type}`);
   }

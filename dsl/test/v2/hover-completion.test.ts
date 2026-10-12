@@ -9,18 +9,18 @@ import type { CompletionList } from "vscode-languageserver";
 import * as fs from "node:fs";
 import * as path from "node:path";
 import { createProcessBigraphLanguageServices } from "../../src/language/process-bigraph-language-module.js";
-import type { V2Module } from "../../src/language/generated/ast.js";
+import * as ast from "../../src/language/generated/ast.js";
 
 const fixtures = path.resolve(__dirname, "../../../tests/fixtures/data/v2");
 const TOY = "tests.fixtures.test_registry.toy_library";
 
 const services = createProcessBigraphLanguageServices(EmptyFileSystem);
-const parse = parseHelper<V2Module>(services.PblangV2);
-const completion = expectCompletion(services.PblangV2);
-const hover = expectHover(services.PblangV2);
+const parse = parseHelper<ast.Module>(services.Pblang);
+const completion = expectCompletion(services.Pblang);
+const hover = expectHover(services.Pblang);
 
 beforeAll(() => {
-  services.PblangV2.validation.V2Registry.addManifest(
+  services.Pblang.validation.HeaderRegistry.addManifest(
     JSON.parse(
       fs.readFileSync(
         path.join(fixtures, "interfaces", "test_registry.manifest.json"),
