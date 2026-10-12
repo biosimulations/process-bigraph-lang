@@ -34,19 +34,12 @@ def test_caravagna_header_snapshot() -> None:
     assert "species {" in text and "T: float @" in text and "parameters {" in text
 
 
-def test_units_are_pint_readable() -> None:
-    import pint
-
+def test_units_are_composed_from_the_unit_definitions() -> None:
     header = describe_sbml(CARAVAGNA)
-    registry = pint.UnitRegistry()
-    units = [sp.units for sp in header.species.values()] + [c.units for c in header.compartments.values()]
-    for text in units:
-        if text:
-            registry.parse_expression(text)
-    assert (
-        registry.parse_expression(header.time_units or "s").dimensionality
-        == registry.parse_expression("s").dimensionality
-    )
+    # the model declares substance in millimoles, volume in millilitres and time in days
+    assert header.time_units == "day"
+    assert header.compartments["compartment"].units == "mL"
+    assert {sp.units for sp in header.species.values()} == {"mmol / mL"}
 
 
 def test_amounts_and_substance_only_species(tmp_path: Path) -> None:

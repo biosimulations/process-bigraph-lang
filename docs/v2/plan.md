@@ -259,6 +259,15 @@ model the Lark grammar builds; `tests/v2/test_langium.py` requires identical pri
 Langium side: validators beyond parsing and name resolution (the Python checker does those), hover and completion,
 and the cutover of `.pblang` to v2.
 
+The checker was then ported to TypeScript (`dsl/src/language/v2/{types,headers,units,check,validator}.ts`) and
+registered as a Langium validation of `V2Module`, so the editor, the browser and the CLI (`check --json`) share one
+implementation; the Lark parser and the Python checker were retired, and `process_bigraph_lang/v2/langium.py` and
+`check.py` call `cli-native`. The compliance suite moved to `dsl/test/v2/check.test.ts` case for case; the Python
+tests keep the same expectations through the CLI. `lark` and `pint` are no longer dependencies. One semantic
+change surfaced by the shipped growth-division example: a wire to `..` from a root edge is the idiom for "the
+parent store", which process-bigraph resolves by clamping at the root, so going above the root is `W110`, a
+warning, rather than an error.
+
 ## Verification
 
 1. `make check` (ruff, prettier, mypy strict, deptry, `poetry check --lock`) green after `git add` of new files.

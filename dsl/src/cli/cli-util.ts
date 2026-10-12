@@ -4,9 +4,14 @@ import * as path from "node:path";
 import * as fs from "node:fs";
 import { URI } from "langium";
 
+/**
+ * Load, build and validate a file. With `lenient`, only lexer and parser errors abort: semantic findings (the v2
+ * checker's) are left for the caller, so a document with mistakes can still be dumped as an AST and checked.
+ */
 export async function extractDocument(
   fileName: string,
   services: LangiumCoreServices,
+  lenient = false,
 ): Promise<LangiumDocument> {
   const extensions = services.LanguageMetaData.fileExtensions;
   if (!extensions.includes(path.extname(fileName))) {
@@ -31,8 +36,11 @@ export async function extractDocument(
     validation: true,
   });
 
+  const parseErrors =
+    document.parseResult.lexerErrors.length +
+    document.parseResult.parserErrors.length;
   const validationErrors = (document.diagnostics ?? []).filter(
-    (e) => e.severity === 1,
+    (e) => e.severity === 1 && (!lenient || parseErrors > 0),
   );
   if (validationErrors.length > 0) {
     console.error(chalk.red("There are validation errors:"));
@@ -54,8 +62,10 @@ export async function extractDocument(
 export async function extractAstNode<T extends AstNode>(
   fileName: string,
   services: LangiumCoreServices,
+  lenient = false,
 ): Promise<T> {
-  return (await extractDocument(fileName, services)).parseResult?.value as T;
+  return (await extractDocument(fileName, services, lenient)).parseResult
+    ?.value as T;
 }
 
 interface FilePathData {

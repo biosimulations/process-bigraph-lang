@@ -1,11 +1,10 @@
-"""The Langium grammar and the Lark grammar read every snapshot into the same model."""
+"""Every snapshot reads back through the Langium grammar into a model that prints to the same text."""
 
 from pathlib import Path
 
 import pytest
 
-from process_bigraph_lang.v2.langium import langium_cli, read_langium
-from process_bigraph_lang.v2.parser import read_text
+from process_bigraph_lang.v2.langium import langium_cli, read_langium, read_text
 from process_bigraph_lang.v2.printer import print_document, print_interfaces, print_model
 from tests.v2.helpers import REGISTRY, SNAPSHOTS
 
@@ -18,16 +17,19 @@ def _print(document, name: str) -> str:  # type: ignore[no-untyped-def]
     if document.models and not document.root.children and not document.interfaces:
         return "".join(print_model(m) for m in document.models)
     if document.interfaces and not document.root.children:
-        return print_interfaces(document.interfaces, name)
+        return print_interfaces(document.interfaces, document.module or name)
     return print_document(document, name=name, registry=REGISTRY).text
 
 
 @pytest.mark.parametrize("path", SNAPSHOT_FILES, ids=[p.name for p in SNAPSHOT_FILES])
-def test_langium_and_lark_agree(path: Path) -> None:
+def test_snapshot_prints_back_identically(path: Path) -> None:
     text = path.read_text(encoding="utf-8")
-    via_lark = read_text(text, registry=REGISTRY)
-    via_langium = read_langium(path, registry=REGISTRY)
-    assert _print(via_langium, path.stem) == _print(via_lark, path.stem)
+    document = read_langium(path, registry=REGISTRY)
+    printed = _print(document, path.stem)
+    # model headers and interface files are regenerated from data; composites are a fixpoint of the printer
+    comparable = "\n".join(line for line in printed.splitlines() if not line.startswith("//"))
+    expected = "\n".join(line for line in text.splitlines() if not line.startswith("//"))
+    assert comparable == expected
 
 
 def test_langium_reads_a_filled_model_site(tmp_path: Path) -> None:

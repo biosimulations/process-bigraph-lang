@@ -5,8 +5,12 @@ from typing import Any
 
 from process_bigraph_lang.v2 import read_document
 from process_bigraph_lang.v2.check import check_document
+from process_bigraph_lang.v2.langium import langium_cli
 from tests.compiler.generator.test_toy_add_floats import add_floats_process_expected_config_template
 from tests.v2.helpers import REGISTRY, load_corpus_json
+import pytest
+
+pytestmark = pytest.mark.skipif(langium_cli() is None, reason="no Langium CLI (build dsl/ or install cli-native)")
 
 
 def _codes(doc: dict[str, Any]) -> dict[str, list[str]]:
@@ -56,7 +60,7 @@ def test_mistakes_are_found_without_importing_processes() -> None:
     assert codes["S022"] == ["dfba/config/colour"]  # DynamicFBA declares no such config key
     assert "dfba/config/bounds" in codes["T121"] and "dfba/config/kinetic_params" in codes["T121"]  # required
     assert codes["T130"] == ["save"]  # interval on a step
-    assert codes["E110"] == ["save/inputs/result"]  # ../../A escapes the root
+    assert codes["W110"] == ["save/inputs/result"]  # ../../A goes above the root (process-bigraph clamps it)
     assert codes["S020"] == ["mystery"]  # unknown component: not checked
 
 

@@ -242,6 +242,7 @@ class Document:
     """A whole v2 module."""
 
     root: Composite = field(default_factory=Composite)
+    module: str | None = None  # the `module a.b;` header, if any
     name: str | None = None
     description: str = ""
     tags: list[str] = field(default_factory=list)

@@ -28,8 +28,9 @@ V2Import:
 V2ImportedName:
     name=ID;
 
+// a param name may coincide with a keyword (`param step`), as keys may
 V2Param:
-    'param' name=ID ':' type=V2TypeExpr ('=' default=V2Value)? ('choices' choices=V2ListLiteral)? ';';
+    'param' name=V2TypeName ':' type=V2TypeExpr ('=' default=V2Value)? ('choices' choices=V2ListLiteral)? ';';
 
 V2Meta:
     'meta' block=V2DictLiteral;

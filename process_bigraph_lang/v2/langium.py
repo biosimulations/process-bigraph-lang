@@ -1,10 +1,9 @@
 """
-Read `.pbl` files through the Langium grammar: the JSON AST the DSL CLI writes, bound to the v2 model.
+Read `.pbl` text through the Langium grammar: the JSON AST the DSL CLI writes, bound to the v2 model.
 
-`read_langium(path)` runs the Langium CLI (`cli-native generate`, the same binary v1 uses, or `node dsl/bin/cli.js`
-in a development checkout) and binds the JSON it writes into the same `Document` that `parser.read_text` builds
-from the Lark grammar. The two front ends are kept in lockstep by `tests/v2/test_langium.py`, which parses every
-snapshot both ways and expects identical prints.
+`read_langium(path)` and `read_text(text)` run the Langium CLI (`cli-native generate`, the same binary v1 uses,
+built once by Deno at wheel-build time; or `node dsl/bin/cli.js` in a development checkout) and bind the JSON it
+writes into a `Document`. The grammar lives in `dsl/src/language/pblang-v2.langium`; there is no second parser.
 """
 
 from __future__ import annotations
@@ -38,10 +37,10 @@ from process_bigraph_lang.v2.model import (
     Site,
     Store,
 )
-from process_bigraph_lang.v2.parser import _UNSORTED, _Builder, _is_unsorted, _plain
 from process_bigraph_lang.v2.paths import Path as WirePath
-from process_bigraph_lang.v2.paths import Wire
+from process_bigraph_lang.v2.paths import Wire, wire_to_document
 from process_bigraph_lang.v2.printer import EMITTER_ALIASES
+from process_bigraph_lang.v2.reader import _Reader
 from process_bigraph_lang.v2.types import Group, Named, Raw, Struct, TypeExpr, UnionType, to_bigraph
 from process_bigraph_lang.v2.values import MISSING
 
@@ -64,6 +63,14 @@ def read_langium(path: str | os.PathLike[str], *, registry: InterfaceRegistry | 
     return bind_langium(generate_ast(path), registry=registry)
 
 
+def read_text(text: str, *, registry: InterfaceRegistry | None = None) -> Document:
+    """Parse v2 text (written to a temporary `.pbl` file for the CLI)."""
+    with tempfile.TemporaryDirectory() as tmp:
+        source = Path(tmp) / "document.pbl"
+        source.write_text(text, encoding="utf-8")
+        return read_langium(source, registry=registry)
+
+
 def generate_ast(path: str | os.PathLike[str]) -> dict[str, Any]:
     """The JSON AST of a `.pbl` file, as `cli-native generate` writes it (`$type`, `$ref`, `$refText` kept)."""
     command = langium_cli()
@@ -72,7 +79,10 @@ def generate_ast(path: str | os.PathLike[str]) -> dict[str, Any]:
     source = Path(path).resolve()
     with tempfile.TemporaryDirectory() as tmp:
         result = subprocess.run(
-            [*command, "generate", str(source), "--destination", tmp], capture_output=True, text=True, check=False
+            [*command, "generate", str(source), "--destination", tmp, "--lenient"],
+            capture_output=True,
+            text=True,
+            check=False,
         )
         if result.returncode != 0:
             raise RuntimeError(f"Langium CLI failed on {source}: {result.stderr.strip() or result.stdout.strip()}")
@@ -97,8 +107,135 @@ def _ref_name(ref: Any) -> str | None:
     return ref.get("$refText") if isinstance(ref, dict) else None
 
 
+class _Builder:
+    """Builds the model from parsed pieces: edge heads and items, stores, meta, late `${param}` substitution."""
+
+    def __init__(self, registry: InterfaceRegistry | None = None) -> None:
+        self.registry = registry
+        self.document = Document()
+        self.imports: dict[str, str] = {}  # interface name -> module
+        self.interfaces: dict[str, InterfaceDecl] = {}
+        self._reader = _Reader(saved=False, params=set())
+
+    def meta(self, entries: dict[str, Any]) -> None:
+        entries = dict(entries)
+        self.document.tags = list(entries.pop("tags", []) or [])
+        self.document.requires = dict(entries.pop("requires", {}) or {})
+        self.document.extras.update(entries)
+
+    def options(self, entries: dict[str, Any]) -> None:
+        self.document.options.update(entries)
+
+    def store(self, doc: str | None, key: str, type_: TypeExpr | None, value: Any) -> Store:
+        store = Store(key, type=type_, doc=doc)
+        if isinstance(value, Site) and value.default is MISSING and type_ is not None and _is_unsorted(value.sort):
+            store.site = Site(type_, MISSING)  # `store m : ODEModel = ?;` is a model site sorted by its type
+            return store
+        if isinstance(value, Site):
+            sort = value.sort if not _is_unsorted(value.sort) else (type_ or Named("node"))
+            store.site = Site(sort, value.default)
+        elif value is not None:
+            store.value = value
+        return store
+
+    def _apply_edge_type(self, edge: Edge, edge_type: tuple[str, Any, Any]) -> None:
+        label, name, address = edge_type
+        if label == "shared_ref":
+            edge.kind = "shared_process_ref"
+            edge.extras["process_id"] = name
+            return
+        edge.iface_name = name
+        decl = self.interfaces.get(name) if name is not None else None
+        if name is not None and decl is None and name in self.imports:
+            imported = Address("local", f"!{self.imports[name]}.{name}")
+            decl = self.registry.lookup(imported) if self.registry is not None else None
+            if decl is None:
+                decl = InterfaceDecl(name, edge.kind, imported, module=self.imports[name])
+        if address is None:
+            edge.address = decl.address if decl is not None else None
+        elif isinstance(address, Site):
+            sort = address.sort if not _is_unsorted(address.sort) else _face_sort(decl)
+            edge.address = Site(sort, address.default)
+        else:
+            edge.address = address
+        if decl is not None and decl.module is None and (decl.inputs is not None or decl.outputs is not None):
+            edge.ports = Face(
+                dict(decl.inputs) if decl.inputs is not None else None,
+                dict(decl.outputs) if decl.outputs is not None else None,
+            )
+
+    def _apply_items(self, edge: Edge, items: tuple[tuple[str, Any], ...]) -> None:
+        for label, payload in items:
+            if label == "config":
+                edge.config.update(_plain(payload))
+            elif label == "inputs":
+                edge.inputs = payload
+            elif label == "outputs":
+                edge.outputs = payload
+            elif label == "ports":
+                edge.ports = payload
+            elif label == "extra":
+                edge.extras.update(payload)
+            elif label == "bridge":
+                edge.bridge = {k: wire_to_document(v) for k, v in payload.items()}
+            elif label == "interface":
+                edge.interface = payload
+            elif label == "options":
+                edge.config.update(payload)
+            elif label == "inner":
+                edge.inner = payload
+
+    def _substitute(self, composite: Composite) -> Composite:
+        """`${name}` strings become ParamRefs once the params are known (reuses the reader's rule)."""
+        for element in composite.children.values():
+            if isinstance(element, Store) and element.value is not MISSING:
+                element.value = self._reader.value(element.value)
+            elif isinstance(element, Node):
+                self._substitute(Composite(element.children))
+            elif isinstance(element, Edge):
+                element.config = self._reader.value(element.config)
+                if isinstance(element.interval, str):
+                    element.interval = self._reader.value(element.interval)
+                if element.inner is not None:
+                    self._substitute(element.inner)
+        return composite
+
+
+_UNSORTED = Named("__unsorted__")
+
+
+def _is_unsorted(sort: TypeExpr) -> bool:
+    return isinstance(sort, Named) and sort.name == "__unsorted__"
+
+
+def _plain(value: Any) -> Any:
+    """Config values keep sites as plain dicts, as the reader does."""
+    if isinstance(value, Site):
+        sort = value.sort if not _is_unsorted(value.sort) else Named("node")
+        node: dict[str, Any] = {"_type": "site", "_sort": to_bigraph(sort)}
+        if value.default is not MISSING:
+            node["_default"] = _plain(value.default)
+        return node
+    if isinstance(value, dict):
+        return {k: _plain(v) for k, v in value.items()}
+    if isinstance(value, list):
+        return [_plain(v) for v in value]
+    if isinstance(value, tuple):
+        return tuple(_plain(v) for v in value)
+    return value
+
+
+def _face_sort(decl: InterfaceDecl | None) -> TypeExpr:
+    face: dict[str, Any] = {"_type": "link"}
+    if decl is not None and decl.inputs is not None:
+        face["_inputs"] = {k: to_bigraph(v) for k, v in decl.inputs.items()}
+    if decl is not None and decl.outputs is not None:
+        face["_outputs"] = {k: to_bigraph(v) for k, v in decl.outputs.items()}
+    return Raw(face)
+
+
 class _LangiumBinder:
-    """Mirrors `parser._Builder`, reading the Langium AST instead of the Lark tree; shares its edge logic."""
+    """Walks the Langium JSON AST and builds the model through `_Builder`."""
 
     def __init__(self, registry: InterfaceRegistry | None) -> None:
         self.builder = _Builder(registry)
@@ -107,6 +244,7 @@ class _LangiumBinder:
     # --- module --------------------------------------------------------------------------------------------------
 
     def module(self, ast: dict[str, Any]) -> Document:
+        self.document.module = ast.get("name")
         for statement in ast.get("statements") or []:
             body = statement["body"]
             doc = _doc(statement)
@@ -227,7 +365,7 @@ class _LangiumBinder:
     def store(self, node: dict[str, Any], doc: str | None) -> Store:
         type_ = self.opt_type(node)
         value = self.value(node["value"]) if node.get("value") is not None else None
-        return self.builder.store(doc, node["name"], type_, value)  # type: ignore[arg-type]
+        return self.builder.store(doc, node["name"], type_, value)
 
     def edge(self, node: dict[str, Any], doc: str | None) -> Edge:
         kind = node["$type"]
@@ -407,4 +545,4 @@ class _LangiumBinder:
         return Struct({k: f.type for k, f in fields.items() if f.type is not None})
 
 
-__all__ = ["bind_langium", "generate_ast", "langium_cli", "read_langium", "_is_unsorted", "_plain"]
+__all__ = ["bind_langium", "generate_ast", "langium_cli", "read_langium", "read_text"]

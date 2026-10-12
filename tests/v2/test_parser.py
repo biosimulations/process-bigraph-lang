@@ -19,10 +19,13 @@ from process_bigraph_lang.v2 import (
     write_document,
 )
 from process_bigraph_lang.v2.model import Edge, ParamRef, Site, Store
-from process_bigraph_lang.v2.parser import read_text
+from process_bigraph_lang.v2.langium import langium_cli, read_text
 from tests.compiler.generator.spatio_flux.test_spatio_flux_II import step_config_template as spatio_two
 from tests.compiler.generator.spatio_flux.test_spatio_flux_III import step_config_template as spatio_three
 from tests.v2.helpers import CORPUS, REGISTRY, SNAPSHOTS, load_corpus_json, snapshot_asset_loader
+
+pytestmark = pytest.mark.skipif(langium_cli() is None, reason="no Langium CLI (build dsl/ or install cli-native)")
+
 
 DOCUMENT_SNAPSHOTS = [
     "hybrid_two_way_exchange",

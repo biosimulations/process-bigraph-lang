@@ -125,6 +125,8 @@ class _Printer:
         self.saved = doc.source == "saved"
         self.declared = {d.name: d for d in doc.interfaces}
         self.lines = [f"// pblang v2 - printed from {self.name}"]
+        if doc.module:
+            self.lines.append(f"module {doc.module};")
         self.collect_interfaces(doc.root)
         if self.imports:
             self.lines.append("")

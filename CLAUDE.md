@@ -163,13 +163,18 @@ stub. Entry points: `main.ts` (LSP), `main-browser.ts` (Monaco demo, `npm run de
 The language is being redesigned; `docs/v2/` holds the research notes, the language design, the registry/authoring
 design and the plan. The code so far is a round-trip prototype: `reader.py` (document or CompositeSpec →
 `model.Document`), `writer.py` (→ document / CompositeSpec, exact for every v1 expected document), `printer.py`
-(→ canonical `.pblang` v2 text + sidecar assets), `parser.py` (a Lark grammar that reads that text back; the
-executable form of the grammar sketch), `interfaces.py` (`describe_module` + `InterfaceRegistry` with a JSON
+(→ canonical `.pblang` v2 text + sidecar assets), `interfaces.py` (`describe_module` + `InterfaceRegistry` with a JSON
 manifest; resolved addresses print as `import`s), `check.py` (static checks of a document against declarations)
 and `normalize.py` (`equivalent` of two documents; with a registry, `local:Name` and `local:!mod.Name` and
 `_inputs`/`_outputs` that repeat the declared face are not differences). `tests/fixtures/data/v2/interfaces/` holds
 headers generated from viva-pde-particle in its own env.
-`dsl/` now holds **two Langium languages**: v1 (`.pblang`, `process-bigraph-language.langium`, unchanged) and v2
+There is **one grammar and one checker**, both TypeScript: `dsl/src/language/pblang-v2.langium` and
+`dsl/src/language/v2/check.ts` (registered as a Langium validation; `cli-native check --json` is its CLI). Python
+parses v2 text and checks documents by calling `cli-native` (`process_bigraph_lang/v2/langium.py`, `check.py`);
+the Lark parser and the Python checker are gone. Units in the checker use mathjs. Compliance suite:
+`dsl/test/v2/check.test.ts`; the Python tests under `tests/v2/` run the same expectations through the CLI and
+skip when no CLI is built.
+`dsl/` holds **two Langium languages**: v1 (`.pblang`, `process-bigraph-language.langium`, unchanged) and v2
 (`.pbl`, `pblang-v2.langium`, rule names prefixed `V2` because both share one generated `ast.ts`). The same
 language server and `cli-native` serve both; the CLI picks the language by extension. `process_bigraph_lang/v2/langium.py`
 binds the v2 JSON AST to the same model as the Lark parser, and `tests/v2/test_langium.py` requires both front ends

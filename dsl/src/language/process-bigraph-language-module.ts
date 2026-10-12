@@ -17,6 +17,7 @@ import { registerValidationChecks } from "./validation/validator.js";
 import { TypeValidator } from "./validation/type-validator.js";
 import { MyScopeProvider } from "./validation/scope-provider.js";
 import { V2ScopeComputation } from "./pblang-v2-scope.js";
+import { registerV2Checks, V2Registry, V2Validator } from "./v2/validator.js";
 
 /**
  * Declaration of custom services - add your own service classes here.
@@ -35,15 +36,28 @@ export type ProcessBigraphLanguageAddedServices = {
 export type ProcessBigraphLanguageServices = LangiumServices &
   ProcessBigraphLanguageAddedServices;
 
-/** The v2 language (.pbl files): Langium defaults plus a scope computation; the Python side does the deeper checks. */
-export type PblangV2Services = LangiumServices;
-
-export const PblangV2Module: Module<PblangV2Services, PartialLangiumServices> =
-  {
-    references: {
-      ScopeComputation: (services) => new V2ScopeComputation(services),
-    },
+/** The v2 language (.pbl files): the static checker (headers, wires, writers, units, emit paths, model sites). */
+export type PblangV2AddedServices = {
+  validation: {
+    V2Registry: V2Registry;
+    V2Validator: V2Validator;
   };
+};
+
+export type PblangV2Services = LangiumServices & PblangV2AddedServices;
+
+export const PblangV2Module: Module<
+  PblangV2Services,
+  PartialLangiumServices & PblangV2AddedServices
+> = {
+  references: {
+    ScopeComputation: (services) => new V2ScopeComputation(services),
+  },
+  validation: {
+    V2Registry: () => new V2Registry(),
+    V2Validator: (services) => new V2Validator(services.validation.V2Registry),
+  },
+};
 
 /**
  * Dependency injection module that overrides Langium default services and contributes the
@@ -102,6 +116,7 @@ export function createProcessBigraphLanguageServices(
     PblangV2Module,
   );
   shared.ServiceRegistry.register(PblangV2);
+  registerV2Checks(PblangV2);
   if (!context.connection) {
     // We don't run inside a language server
     // Therefore, initialize the configuration provider instantly

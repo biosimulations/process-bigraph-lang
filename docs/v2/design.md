@@ -605,6 +605,13 @@ the [registry and authoring design](registry-and-authoring.md#4-validation-and-e
 | `W-PARAM-EVALUATED`                                                                     | warning  | `phase = step_multiplier - 1 evaluated with defaults (4)`                                                              |
 | `E-INTERVAL`, `E-DUPLICATE-KEY`, `E-UNRESOLVED-IMPORT`, `E-EMIT-ALIAS`, `E-BRIDGE-PORT` | error    | as named                                                                                                               |
 
+**Where the checks run.** The checker is TypeScript (`dsl/src/language/v2/check.ts`), inside the Langium
+services: the same code produces editor diagnostics, the browser's diagnostics (the language server runs in a web
+worker) and the CLI's `check --json` envelope. Its inputs are data only: the parsed document and header manifests
+(JSON). Units use mathjs. Python calls the CLI (`process_bigraph_lang/v2/check.py`), which `cli-native`
+provides without Node or Deno at run time (Deno compiles it once when the wheel is built). There is one grammar
+and one checker; the compliance suite is `dsl/test/v2/check.test.ts`, mirrored by the Python tests through the CLI.
+
 ### 5.3 `pblang check`
 
 ```text

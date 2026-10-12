@@ -4,9 +4,7 @@
         {
             "id": "process-bigraph-language",
             "grammar": "src/language/process-bigraph-language.langium",
-            "fileExtensions": [
-                ".pblang"
-            ],
+            "fileExtensions": [".pblang"],
             "textMate": {
                 "out": "syntaxes/process-bigraph-language.tmLanguage.json"
             },
@@ -17,9 +15,7 @@
         {
             "id": "pblang-v2",
             "grammar": "src/language/pblang-v2.langium",
-            "fileExtensions": [
-                ".pbl"
-            ],
+            "fileExtensions": [".pbl"],
             "textMate": {
                 "out": "syntaxes/pblang-v2.tmLanguage.json"
             },

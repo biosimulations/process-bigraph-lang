@@ -99,21 +99,21 @@ def _describe(args: argparse.Namespace) -> int:
 
 
 def _check(args: argparse.Namespace) -> int:
-    import json
+    from process_bigraph_lang.v2.check import check_file
 
-    from process_bigraph_lang.v2.check import check_document
+    source = Path(args.document)
+    manifests = [Path(m) for m in args.interfaces or []]
+    if source.suffix in (".json", ".yaml", ".yml"):  # a document: print it, then check the text
+        import tempfile
 
-    path = Path(args.document)
-    loaded, is_spec = _load(path)
-    model = read_composite_spec(loaded) if is_spec else read_document(loaded)
-    registry = None
-    if args.interfaces:
-        registry = InterfaceRegistry()
-        for manifest in args.interfaces:
-            registry.decls.extend(
-                InterfaceRegistry.from_manifest(json.loads(Path(manifest).read_text(encoding="utf-8"))).decls
-            )
-    diagnostics = check_document(model, registry)
+        loaded, is_spec = _load(source)
+        model = read_composite_spec(loaded) if is_spec else read_document(loaded)
+        with tempfile.TemporaryDirectory() as tmp:
+            text = Path(tmp) / f"{source.stem}.pbl"
+            text.write_text(print_document(model, name=source.stem).text, encoding="utf-8")
+            diagnostics = check_file(text, manifests)
+    else:
+        diagnostics = check_file(source, manifests)
     for diagnostic in diagnostics:
         print(diagnostic)
     errors = sum(1 for d in diagnostics if d.severity == "error")
@@ -158,7 +158,9 @@ def main(argv: list[str] | None = None) -> int:
     model_cmd.add_argument("--out", help="write the .pblang model header here")
     model_cmd.set_defaults(run=_describe_model)
     check_cmd = commands.add_parser("check", help="statically check a document against interface manifests")
-    check_cmd.add_argument("document")
+    check_cmd.add_argument(
+        "document", help="a .pbl file, or a document (.json) / CompositeSpec (.yaml) to print and check"
+    )
     check_cmd.add_argument("--interfaces", action="append", help="a manifest.json (repeatable)")
     check_cmd.set_defaults(run=_check)
     diff_cmd = commands.add_parser("diff", help="compare two documents after normalization (exit 1 if they differ)")
