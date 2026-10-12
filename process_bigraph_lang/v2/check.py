@@ -7,13 +7,15 @@ store (process-bigraph would create one silently), wires whose target's declared
 paths that escape the root, an `interval` on a step, components the registry does not know (their ports and
 config go unchecked) and interfaces whose ports depend on an instance (declared by hand later). It also analyses
 the writers of each store: additive writers that superpose (for review), an overwriting writer next to another
-writer (order-dependent), and a step publishing an array additively (usually meant `overwrite`); and it checks
+writer (order-dependent), and a step publishing an array additively (usually meant `overwrite`); it checks units
+(port units, possibly with unit variables bound from the wired stores, against the stores' units); and it checks
 `emit` declarations: a path naming no declared store, or an observable that nothing writes. This is the
 S2–S4 slice of the diagnostics model in `docs/v2/design.md`; codes follow `docs/v2/registry-and-authoring.md`.
 """
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 from typing import Any
 
@@ -49,6 +51,58 @@ _Target = tuple[tuple[str | int, ...], TypeExpr | None, bool]  # absolute path, 
 
 
 @dataclass
+class _UnitObligation:
+    port_path: tuple[str | int, ...]
+    port_units: str  # may contain unit variables `?U`
+    store_units: str
+    store: str
+
+
+_UNIT_VAR = re.compile(r"\?([A-Za-z_][A-Za-z0-9_]*)")
+_REGISTRY: list[Any] = []
+
+
+def _unit_registry() -> Any:
+    if not _REGISTRY:
+        import pint
+
+        _REGISTRY.append(pint.UnitRegistry())
+    return _REGISTRY[0]
+
+
+def _substitute(expr: str, bindings: dict[str, str]) -> str:
+    return _UNIT_VAR.sub(lambda m: f"({bindings[m.group(1)]})" if m.group(1) in bindings else m.group(0), expr)
+
+
+def _solve(expr: str, variable: str, target: str, registry: Any) -> str | None:
+    """The units of `?variable` that make `expr` equal to `target`, for expressions linear in the variable."""
+    try:
+        rest = registry.parse_expression(_UNIT_VAR.sub(lambda m: "1" if m.group(1) == variable else m.group(0), expr))
+        wanted = registry.parse_expression(target)
+        for candidate in (wanted / rest, rest / wanted):
+            trial = registry.parse_expression(_substitute(expr, {variable: str(candidate.units)}))
+            if (
+                trial.dimensionality == wanted.dimensionality
+                and abs(float((trial / wanted).to_base_units().magnitude) - 1) < 1e-9
+            ):
+                return str(candidate.units)
+    except Exception:  # noqa: BLE001
+        return None
+    return None
+
+
+def _units_of(expr: TypeExpr | None) -> str | None:
+    """The units a type carries, on the type itself or on the value type below a map/list/overwrite."""
+    if isinstance(expr, Named):
+        if expr.units is not None:
+            return expr.units
+        for arg in reversed(expr.args):
+            if not isinstance(arg, Group):
+                return _units_of(arg)
+    return None
+
+
+@dataclass
 class _Writer:
     port_path: tuple[str | int, ...]
     kind: str  # process | step
@@ -64,6 +118,7 @@ class _Checker:
         self.writers: dict[tuple[str | int, ...], list[_Writer]] = {}
         self.root_index: dict[tuple[str | int, ...], Store | Node | Edge] = {}
         self.root_writers: dict[tuple[str | int, ...], list[_Writer]] = {}
+        self.unit_obligations: list[_UnitObligation] = []
 
     def report(self, code: str, slug: str, severity: str, path: tuple[str | int, ...], message: str) -> None:
         self.diagnostics.append(Diagnostic(code, slug, severity, "/".join(str(p) for p in path), message))
@@ -96,6 +151,7 @@ class _Checker:
     # --- edges -------------------------------------------------------------------------------------------------
 
     def edge(self, edge: Edge, path: tuple[str | int, ...]) -> None:
+        self.unit_obligations = []
         decl = self.declaration(edge, path)
         if edge.kind == "step" and edge.interval is not None:
             self.report("T130", "interval-on-step", "error", path, "a step has no interval; only processes do")
@@ -117,7 +173,15 @@ class _Checker:
                         port_path,
                         f"{self.name(decl, edge)} has no {label[:-1]} port '{port}' (declared: {known})",
                     )
-                self.wire(wire, port_type, path[:-1], port_path, writer=edge.kind if label == "outputs" else None)
+                self.wire(
+                    wire,
+                    port_type,
+                    path[:-1],
+                    port_path,
+                    writer=edge.kind if label == "outputs" else None,
+                    units=_units_of(port_type),
+                )
+        self.units(path)
 
     def declaration(self, edge: Edge, path: tuple[str | int, ...]) -> InterfaceDecl | None:
         if isinstance(edge.address, Site):
@@ -184,12 +248,13 @@ class _Checker:
         parent: tuple[str | int, ...],
         port_path: tuple[str | int, ...],
         writer: str | None = None,
+        units: str | None = None,
     ) -> None:
         """Check one wire; `writer` is the edge kind when this is an output wire (it then writes the store)."""
         if isinstance(wire, dict):
             element = _map_value_type(port_type)
             for sub_port, sub_wire in wire.items():
-                self.wire(sub_wire, element, parent, (*port_path, sub_port), writer)
+                self.wire(sub_wire, element, parent, (*port_path, sub_port), writer, units)
             return
         target = self.resolve(wire, parent, port_path)
         if target is None:
@@ -197,6 +262,9 @@ class _Checker:
         absolute, store_type, declared = target
         if writer is not None:
             self.writers.setdefault(absolute, []).append(_Writer(port_path, writer, port_type, store_type))
+        store_units = _units_of(store_type)
+        if units is not None and store_units is not None:
+            self.unit_obligations.append(_UnitObligation(port_path, units, store_units, "/".join(map(str, absolute))))
         if not declared:
             self.report(
                 "W211",
@@ -222,6 +290,83 @@ class _Checker:
                 "warning",
                 port_path,
                 f"port type '{_text(port_type)}' but store '{'/'.join(map(str, absolute))}' is declared '{_text(store_type)}'",
+            )
+
+    # --- units -------------------------------------------------------------------------------------------------
+
+    def units(self, path: tuple[str | int, ...]) -> None:
+        """
+        Unit consistency of one edge. A port's units are a unit expression that may contain unit variables
+        (`?U`, `?U/?T`): the variables are bound per instance from the stores the ports are wired to, so a
+        component that works in any consistent unit system (an SBML solver, say) declares `?U` and `?T` and still
+        gets checked. A bound expression that does not match its store's units is reported with the conversion
+        factor when the dimensions agree, or as incompatible when they do not.
+        """
+        if not self.unit_obligations:
+            return
+        registry = _unit_registry()
+        bindings: dict[str, str] = {}
+        pending = list(self.unit_obligations)
+        for _ in range(len(pending) + 1):  # each round binds at least one variable or stops
+            still: list[_UnitObligation] = []
+            for ob in pending:
+                expr = _substitute(ob.port_units, bindings)
+                free = sorted(set(_UNIT_VAR.findall(expr)))
+                if not free:
+                    self.compare_units(ob, expr, registry)
+                elif len(free) == 1:
+                    solved = _solve(expr, free[0], ob.store_units, registry)
+                    if solved is None:
+                        self.report(
+                            "I231",
+                            "unit-unresolved",
+                            "info",
+                            ob.port_path,
+                            f"cannot solve '{ob.port_units}' for ?{free[0]} from '{ob.store_units}'",
+                        )
+                    else:
+                        bindings[free[0]] = solved
+                        self.compare_units(ob, _substitute(ob.port_units, bindings), registry)
+                else:
+                    still.append(ob)
+            if len(still) == len(pending):
+                for ob in still:
+                    self.report(
+                        "I231",
+                        "unit-unresolved",
+                        "info",
+                        ob.port_path,
+                        f"'{ob.port_units}' has unbound unit variables; no store pins them",
+                    )
+                break
+            pending = still
+
+    def compare_units(self, ob: _UnitObligation, expr: str, registry: Any) -> None:
+        try:
+            port_q = registry.parse_expression(expr)
+            store_q = registry.parse_expression(ob.store_units)
+        except Exception:  # noqa: BLE001 - pint cannot parse one of them
+            self.report(
+                "I230", "unit-unparsed", "info", ob.port_path, f"cannot parse units '{expr}' or '{ob.store_units}'"
+            )
+            return
+        if port_q.dimensionality != store_q.dimensionality:
+            self.report(
+                "W201",
+                "unit-mismatch",
+                "warning",
+                ob.port_path,
+                f"port units '{expr}' ({port_q.dimensionality}) are incompatible with store '{ob.store}' in '{ob.store_units}' ({store_q.dimensionality})",
+            )
+            return
+        factor = float((port_q / store_q).to_base_units().magnitude)
+        if abs(factor - 1.0) > 1e-9:
+            self.report(
+                "W201",
+                "unit-mismatch",
+                "warning",
+                ob.port_path,
+                f"port units '{expr}' but store '{ob.store}' is in '{ob.store_units}': convertible, factor {factor:g}; insert a conversion or align the units",
             )
 
     # --- emit declarations -------------------------------------------------------------------------------------

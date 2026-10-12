@@ -228,3 +228,91 @@ def test_emit_of_a_store_written_below_or_above_counts_as_written() -> None:
         },
     }
     assert not {"W240", "W241"} & set(_spec_codes(spec))
+
+
+# --- units: port units with unit variables, bound per instance from the wired stores ---------------------------
+
+
+def _units_doc(stores: dict[str, tuple[str, str]], ports: dict[str, tuple[str, str, str]]) -> dict[str, Any]:
+    """stores: name -> (type, units); ports: port -> (direction, type, units), each wired to the store of its name."""
+    schema = {name: {"_type": t, "_units": u} for name, (t, u) in stores.items()}
+    node: dict[str, Any] = {
+        "_type": "process",
+        "address": "local:Solver",
+        "_inputs": {},
+        "_outputs": {},
+        "inputs": {},
+        "outputs": {},
+    }
+    for port, (direction, t, u) in ports.items():
+        node[f"_{direction}"][port] = {"_type": t, "_units": u}
+        node[direction][port] = [port]
+    return {"schema": schema, "state": {**{n: 0.0 for n in stores}, "solver": node}}
+
+
+def test_unit_variables_bind_from_stores_and_check_derived_rates() -> None:
+    doc = _units_doc(
+        {"conc": ("float", "uM"), "time": ("float", "s"), "flux": ("float", "uM/s")},
+        {"conc": ("inputs", "float", "?U"), "time": ("inputs", "float", "?T"), "flux": ("outputs", "float", "?U/?T")},
+    )
+    assert not {"W201", "I230", "I231"} & set(_codes(doc))
+
+
+def test_convertible_units_report_the_factor() -> None:
+    doc = _units_doc(
+        {"conc": ("float", "uM"), "time": ("float", "s"), "flux": ("float", "mM/s")},
+        {"conc": ("inputs", "float", "?U"), "time": ("inputs", "float", "?T"), "flux": ("outputs", "float", "?U/?T")},
+    )
+    diagnostics = check_document(read_document(doc), REGISTRY)
+    w201 = [d for d in diagnostics if d.code == "W201"]
+    assert [d.path for d in w201] == ["solver/outputs/flux"] and "factor 0.001" in w201[0].message
+
+
+def test_incompatible_units_are_reported() -> None:
+    doc = _units_doc(
+        {"conc": ("float", "kg"), "time": ("float", "s")},
+        {"conc": ("inputs", "float", "uM"), "time": ("inputs", "float", "?T")},
+    )
+    diagnostics = check_document(read_document(doc), REGISTRY)
+    assert [d.path for d in diagnostics if d.code == "W201"] == ["solver/inputs/conc"]
+    assert "incompatible" in next(d.message for d in diagnostics if d.code == "W201")
+
+
+def test_a_variable_is_solved_from_a_derived_port() -> None:
+    # only the rate store pins the time unit: ?T is solved from ?U/?T once ?U is bound
+    doc = _units_doc(
+        {"conc": ("float", "uM"), "flux": ("float", "uM/min")},
+        {"conc": ("inputs", "float", "?U"), "flux": ("outputs", "float", "?U/?T")},
+    )
+    assert not {"W201", "I230", "I231"} & set(_codes(doc))
+    # a store wired to the bare variable binds it directly, and that binding wins over a solved one
+    doc = _units_doc(
+        {"conc": ("float", "uM"), "flux": ("float", "uM/min"), "clock": ("float", "s")},
+        {"conc": ("inputs", "float", "?U"), "flux": ("outputs", "float", "?U/?T"), "clock": ("inputs", "float", "?T")},
+    )
+    diagnostics = check_document(read_document(doc), REGISTRY)
+    w201 = [d for d in diagnostics if d.code == "W201"]
+    assert [d.path for d in w201] == ["solver/outputs/flux"] and "factor 60" in w201[0].message
+
+
+def test_units_on_a_map_apply_to_sub_port_wires() -> None:
+    doc = {
+        "schema": {"fields": {"A": {"_type": "float", "_units": "mM"}}},
+        "state": {
+            "fields": {"A": 1.0},
+            "p": {
+                "_type": "process",
+                "address": "local:P",
+                "_inputs": {"substrates": {"_type": "map", "_value": "float", "_units": "uM"}},
+                "inputs": {"substrates": {"A": ["fields", "A"]}},
+            },
+        },
+    }
+    diagnostics = check_document(read_document(doc), REGISTRY)
+    assert [d.path for d in diagnostics if d.code == "W201"] == ["p/inputs/substrates/A"]
+
+
+def test_unbound_variables_and_unparsable_units_are_informational() -> None:
+    doc = _units_doc({"x": ("float", "furlongs_per_fortnight!")}, {"x": ("inputs", "float", "?U/?T")})
+    codes = _codes(doc)
+    assert "W201" not in codes and ("I230" in codes or "I231" in codes)

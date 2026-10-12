@@ -73,3 +73,11 @@ def test_render_without_source_uses_string_form_when_possible() -> None:
 def test_missing_default_is_distinct_from_none() -> None:
     assert parse_type("float").default is MISSING  # type: ignore[union-attr]
     assert parse_type({"_type": "float", "_default": None}).default is None  # type: ignore[union-attr]
+
+
+def test_units_on_any_type() -> None:
+    expr = parse_type({"_type": "map", "_value": "float", "_units": "uM"})
+    assert isinstance(expr, Named) and expr.units == "uM" and to_surface(expr) == 'map<string, float> @ "uM"'
+    assert to_bigraph(Named("float", units="?U/?T")) == {"_type": "float", "_units": "?U/?T"}
+    assert to_bigraph(Named("map", [Named("float")], units="uM")) == {"_type": "map[float]", "_units": "uM"}
+    assert parse_type(to_bigraph(Named("map", [Named("float")], units="uM"))).units == "uM"  # type: ignore[union-attr]

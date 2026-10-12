@@ -720,6 +720,42 @@ with an overwriting one (`W220`/`E-MIXED-APPLY`), and a step publishing a whole 
 `split` is only for the other coupling style: engines that own their variables and exchange whole values
 through ports and adapters, where the question is _when_ each engine reads the other's result within an interval.
 
+## 5.5 Units: declared on stores, polymorphic on components
+
+Units are an annotation on a type, on a store (`store conc: map<string, float> @ "uM";`) and on a port in a
+header (`fields: map<string, array<float>> @ "uM";`). They are data: `_units` on the bigraph-schema type, checked
+with pint, never executed. The store is the single source of truth for the composite's unit system; every port
+wired to it must agree.
+
+Most solvers do not own a unit system. An ODE or PDE engine integrates whatever consistent units the model
+carries, so its header must not commit to `uM`. It declares **unit variables** instead:
+
+```text
+process Tellurium at "…" {
+  inputs  { species: map<string, float> @ "?U"; time: float @ "?T"; }
+  outputs { species: map<string, overwrite<float>> @ "?U"; fluxes: map<string, float> @ "?U/?T"; }
+}
+```
+
+`?U` and `?T` are bound per instance from the stores the ports are wired to, the way type variables are inferred:
+`species -> conc` binds `?U = uM`, `time -> clock` binds `?T = s`, and `fluxes -> rates` is then checked against
+`uM/s`. A variable that only appears in a derived expression is solved for (`?T` from `?U/?T` once `?U` is
+known). This is what "units-of" and "rate-units-of" mean here: `@ "?U"` is "the units of whatever this is wired
+to" and `@ "?U/?T"` is "those units per time unit", with the checker proving the composite consistent without
+the component naming any unit. If nothing pins a variable the obligation is reported as unresolved, not as an
+error: a composite with no declared units is unchecked, not wrong.
+
+Findings: `W201 unit-mismatch` when a bound expression and its store differ, with the conversion factor when the
+dimensions agree (`uM/s` into `mM/s`, factor 0.001: insert an adapter or align the stores) or as incompatible when
+they do not (`uM` into `kg`); `I230` when pint cannot parse a unit; `I231` when no store pins a variable.
+
+Where an SBML model declares its own unit system, the units belong on the stores the model's species and
+parameters are mapped to, and they can be generated from the model: the existing SBML stub generator already reads
+the model file and writes stores with values, and writing their `@ units` from the model's unit definitions is
+the same step. A data-level lint that compares a model file's unit definitions with the stores it is wired to is
+a separate, later check. Pinning a variable explicitly at an instance (`units { U = "uM" }`) is possible syntax
+for the case where no store declares units; it is not needed when the stores do.
+
 ## 6. Open questions
 
 1. **Params referenced at several positions in template mode.** Substitute at compile time by default (`--set`);

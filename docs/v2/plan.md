@@ -223,7 +223,9 @@ semantics (from the port type, or the store's own `overwrite<T>`); `W220` (info)
 contributions superpose, `W221` warns when an overwriting writer sits next to any other writer (order-dependent),
 and `W223` warns when a step publishes an array-typed value with accumulate semantics. `emit` declarations are
 checked too: `W240` when a path names no declared store (the emitter would record an empty value) and `W241`
-(info) when an emitted store is written by nothing.
+(info) when an emitted store is written by nothing. Units are checked with pint: port units may contain unit
+variables (`?U`, `?U/?T`) bound per instance from the wired stores, so a solver that works in any consistent unit
+system is still checked; `W201` reports a mismatch with the conversion factor or as incompatible.
 
 Making the headers static was a change to the wrapped package, not to the tooling: on viva-pde-particle's
 `static-interfaces` branch, `SmoldynHybrid` always declares `particle_positions` (the `emit_positions` flag only

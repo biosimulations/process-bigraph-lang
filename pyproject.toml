@@ -21,6 +21,7 @@ antlr4-python3-runtime = "^4.13.2"
 bigraph-schema = "^1.6.0"
 numpy = ">=1.26"
 lark = ">=1.1"
+pint = ">=0.24"
 
 [tool.poetry.build]
 script = "build.py"
@@ -70,6 +71,12 @@ disable_error_code = ["no-any-unimported"]
 [[tool.mypy.overrides]]
 module = "process_bigraph_lang.antlr.*"
 ignore_errors = true
+
+[[tool.mypy.overrides]]
+# mypy 1.x crashes while analysing pint's typing; it is only used dynamically for unit algebra
+module = "pint.*"
+follow_imports = "skip"
+ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

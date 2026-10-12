@@ -2237,14 +2237,15 @@ xmp = ["defusedxml"]
 
 [[package]]
 name = "pint"
-version = "0.24.4"
+version = "0.25.3"
 description = "Physical quantities module"
 optional = false
-python-versions = ">=3.9"
+python-versions = ">=3.11"
 groups = ["main", "dev"]
+markers = "python_version == \"3.11\""
 files = [
-    {file = "Pint-0.24.4-py3-none-any.whl", hash = "sha256:aa54926c8772159fcf65f82cc0d34de6768c151b32ad1deb0331291c38fe7659"},
-    {file = "pint-0.24.4.tar.gz", hash = "sha256:35275439b574837a6cd3020a5a4a73645eb125ce4152a73a2f126bf164b91b80"},
+    {file = "pint-0.25.3-py3-none-any.whl", hash = "sha256:27eb25143bd5de9fcc4d5a4b484f16faf6b4615aa93ece6b3373a8c1a3c1b97d"},
+    {file = "pint-0.25.3.tar.gz", hash = "sha256:f8f5df6cf65314d74da1ade1bf96f8e3e4d0c41b51577ac53c49e7d44ca5acee"},
 ]
 
 [package.dependencies]
@@ -2254,14 +2255,54 @@ platformdirs = ">=2.1.0"
 typing-extensions = ">=4.0.0"
 
 [package.extras]
+all = ["babel (<=2.8)", "dask (<2025.3.0)", "matplotlib", "numpy (>=1.23)", "pint-pandas (>=0.3)", "scipy", "uncertainties (>=3.1.6)", "xarray"]
 babel = ["babel (<=2.8)"]
-bench = ["pytest", "pytest-codspeed"]
-dask = ["dask"]
-mip = ["mip (>=1.13)"]
+codspeed = ["pytest", "pytest-benchmark", "pytest-codspeed", "pytest-cov", "pytest-mpl", "pytest-subtests"]
+dask = ["dask (<2025.3.0)"]
+docs = ["babel", "commonmark (==0.8.1)", "currencyconverter", "docutils", "graphviz", "ipykernel", "ipython (<=8.12)", "jupyter-client", "nbsphinx", "pooch", "pygments (>=2.4)", "recommonmark (==0.5.0)", "sciform", "scipy", "serialize", "sparse", "sphinx (>=6,<8.2)", "sphinx-book-theme (>=1.1.0)", "sphinx-copybutton", "sphinx-design"]
+matplotlib = ["matplotlib"]
 numpy = ["numpy (>=1.23)"]
 pandas = ["pint-pandas (>=0.3)"]
-test = ["pytest", "pytest-benchmark", "pytest-cov", "pytest-mpl", "pytest-subtests"]
-testbase = ["pytest", "pytest-benchmark", "pytest-cov", "pytest-subtests"]
+scipy = ["scipy"]
+test = ["pytest", "pytest-benchmark", "pytest-cov", "pytest-subtests"]
+test-all = ["pytest", "pytest-benchmark", "pytest-cov", "pytest-mpl", "pytest-subtests"]
+test-mpl = ["pytest-mpl"]
+uncertainties = ["uncertainties (>=3.1.6)"]
+xarray = ["xarray"]
+
+[[package]]
+name = "pint"
+version = "0.26.1"
+description = "Physical quantities module"
+optional = false
+python-versions = ">=3.12"
+groups = ["main", "dev"]
+markers = "python_version >= \"3.12\""
+files = [
+    {file = "pint-0.26.1-py3-none-any.whl", hash = "sha256:e982b129415c09c63308f314ae44697d83e5c96f253bcc0d5b833fc3329eb6d4"},
+    {file = "pint-0.26.1.tar.gz", hash = "sha256:1bbde36eae57a5a289cd05081c6405618a5899814940752064ce351cd0204f71"},
+]
+
+[package.dependencies]
+flexcache = ">=0.3"
+flexparser = ">=0.4"
+platformdirs = ">=2.1.0"
+typing-extensions = ">=4.0.0"
+
+[package.extras]
+all = ["babel (<=2.8)", "dask (<2025.3.0)", "matplotlib", "numpy (>=2.0.0)", "optype[numpy]", "pint-pandas (>=0.3)", "scipy", "uncertainties (>=3.1.6)", "xarray"]
+babel = ["babel (<=2.8)"]
+codspeed = ["pytest", "pytest-benchmark", "pytest-codspeed", "pytest-cov", "pytest-mpl", "pytest-subtests"]
+dask = ["dask (<2025.3.0)"]
+docs = ["babel", "commonmark (==0.8.1)", "currencyconverter", "dask[complete] (<2025.3.0)", "docutils", "graphviz", "ipykernel", "ipython (<=8.12)", "jupyter-client", "jupyterlite-pyodide-kernel (>=0.4)", "jupyterlite-sphinx (>=0.20)", "matplotlib", "nbsphinx", "numba (>=0.59)", "numpy (<2.5)", "optype[numpy]", "pooch", "pygments (>=2.4)", "recommonmark (==0.5.0)", "sciform", "scipy", "serialize", "sparse", "sphinx (>=6,<8.2)", "sphinx-book-theme (>=1.1.0)", "sphinx-copybutton", "sphinx-design", "xarray"]
+matplotlib = ["matplotlib"]
+numpy = ["numpy (>=2.0.0)"]
+optype = ["optype[numpy]"]
+pandas = ["pint-pandas (>=0.3)"]
+scipy = ["scipy"]
+test = ["pytest", "pytest-benchmark", "pytest-cov", "pytest-subtests"]
+test-all = ["pytest", "pytest-benchmark", "pytest-cov", "pytest-mpl", "pytest-subtests"]
+test-mpl = ["pytest-mpl"]
 uncertainties = ["uncertainties (>=3.1.6)"]
 xarray = ["xarray"]
 
@@ -3856,4 +3897,4 @@ files = [
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.11,<4.0"
-content-hash = "ccebc442fb494b4dfd23d14bd1a1cd2b74f0f149349b14247cfd02bf9ecc8b0a"
+content-hash = "d3265aa2e7d1348e583b26bda132a11bbdbda1be420b5c332d2029d1b46eaa3f"

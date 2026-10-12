@@ -150,9 +150,9 @@ def _from_dict(spec: dict[str, Any]) -> TypeExpr:
         if not isinstance(inner, Group):
             inner.source = spec
         return inner
-    keys = set(spec) - {"_type", "_default"}
+    keys = set(spec) - {"_type", "_default", "_units"}
     args: list[TypeExpr] = []
-    units: str | None = None
+    units: str | None = spec.get("_units")
     if name in _PARAM_KEYS and keys <= set(_PARAM_KEYS[name]):
         for key in _PARAM_KEYS[name]:
             if key not in spec:
@@ -166,7 +166,6 @@ def _from_dict(spec: dict[str, Any]) -> TypeExpr:
             args.append(Group([_dim(d) for d in spec["_shape"]]))
         if "_data" in spec:
             args.append(parse_type(spec["_data"]))
-        units = spec.get("_units")
     elif keys:
         return Raw(dict(spec), source=spec)
     return Named(name, args, default=spec.get("_default", MISSING), units=units, source=spec)
@@ -195,16 +194,12 @@ def _named_to_bigraph(expr: Named) -> Any:
     shape = next((a for a in expr.args if isinstance(a, Group)), None)
     others = [to_bigraph(a) for a in expr.args if not isinstance(a, Group)]
     rendered: Any
-    if not expr.args and expr.units is None:
+    if not expr.args:
         rendered = name
-    elif shape is not None or expr.units is not None:
-        rendered = {"_type": name}
-        if shape is not None:
-            rendered["_shape"] = list(shape.items)
+    elif shape is not None:
+        rendered = {"_type": name, "_shape": list(shape.items)}
         if others:
             rendered["_data"] = others[0]
-        if expr.units is not None:
-            rendered["_units"] = expr.units
     elif all(isinstance(r, str) for r in others):
         rendered = f"{name}[{','.join(others)}]"
     elif name in ("list", "set"):
@@ -221,6 +216,12 @@ def _named_to_bigraph(expr: Named) -> Any:
         rendered = {"_type": name, "_options": others}
     else:
         rendered = {"_type": name, "_value": others[0]}
+    if expr.units is not None:
+        rendered = (
+            {**rendered, "_units": expr.units}
+            if isinstance(rendered, dict)
+            else {"_type": rendered, "_units": expr.units}
+        )
     if expr.default is not MISSING:
         if isinstance(rendered, dict):
             return {**rendered, "_default": expr.default}
