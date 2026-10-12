@@ -12,12 +12,13 @@ import * as path from "node:path";
 import { type LangiumDocument, URI } from "langium";
 import * as ast from "../language/generated/ast.js";
 import type { PblangServices } from "../language/process-bigraph-language-module.js";
+import { type Diagnostic, isSpec, toDiagnostics } from "../api.js";
 import { assetLoader } from "../language/v2/assets.js";
 import { bindModule } from "../language/v2/bind.js";
 import { documentGraph } from "../language/v2/graph.js";
 import { type InterfaceDecl, Registry } from "../language/v2/headers.js";
 import { parseJson, stringifyJson, toPlain } from "../language/v2/json.js";
-import { type Dict, isDict } from "../language/v2/model.js";
+import { isDict } from "../language/v2/model.js";
 import {
   modelDeclFromHeader,
   type ModelHeaderJson,
@@ -91,18 +92,7 @@ export type CheckOptions = {
   json?: boolean;
 };
 
-interface CliDiagnostic {
-  code: string;
-  slug: string;
-  severity: string;
-  file: string;
-  range: {
-    start: { line: number; character: number };
-    end: { line: number; character: number };
-  };
-  path: string;
-  message: string;
-}
+type CliDiagnostic = Diagnostic & { file: string };
 
 /** Build and validate a `.pblang` file against header manifests (and the workspace); the findings as data. */
 async function checkFile(
@@ -126,24 +116,10 @@ async function checkFile(
   await services.shared.workspace.DocumentBuilder.build([document], {
     validation: true,
   });
-  const severities: Record<number, string> = {
-    1: "error",
-    2: "warning",
-    3: "info",
-    4: "hint",
-  };
-  const diagnostics = (document.diagnostics ?? []).map((d) => {
-    const data = (d.data ?? {}) as { slug?: string; path?: string };
-    return {
-      code: typeof d.code === "string" ? d.code : "P001",
-      slug: data.slug ?? "parse",
-      severity: severities[d.severity ?? 1] ?? "error",
-      file: fileName,
-      range: d.range,
-      path: data.path ?? "",
-      message: d.message,
-    };
-  });
+  const diagnostics = toDiagnostics(document).map((d) => ({
+    ...d,
+    file: fileName,
+  }));
   return { services, document, diagnostics };
 }
 
@@ -281,24 +257,6 @@ export const decompileAction = async (
       console.error(`asset (not written): ${asset}`);
   }
 };
-
-const SPEC_KEYS = [
-  "name",
-  "description",
-  "tags",
-  "requires",
-  "parameters",
-  "emitters",
-  "default_n_steps",
-  "visualizations",
-  "analyses",
-  "id",
-  "module",
-];
-
-function isSpec(mapping: Dict): boolean {
-  return SPEC_KEYS.some((k) => mapping.has(k));
-}
 
 async function registryFrom(manifests: string[]): Promise<Registry> {
   const registry = new Registry();

@@ -1,13 +1,45 @@
 {
     "name": "process-bigraph-lang",
-    "description": "Please enter a brief description here",
     "version": "0.0.1",
+    "description": "The .pblang language for process-bigraph composites: language server, VS Code extension, CLI and embeddable API",
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/biosimulations/process-bigraph-lang.git",
+        "directory": "dsl"
+    },
+    "publishConfig": {
+        "access": "public"
+    },
+    "type": "module",
+    "main": "./out/extension/main.cjs",
+    "exports": {
+        ".": {
+            "types": "./out/api.d.ts",
+            "default": "./out/api.js"
+        },
+        "./worker": {
+            "types": "./out/language/main-browser.d.ts",
+            "default": "./out/language/main-browser.js"
+        },
+        "./monarch": {
+            "types": "./out/syntaxes/pblang.monarch.d.ts",
+            "default": "./out/syntaxes/pblang.monarch.js"
+        },
+        "./textmate": "./syntaxes/pblang.tmLanguage.json",
+        "./language-configuration": "./language-configuration.json",
+        "./package.json": "./package.json"
+    },
     "files": [
         "bin",
         "out",
-        "src"
+        "src",
+        "syntaxes",
+        "language-configuration.json"
     ],
-    "type": "module",
+    "bin": {
+        "process-bigraph-language-cli": "bin/cli.js"
+    },
     "scripts": {
         "build": "tsc -b tsconfig.src.json && node esbuild.mjs",
         "build:native": "tsc -b tsconfig.src.json && node esbuild.mjs && deno compile --output ./dist/cli-native --allow-all ./bin/cli.js",
@@ -23,24 +55,23 @@
         "dev": "vite",
         "dev:debug": "vite --debug --force",
         "serve": "npm run dev",
-        "test": "vitest run"
+        "test": "vitest run",
+        "prepack": "npm run langium:generate && npm run build",
+        "pack": "npm pack --pack-destination dist"
     },
     "dependencies": {
-        "@codingame/monaco-vscode-editor-service-override": "~3.2.3",
-        "@codingame/monaco-vscode-keybindings-service-override": "~3.2.3",
         "chalk": "~5.3.0",
         "commander": "~13.0.0",
+        "js-yaml": "^4.3.2",
         "langium": "~3.4.0",
         "mathjs": "~12.4.2",
-        "monaco-editor": "npm:@codingame/monaco-vscode-editor-api@~3.2.3",
-        "monaco-editor-wrapper": "~4.0.2",
-        "monaco-languageclient": "~8.1.1",
-        "vscode": "npm:@codingame/monaco-vscode-api@~3.2.3",
         "vscode-languageclient": "~9.0.1",
         "vscode-languageserver": "~9.0.1"
     },
     "devDependencies": {
         "@codingame/esbuild-import-meta-url-plugin": "~1.0.2",
+        "@codingame/monaco-vscode-editor-service-override": "~3.2.3",
+        "@codingame/monaco-vscode-keybindings-service-override": "~3.2.3",
         "@types/js-yaml": "^4.0.9",
         "@types/node": "^18.0.0",
         "@types/vscode": "~1.67.0",
@@ -50,11 +81,14 @@
         "esbuild": "~0.20.2",
         "eslint": "~8.57.0",
         "http-server": "~14.1.1",
-        "js-yaml": "^4.3.2",
         "langium-cli": "~3.4.0",
+        "monaco-editor": "npm:@codingame/monaco-vscode-editor-api@~3.2.3",
+        "monaco-editor-wrapper": "~4.0.2",
+        "monaco-languageclient": "~8.1.1",
         "typescript": "~5.1.6",
         "vite": "~5.4.18",
-        "vitest": "~1.4.0"
+        "vitest": "~1.4.0",
+        "vscode": "npm:@codingame/monaco-vscode-api@~3.2.3"
     },
     "volta": {
         "node": "18.19.1",
@@ -93,9 +127,5 @@
     },
     "activationEvents": [
         "onLanguage:pblang"
-    ],
-    "main": "./out/extension/main.cjs",
-    "bin": {
-        "process-bigraph-language-cli": "./bin/cli.js"
-    }
+    ]
 }

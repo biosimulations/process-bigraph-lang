@@ -1,0 +1,70 @@
+# Stages dsl/ on npm as `process-bigraph-lang` when a GitHub release is published, at the release's version (the
+# same event and version as the Python package in on-release-main.yml). A maintainer then approves the staged
+# version on npmjs.com (Staged Packages, with 2FA), and only then is it public.
+#
+# Trusted publishing (OIDC): no npm token anywhere. On npmjs.com the package's Trusted Publisher is GitHub Actions,
+# organization `biosimulations`, repository `process-bigraph-lang`, workflow filename `publish-npm.yml`, no
+# environment; its default allowed action is `npm stage publish`, which is what this runs. `id-token: write` lets
+# the job mint the OIDC token npm checks against that entry; provenance is attached automatically (public
+# repository, public package). The package's Publishing access on npmjs.com should be "Require two-factor
+# authentication and disallow tokens" once this workflow has staged once. Staging needs npm 11.15 or later: Node 24
+# bundles a newer one.
+name: publish-npm
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Build and pack, but do not stage"
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: dsl
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: dsl/package-lock.json
+
+      - name: Check the npm version (staged publishing needs 11.15 or later)
+        run: |
+          npm --version
+          node -e 'const [a, b] = require("child_process").execSync("npm --version").toString().trim().split(".").map(Number); if (a < 11 || (a === 11 && b < 15)) { console.error("npm too old for npm stage publish"); process.exit(1) }'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate, build and test
+        run: |
+          npm run langium:generate
+          npm run build
+          npm run lint
+          npm test
+
+      - name: Set the version from the release tag
+        if: github.event_name == 'release'
+        run: npm version --no-git-tag-version "${GITHUB_REF_NAME#v}"
+
+      - name: Pack (dry run)
+        if: github.event_name == 'workflow_dispatch' && inputs.dry_run
+        run: npm publish --dry-run
+
+      - name: Stage for approval
+        if: github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && !inputs.dry_run)
+        run: npm stage publish
