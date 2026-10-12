@@ -87,8 +87,10 @@ infrastructure from the grammar; the project adds its own services and reuses th
 | Embeddable API               | `src/api.ts`                    | Other applications (web apps, scripts, workers): a `Pblang` session that checks, compiles, decompiles and graphs from strings and plain values. See "Embedding" below.                |
 | CLI                          | `src/cli/main.ts`, `bin/cli.js` | Humans and the Python package: `check [--json]`, `compile [--to document\|spec] [--strict] [--force]`, `decompile`, `headers`, `model-header`, `graph`, `generate` (the AST as JSON). |
 
-`npm run build` compiles TypeScript (with declarations) and bundles with esbuild into `out/`. `npm run build:native` also
-runs `deno compile` to produce a standalone `dist/cli-native` executable that does not need Node at runtime.
+`npm run build` compiles TypeScript (with declarations) and bundles with esbuild: the extension and the language
+server into `out/`, the CLI into one self-contained file `dist/cli.mjs`. `npm run build:native` also runs
+`deno compile --node-modules-dir=none` on that bundle to produce a standalone `dist/cli-native` executable (about 75 MB,
+the Deno runtime plus the bundle) that does not need Node at runtime.
 
 ### Embedding in another application
 

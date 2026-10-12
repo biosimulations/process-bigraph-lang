@@ -55,18 +55,20 @@ run the script as a shell script (needs Node 23 and node_modules)
 ./bin/cli.js
 ```
 
-or, run the bundled script (needs Node 23 only)
+or, run the bundled script (needs Node only, no `node_modules`)
 
 ```shell
-node ./out/cli-bundled.mjs
+node ./dist/cli.mjs
 ```
 
 ### [Optional] build the native CLI
 
-warning: first time takes 2.5 hours (until the source build of Node 23 is cached). The output is in `dist/`.
+`deno compile` (Deno 2 required, about 10 s) turns the bundle `dist/cli.mjs` into `dist/cli-native`, a standalone
+executable of about 75 MB (the Deno runtime plus the 3 MB bundle; `--node-modules-dir=none` keeps `node_modules` out
+of it).
 
 ```shell
-node ./out/npm run build:native
+npm run build:native
 ```
 
 Run the CLI as a native executable
