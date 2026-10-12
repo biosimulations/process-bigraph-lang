@@ -1,52 +1,33 @@
 """
-The public Python API of v2: text in, checked documents out; documents in, text out.
+The public Python API of v2: text in, checked documents out; documents in, text out. All of it runs in the DSL
+CLI (`cli-native`, TypeScript): parsing, checking, compiling and decompiling. There is no Python model of a
+composite, so a Python tool that builds composites targets the DSL text, where the result is checked, reviewed
+and documented (docs/v2/design.md, section 5.3).
 
-- `compile_text` / `compile_file`: `.pbl` text -> parse (`cli-native generate`) -> check (`cli-native check`) ->
-  a process-bigraph `{"schema", "state"}` document or a CompositeSpec mapping. An error-level finding stops the
-  compile (`CompileError` carries every finding); warnings and infos come back on the result.
+- `compile_text` / `compile_file`: `.pbl` text -> parse -> check -> a process-bigraph `{"schema", "state"}`
+  document or a CompositeSpec mapping. An error-level finding stops the compile (`CompileError` carries every
+  finding); warnings and infos come back on the result.
 - `decompile`: a document or a CompositeSpec mapping -> canonical `.pbl` text plus sidecar assets.
 
-The dataclass model (`model.py`) with its reader, writer and printer is the pivot these functions use, and it is
-internal: there is no public path to a runnable document that skips the text and the checker, so a Python tool
-that builds composites targets the DSL text, where the result is checked, reviewed and documented
-(docs/v2/design.md, section 5.3).
+Documents cross the CLI boundary as JSON in `bigraph_schema.json_codec`'s encoding (numpy arrays tagged), with
+tuples tagged as `{"__tuple__": true, "data": [...]}` so that they survive too.
 """
 
 from __future__ import annotations
 
-import json
 import os
 import tempfile
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Literal
 
-import numpy as np
+from bigraph_schema import json_codec  # type: ignore[import-untyped]
 
-from process_bigraph_lang.v2.check import Diagnostic, check_file
+from process_bigraph_lang.v2.check import Diagnostic, check_file, registry_manifests
 from process_bigraph_lang.v2.interfaces import InterfaceRegistry
-from process_bigraph_lang.v2.langium import read_langium
-from process_bigraph_lang.v2.model import ExternalRef
-from process_bigraph_lang.v2.printer import Printed, print_document
-from process_bigraph_lang.v2.reader import read_composite_spec, read_document
-from process_bigraph_lang.v2.writer import AssetLoader, write_composite_spec, write_document
+from process_bigraph_lang.v2.langium import run_cli
 
 Target = Literal["document", "spec"]
-
-# a mapping with any of these top-level keys is a CompositeSpec, not a `{"schema", "state"}` document
-SPEC_KEYS = frozenset({
-    "name",
-    "description",
-    "tags",
-    "requires",
-    "parameters",
-    "emitters",
-    "default_n_steps",
-    "visualizations",
-    "analyses",
-    "id",
-    "module",
-})
 
 
 @dataclass
@@ -59,6 +40,14 @@ class Compiled:
     @property
     def warnings(self) -> list[Diagnostic]:
         return [d for d in self.diagnostics if d.severity == "warning"]
+
+
+@dataclass
+class Printed:
+    """What `decompile` returns: the `.pbl` text and its sidecar assets (`<name>.assets/...`), by path."""
+
+    text: str
+    assets: dict[str, bytes] = field(default_factory=dict)
 
 
 class CompileError(Exception):
@@ -76,14 +65,19 @@ def compile_text(
     registry: InterfaceRegistry | None = None,
     manifests: list[Path] | None = None,
     to: Target = "document",
-    assets: AssetLoader | None = None,
     strict: bool = False,
+    force: bool = False,
+    assets: dict[str, bytes] | None = None,
 ) -> Compiled:
-    """Compile v2 text. `assets` resolves `file(...)` references; without it the text must be self-contained."""
+    """Compile v2 text. `assets` holds the sidecar files `file(...)` references name, by path."""
     with tempfile.TemporaryDirectory() as tmp:
         source = Path(tmp) / "document.pbl"
         source.write_text(text, encoding="utf-8")
-        return compile_file(source, registry=registry, manifests=manifests, to=to, assets=assets, strict=strict)
+        for name, content in (assets or {}).items():
+            target = Path(tmp) / name
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_bytes(content)
+        return compile_file(source, registry=registry, manifests=manifests, to=to, strict=strict, force=force)
 
 
 def compile_file(
@@ -92,25 +86,31 @@ def compile_file(
     registry: InterfaceRegistry | None = None,
     manifests: list[Path] | None = None,
     to: Target = "document",
-    assets: AssetLoader | None = None,
     strict: bool = False,
+    force: bool = False,
 ) -> Compiled:
-    """Compile a `.pbl` file; `file(...)` references resolve next to it unless `assets` is given."""
+    """
+    Compile a `.pbl` file; `file(...)` references resolve next to it. `force` compiles despite the checker's
+    errors (parse errors still stop it): the escape for documents that rely on defaults the checker flags.
+    """
     source = Path(path).resolve()
     with tempfile.TemporaryDirectory() as tmp:
-        manifest_paths = list(manifests or [])
-        if registry is not None and registry.decls:
-            manifest = Path(tmp) / "registry.manifest.json"
-            manifest.write_text(json.dumps(registry.to_manifest(), default=str), encoding="utf-8")
-            manifest_paths.append(manifest)
+        manifest_paths = [*(manifests or []), *registry_manifests(registry, Path(tmp))]
         diagnostics = check_file(source, manifest_paths)
-    fatal = {"error", "warning"} if strict else {"error"}
-    if any(d.severity in fatal for d in diagnostics):
-        raise CompileError(diagnostics)
-    model = read_langium(source, registry=registry)
-    loader = assets if assets is not None else asset_loader(source.parent)
-    document = write_composite_spec(model, assets=loader) if to == "spec" else write_document(model, assets=loader)
-    return Compiled(document, diagnostics)
+        fatal = set() if force else {"error", "warning"} if strict else {"error"}
+        if any(d.severity in fatal for d in diagnostics) or any(d.code == "P001" for d in diagnostics):
+            raise CompileError(diagnostics)
+        out = Path(tmp) / ("compiled.yaml" if to == "spec" else "compiled.json")
+        args = ["compile", str(source), "--to", to, "--out", str(out), *(["--force"] if force else [])]
+        if manifest_paths:
+            args += ["--interfaces", *[str(Path(m).resolve()) for m in manifest_paths]]
+        run_cli(*args)
+        text = out.read_text(encoding="utf-8")
+    if to == "spec":
+        import yaml
+
+        return Compiled(yaml.safe_load(text), diagnostics)
+    return Compiled(loads(text), diagnostics)
 
 
 def decompile(
@@ -118,41 +118,75 @@ def decompile(
     *,
     name: str = "document",
     registry: InterfaceRegistry | None = None,
-    kind: Literal["auto", "document", "spec"] = "auto",
+    manifests: list[Path] | None = None,
 ) -> Printed:
-    """Canonical `.pbl` text (and sidecar assets) for a document or a CompositeSpec mapping."""
-    if kind == "auto":
-        kind = "spec" if SPEC_KEYS & set(mapping) else "document"
-    model = read_composite_spec(mapping) if kind == "spec" else read_document(mapping)
-    return print_document(model, name=name, registry=registry)
+    """Canonical `.pbl` text (and sidecar assets) for a document or a CompositeSpec mapping (told apart by keys)."""
+    with tempfile.TemporaryDirectory() as tmp:
+        source = Path(tmp) / f"{name}.json"
+        source.write_text(dumps(mapping), encoding="utf-8")
+        out = Path(tmp) / f"{name}.pbl"
+        args = ["decompile", str(source), "--name", name, "--out", str(out)]
+        manifest_paths = [*(manifests or []), *registry_manifests(registry, Path(tmp))]
+        if manifest_paths:
+            args += ["--interfaces", *[str(Path(m).resolve()) for m in manifest_paths]]
+        run_cli(*args)
+        printed = Printed(out.read_text(encoding="utf-8"))
+        assets_dir = Path(tmp) / f"{name}.assets"
+        if assets_dir.is_dir():
+            for asset in sorted(assets_dir.iterdir()):
+                printed.assets[f"{name}.assets/{asset.name}"] = asset.read_bytes()
+        return printed
 
 
-def asset_loader(directory: str | os.PathLike[str]) -> AssetLoader:
-    """An `assets` callback that reads the printer's sidecar files below `directory`."""
-    base = Path(directory)
-
-    def load(ref: ExternalRef) -> Any:
-        return decode_asset(ref, (base / ref.path).read_bytes())
-
-    return load
+# --- the JSON that crosses the CLI boundary ----------------------------------------------------------------------
 
 
-def decode_asset(ref: ExternalRef, content: bytes) -> Any:
-    """A sidecar's value: text verbatim, arrays from `{dtype, shape, data}`, anything else as JSON."""
-    if ref.kind == "text":
-        return content.decode("utf-8")
-    payload = json.loads(content)
-    if ref.kind == "array":
-        return np.asarray(payload["data"], dtype=payload["dtype"]).reshape(payload["shape"])
-    return payload
+def dumps(document: Any) -> str:
+    """`bigraph_schema.json_codec` encoding, plus tuples tagged so that they come back as tuples."""
+    return str(json_codec.dumps(_tag_tuples(document)))
+
+
+def loads(text: str) -> Any:
+    return _untag_tuples(json_codec.loads(text))
+
+
+def _tag_tuples(value: Any) -> Any:
+    if isinstance(value, tuple):
+        return {"__tuple__": True, "data": [_tag_tuples(v) for v in value]}
+    if isinstance(value, dict):
+        return {k: _tag_tuples(v) for k, v in value.items()}
+    if isinstance(value, list):
+        return [_tag_tuples(v) for v in value]
+    return value
+
+
+def _untag_tuples(value: Any) -> Any:
+    if isinstance(value, dict):
+        if value.get("__tuple__") is True and isinstance(value.get("data"), list):
+            return tuple(_untag_tuples(v) for v in value["data"])
+        return {k: _untag_tuples(v) for k, v in value.items()}
+    if isinstance(value, list):
+        return [_untag_tuples(v) for v in value]
+    return value
+
+
+def write_json(document: Any, path: str | os.PathLike[str]) -> None:
+    Path(path).write_text(dumps(document) + "\n", encoding="utf-8")
+
+
+def read_json(path: str | os.PathLike[str]) -> Any:
+    return loads(Path(path).read_text(encoding="utf-8"))
 
 
 __all__ = [
-    "Compiled",
     "CompileError",
-    "asset_loader",
+    "Compiled",
+    "Printed",
     "compile_file",
     "compile_text",
-    "decode_asset",
     "decompile",
+    "dumps",
+    "loads",
+    "read_json",
+    "write_json",
 ]

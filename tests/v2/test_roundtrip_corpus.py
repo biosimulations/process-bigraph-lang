@@ -1,9 +1,10 @@
 """
-The round-trip corpus: real documents are read into the v2 model, printed (snapshot), written back and compared.
+The round-trip corpus: real documents are decompiled to `.pbl` text (snapshot), compiled back and compared.
 
-Each entry checks `equivalent(original, write(read(original)))` under the normalizer, that the printed text
-matches the committed `.pblang` snapshot (regenerate with `PBLANG_UPDATE_SNAPSHOTS=1`), and, where the
-processes are available here, that process-bigraph realizes both documents to the same thing.
+Each entry checks `equivalent(original, compile(decompile(original)))` under the normalizer, that the printed
+text matches the committed `.pbl` snapshot (regenerate with `PBLANG_UPDATE_SNAPSHOTS=1`), and, where the
+processes are available here, that process-bigraph realizes both documents to the same thing. Everything runs
+through the CLI: there is no Python model in between.
 """
 
 from copy import deepcopy
@@ -17,24 +18,24 @@ from process_bigraph.composite_spec import CompositeSpec  # type: ignore[import-
 from process_bigraph.processes.growth_division import grow_divide_agent  # type: ignore[import-untyped]
 from process_bigraph.templates import open_sites, template_document  # type: ignore[import-untyped]
 
-from process_bigraph_lang.v2 import deep_equal, diff_documents, equivalent
-from process_bigraph_lang.v2.printer import print_document
-from process_bigraph_lang.v2.reader import read_composite_spec, read_document
-from process_bigraph_lang.v2.writer import write_composite_spec, write_document
+from process_bigraph_lang.v2 import compile_text, decompile, deep_equal, diff_documents, equivalent
+from process_bigraph_lang.v2.langium import langium_cli
 from tests.compiler.generator.spatio_flux.test_spatio_flux_II import step_config_template as spatio_two
 from tests.compiler.generator.spatio_flux.test_spatio_flux_III import step_config_template as spatio_three
 from tests.compiler.generator.test_dsl_compiler import TEMPLATE_PBLANG, compile_pblang
 from tests.compiler.generator.test_toy_add_floats import add_floats_process_expected_config_template
 from tests.fixtures.test_registry.toy_library import AddFloatsProcess
-from tests.v2.helpers import CORPUS, REGISTRY, asset_loader, assert_snapshot, load_corpus_json, realized_equivalent
+from tests.v2.helpers import CORPUS, REGISTRY, assert_snapshot, load_corpus_json, realized_equivalent
+
+pytestmark = pytest.mark.skipif(langium_cli() is None, reason="no Langium CLI (build dsl/ or install cli-native)")
 
 
 def _round_trip(name: str, original: dict[str, Any], core: Any) -> dict[str, Any]:
-    model = read_document(deepcopy(original))
-    printed = print_document(model, name=name, registry=REGISTRY)
+    printed = decompile(deepcopy(original), name=name, registry=REGISTRY)
     assert_snapshot(name, printed)
-    written = write_document(model, assets=asset_loader(printed))
-    assert equivalent(original, written, core), diff_documents(original, written, core)
+    # existing documents may rely on config defaults the checker flags as missing (T121): compile anyway
+    written = compile_text(printed.text, registry=REGISTRY, assets=printed.assets, force=True).document
+    assert equivalent(original, written, core, REGISTRY), diff_documents(original, written, core, registry=REGISTRY)
     return written
 
 
@@ -43,9 +44,9 @@ def _round_trip(name: str, original: dict[str, Any], core: Any) -> dict[str, Any
 
 def test_reversible_dimerization_spec(core: Any) -> None:
     spec = yaml.safe_load((CORPUS / "reversible-dimerization.composite.yaml").read_text(encoding="utf-8"))
-    model = read_composite_spec(deepcopy(spec))
-    assert_snapshot("reversible-dimerization", print_document(model, name="reversible-dimerization"))
-    back = write_composite_spec(model)
+    printed = decompile(deepcopy(spec), name="reversible-dimerization")
+    assert_snapshot("reversible-dimerization", printed)
+    back = compile_text(printed.text, to="spec").document
     for key in ("name", "description", "tags", "requires", "emitters"):
         assert deep_equal(back[key], spec[key])
     assert equivalent({"state": spec["state"]}, {"state": back["state"]}, core)
@@ -86,8 +87,8 @@ def test_saved_nested_composite_loses_inner_state(core: Any) -> None:
     saved_agent = composite.serialize_state()["agent"]
     # the upstream trap: the saved nested composite has no inner state; the printer says so
     assert not saved_agent["config"].get("state")
-    model = read_document({"schema": composite.serialize_schema(), "state": composite.serialize_state()})
-    assert "inner state lost" in print_document(model).text
+    printed = decompile({"schema": composite.serialize_schema(), "state": composite.serialize_state()})
+    assert "inner state lost" in printed.text
 
 
 # 4. spatio-flux: array-indexed wires, ndarray state, dict-form custom array types
@@ -114,7 +115,7 @@ def test_written_template_fills_and_runs() -> None:
     core = pg.allocate_core()
     core.register_link("AddFloatsProcess", AddFloatsProcess)
     original = compile_pblang(TEMPLATE_PBLANG)
-    written = write_document(read_document(deepcopy(original)))
+    written = compile_text(decompile(deepcopy(original)).text).document
     template = core.access(written["state"])
     assert sorted(open_sites(template)) == [("add", "address"), ("operands", "a"), ("operands", "b")]
     state = template_document(core, template, {"operands/a": 2.07, "add/address": "local:AddFloatsProcess"})
@@ -132,4 +133,5 @@ def test_saved_toy_add_floats(core: Any) -> None:
     composite = pg.Composite(deepcopy(authoring), core=core)
     saved = {"schema": composite.serialize_schema(), "state": composite.serialize_state()}
     written = _round_trip("saved_toy_add_floats", saved, core)
-    assert equivalent(written, authoring, core), diff_documents(written, authoring, core)
+    # the edge's face now comes from the imported interface, not from `_inputs`/`_outputs` of its own
+    assert equivalent(written, authoring, core, REGISTRY), diff_documents(written, authoring, core, registry=REGISTRY)

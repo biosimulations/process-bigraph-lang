@@ -1,6 +1,7 @@
 /**
  * Type expressions: the DSL's spelling (from the AST), bigraph-schema's string and dict forms (from header
- * manifests), one canonical shape to compare them by, and the unit each carries.
+ * manifests and documents), one canonical shape to compare them by, and the unit each carries. A type parsed
+ * from a bigraph-schema form remembers it (`source`), so `toBigraph` is lossless.
  */
 import type {
   V2NamedType,
@@ -13,6 +14,8 @@ import {
   isV2NamedType,
   isV2StructType,
 } from "../generated/ast.js";
+import { literalValue } from "./headers.js";
+import { parseJson } from "./json.js";
 
 export type TypeExpr = Named | Struct | UnionType | Group | Raw;
 
@@ -22,16 +25,21 @@ export interface Named {
   args: TypeExpr[];
   units?: string;
   hasDefault?: boolean;
+  /** the default as data, when known */
+  default?: unknown;
+  source?: unknown;
 }
 
 export interface Struct {
   kind: "struct";
   fields: Record<string, TypeExpr>;
+  source?: unknown;
 }
 
 export interface UnionType {
   kind: "union";
   options: TypeExpr[];
+  source?: unknown;
 }
 
 export interface Group {
@@ -42,6 +50,7 @@ export interface Group {
 export interface Raw {
   kind: "raw";
   attrs: Record<string, unknown>;
+  source?: unknown;
 }
 
 const SURFACE_NAMES: Record<string, string> = {
@@ -92,9 +101,9 @@ function fromPrimary(node: V2PrimaryType): TypeExpr {
     if (parsed && typeof parsed === "object")
       return { kind: "raw", attrs: parsed as Record<string, unknown> };
   } catch {
-    // a raw string that is not JSON is a bare type name
+    // a raw string that is not JSON is a bigraph-schema type string
   }
-  return { kind: "named", name: node.raw, args: [] };
+  return parseTypeString(node.raw);
 }
 
 function fromNamed(node: V2NamedType): Named {
@@ -118,6 +127,10 @@ function fromNamed(node: V2NamedType): Named {
   }
   const named: Named = { kind: "named", name: node.name, args };
   if (node.units !== undefined) named.units = node.units;
+  if (node.default !== undefined) {
+    named.hasDefault = true;
+    named.default = literalValue(node.default);
+  }
   return named;
 }
 
@@ -129,12 +142,42 @@ function fromStruct(node: V2StructType): Struct {
 
 // --- from bigraph-schema (manifests) -------------------------------------------------------------------------
 
-/** A bigraph-schema type in string or dict form, as header manifests carry them. */
+/**
+ * A bigraph-schema type in string or dict form, as header manifests and documents carry them. Dict forms may be
+ * `Map`s (from the document codec) or plain objects (from `JSON.parse`); the source is kept as given.
+ */
 export function parseType(spec: unknown): TypeExpr {
-  if (typeof spec === "string") return parseTypeString(spec);
-  if (spec && typeof spec === "object" && !Array.isArray(spec))
-    return parseTypeDict(spec as Record<string, unknown>);
-  throw new Error(`not a type expression: ${JSON.stringify(spec)}`);
+  if (typeof spec === "string") {
+    const expr = parseTypeString(spec);
+    if (expr.kind !== "group") expr.source = spec;
+    return expr;
+  }
+  if (
+    spec instanceof Map ||
+    (spec && typeof spec === "object" && !Array.isArray(spec))
+  ) {
+    const expr = parseTypeDict(plainOf(spec) as Record<string, unknown>);
+    if (expr.kind !== "group") expr.source = spec;
+    return expr;
+  }
+  throw new Error(`not a type expression: ${String(spec)}`);
+}
+
+/** Objects for `Map`s and lists for tuples, recursively (keys stay in order; numbers are kept as they are). */
+export function plainOf(value: unknown): unknown {
+  if (value instanceof Map) {
+    const out: Record<string, unknown> = {};
+    for (const [k, v] of value) out[k] = plainOf(v);
+    return out;
+  }
+  if (Array.isArray(value)) return value.map(plainOf);
+  if (
+    value &&
+    typeof value === "object" &&
+    (value as { $kind?: string }).$kind === "tuple"
+  )
+    return (value as { items: unknown[] }).items.map(plainOf);
+  return value;
 }
 
 function parseTypeDict(spec: Record<string, unknown>): TypeExpr {
@@ -153,7 +196,10 @@ function parseTypeDict(spec: Record<string, unknown>): TypeExpr {
   if (/[[{|~]/.test(name) && keys.length === 0) {
     const inner = parseTypeString(name);
     if (inner.kind === "named") {
-      if ("_default" in spec) inner.hasDefault = true;
+      if ("_default" in spec) {
+        inner.hasDefault = true;
+        inner.default = spec._default;
+      }
       if (typeof spec._units === "string") inner.units = spec._units;
     }
     return inner;
@@ -183,7 +229,10 @@ function parseTypeDict(spec: Record<string, unknown>): TypeExpr {
     return { kind: "raw", attrs: spec };
   }
   const named: Named = { kind: "named", name, args };
-  if ("_default" in spec) named.hasDefault = true;
+  if ("_default" in spec) {
+    named.hasDefault = true;
+    named.default = spec._default;
+  }
   if (typeof spec._units === "string") named.units = spec._units;
   return named;
 }
@@ -196,8 +245,23 @@ function dim(value: unknown): number | string {
 
 /** bigraph-schema's string grammar: `name[args]{default}`, `a:T|b:U`, `A~B`, `(…)`. */
 export function parseTypeString(text: string): TypeExpr {
-  const parser = new TypeStringParser(text.trim());
+  let stripped = text.trim();
+  let defaultText: string | undefined;
+  const trailing = /^([^{}]*)\{(.*)\}$/.exec(stripped);
+  if (trailing) {
+    stripped = trailing[1];
+    defaultText = trailing[2];
+  }
+  const parser = new TypeStringParser(stripped);
   const expr = parser.expression();
+  if (defaultText !== undefined && expr.kind === "named") {
+    expr.hasDefault = true;
+    try {
+      expr.default = parseJson(defaultText);
+    } catch {
+      expr.default = defaultText;
+    }
+  }
   return expr;
 }
 
@@ -340,8 +404,9 @@ function unwrapField(item: TypeExpr | FieldItem): TypeExpr {
 
 // --- rendering ------------------------------------------------------------------------------------------------
 
-/** The bigraph-schema form (string when possible), for messages and manifests. */
+/** The bigraph-schema form: the source it was parsed from, else a string when possible. */
 export function toBigraph(expr: TypeExpr): unknown {
+  if (expr.kind !== "group" && expr.source !== undefined) return expr.source;
   switch (expr.kind) {
     case "named": {
       const name = BIGRAPH_NAMES[expr.name] ?? expr.name;
@@ -352,7 +417,9 @@ export function toBigraph(expr: TypeExpr): unknown {
       else if (shape) {
         const dict: Record<string, unknown> = {
           _type: name,
-          _shape: shape.items,
+          _shape: shape.items.map((i) =>
+            typeof i === "number" ? BigInt(i) : i,
+          ),
         };
         if (others.length > 0) dict._data = others[0];
         rendered = dict;
@@ -360,19 +427,28 @@ export function toBigraph(expr: TypeExpr): unknown {
         rendered = `${name}[${others.join(",")}]`;
       else if (name === "list" || name === "set")
         rendered = { _type: name, _element: others[0] };
-      else if (name === "map")
-        rendered =
-          others.length === 2
-            ? { _type: name, _key: others[0], _value: others[1] }
-            : { _type: name, _value: others[0] };
-      else if (name === "tuple" || name === "enum")
+      else if (name === "tree") rendered = { _type: name, _leaf: others[0] };
+      else if (name === "map") {
+        const dict: Record<string, unknown> = {
+          _type: name,
+          _value: others[others.length - 1],
+        };
+        if (others.length === 2) dict._key = others[0];
+        rendered = dict;
+      } else if (name === "tuple" || name === "enum")
         rendered = { _type: name, _values: others };
+      else if (name === "union") rendered = { _type: name, _options: others };
       else rendered = { _type: name, _value: others[0] };
       if (expr.units !== undefined)
         rendered =
           typeof rendered === "string"
             ? { _type: rendered, _units: expr.units }
             : { ...(rendered as object), _units: expr.units };
+      if (expr.hasDefault)
+        rendered =
+          typeof rendered === "string"
+            ? { _type: rendered, _default: expr.default }
+            : { ...(rendered as object), _default: expr.default };
       return rendered;
     }
     case "struct": {
@@ -393,7 +469,7 @@ export function toBigraph(expr: TypeExpr): unknown {
   }
 }
 
-/** The DSL spelling, for messages. */
+/** The DSL spelling (what the grammar parses back), for the printer and for messages. */
 export function surface(expr: TypeExpr): string {
   switch (expr.kind) {
     case "named": {
@@ -407,12 +483,13 @@ export function surface(expr: TypeExpr): string {
         text = `map<string, ${others[0]}>`;
       else if (others.length > 0) text = `${base}<${others.join(", ")}>`;
       else text = base;
-      if (expr.units !== undefined) text += ` @ "${expr.units}"`;
+      if (expr.units !== undefined) text += ` @ ${JSON.stringify(expr.units)}`;
+      if (expr.hasDefault) text += `{${defaultText(expr.default)}}`;
       return text;
     }
     case "struct":
       return `{ ${Object.entries(expr.fields)
-        .map(([k, v]) => `${k}: ${surface(v)};`)
+        .map(([k, v]) => `${keyText(k)}: ${surface(v)};`)
         .join(" ")} }`;
     case "union":
       return expr.options.map(surface).join(" | ");
@@ -420,9 +497,54 @@ export function surface(expr: TypeExpr): string {
       return `[${expr.items.join(", ")}]`;
     case "raw": {
       const kind = expr.attrs._type;
-      return typeof kind === "string" ? kind : JSON.stringify(expr.attrs);
+      if (kind === "link")
+        return `link<${faceFields(expr.attrs._inputs)}, ${faceFields(
+          expr.attrs._outputs,
+        )}>`;
+      if (kind === "process" || kind === "step") return kind;
+      return JSON.stringify(stableJsonText(plainOf(expr.attrs)));
     }
   }
+}
+
+function faceFields(ports: unknown): string {
+  const plain = plainOf(ports);
+  if (!plain || typeof plain !== "object" || Array.isArray(plain))
+    return JSON.stringify(String(plain));
+  return `{ ${Object.entries(plain as Record<string, unknown>)
+    .map(([k, v]) => `${keyText(k)}: ${surface(parseType(v))};`)
+    .join(" ")} }`;
+}
+
+function keyText(key: string): string {
+  return /^[A-Za-z_][A-Za-z0-9_]*$/.test(key) ? key : JSON.stringify(key);
+}
+
+/** A default inside a type (`float{0.5}`): JSON, with ints and floats kept apart. */
+export function defaultText(value: unknown): string {
+  return stableJsonText(value);
+}
+
+/** JSON text of plain data or model values in insertion order (bigint ints, floats with a fraction). */
+export function stableJsonText(value: unknown): string {
+  if (value === null || value === undefined) return "null";
+  if (typeof value === "bigint") return value.toString();
+  if (typeof value === "number") {
+    const text = String(value);
+    return /[.eE]/.test(text) || !Number.isFinite(value) ? text : `${text}.0`;
+  }
+  if (typeof value === "string" || typeof value === "boolean")
+    return JSON.stringify(value);
+  if (Array.isArray(value)) return `[${value.map(stableJsonText).join(", ")}]`;
+  if (value instanceof Map)
+    return `{${[...value]
+      .map(([k, v]) => `${JSON.stringify(k)}: ${stableJsonText(v)}`)
+      .join(", ")}}`;
+  if (typeof value === "object")
+    return `{${Object.entries(value as Record<string, unknown>)
+      .map(([k, v]) => `${JSON.stringify(k)}: ${stableJsonText(v)}`)
+      .join(", ")}}`;
+  return JSON.stringify(String(value));
 }
 
 // --- canonical comparison --------------------------------------------------------------------------------------

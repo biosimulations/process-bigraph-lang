@@ -2,10 +2,10 @@ from typing import Any
 
 import pytest
 
-from process_bigraph_lang.v2.types import Group, Named, Raw, Struct, UnionType, parse_type, to_bigraph, to_surface
-from process_bigraph_lang.v2.values import MISSING
+from process_bigraph_lang.v2.types import MISSING, Group, Named, Raw, Struct, UnionType, parse_type, to_bigraph
 
-# (bigraph-schema form, DSL spelling): every row parses, prints its spelling and renders back to its source
+# (bigraph-schema form, DSL spelling): every row parses and renders back to its source (the spelling is what the
+# TypeScript side prints for it; see dsl/test/v2/model.test.ts)
 TABLE: list[tuple[Any, str]] = [
     ("float", "float"),
     ("integer", "int"),
@@ -36,9 +36,9 @@ TABLE: list[tuple[Any, str]] = [
 
 
 @pytest.mark.parametrize(("source", "surface"), TABLE)
-def test_parse_print_and_render_back(source: Any, surface: str) -> None:
+def test_parse_and_render_back(source: Any, surface: str) -> None:
     expr = parse_type(source)
-    assert to_surface(expr) == surface
+    assert surface  # the spelling is checked on the TypeScript side
     assert to_bigraph(expr) == source
 
 
@@ -77,7 +77,7 @@ def test_missing_default_is_distinct_from_none() -> None:
 
 def test_units_on_any_type() -> None:
     expr = parse_type({"_type": "map", "_value": "float", "_units": "uM"})
-    assert isinstance(expr, Named) and expr.units == "uM" and to_surface(expr) == 'map<string, float> @ "uM"'
+    assert isinstance(expr, Named) and expr.units == "uM"
     assert to_bigraph(Named("float", units="?U/?T")) == {"_type": "float", "_units": "?U/?T"}
     assert to_bigraph(Named("map", [Named("float")], units="uM")) == {"_type": "map[float]", "_units": "uM"}
     assert parse_type(to_bigraph(Named("map", [Named("float")], units="uM"))).units == "uM"  # type: ignore[union-attr]

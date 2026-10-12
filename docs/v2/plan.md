@@ -272,14 +272,18 @@ Hover and completion followed (`dsl/src/language/v2/{resolve,hover,completion}.t
 5.3, "Editor services"), and header files open in the workspace now answer imports in the editor
 (`V2Registry` falls back to the index of `V2Interface` declarations by module).
 
-Decided 2026-10-12: the Python datamodel is not a public target. `process_bigraph_lang.v2` now exposes
+Decided 2026-10-12: the Python datamodel is not a public target. First `process_bigraph_lang.v2` exposed
 `compile_text` / `compile_file` (text -> parse -> check -> document or CompositeSpec, `CompileError` on
-errors) and `decompile` (document or CompositeSpec -> text); the model with its reader, writer and printer is
-internal (`api.py`, design section 5.3 "The Python API"), and the CLI gained `compile` and `decompile`
-(`print` stays as an alias). Follow-up, after the cutover: port reader, writer and printer to TypeScript as
-`cli-native compile | decompile`, so Python keeps only `describe` (introspection) and thin wrappers and no
-Python model exists; the snapshot and round-trip tests under `tests/v2/` become that port's acceptance suite,
-run through the CLI. Still open: the cutover of `.pblang` to v2.
+errors) and `decompile` (document or CompositeSpec -> text) over an internal model; then the model moved:
+reader, writer, printer and binder are TypeScript (`dsl/src/language/v2/{model,json,paths,reader,writer,
+printer,bind,graph,modelheader,yaml}.ts`) behind `cli-native compile | decompile | headers | model-header |
+graph`, and the Python package keeps only the wrappers (`api.py`), `describe` (introspection), `describe-model`
+(SBML as JSON) and the normalizer. `model.py`, `reader.py`, `writer.py`, `printer.py`, `paths.py`, `values.py`
+and `graph.py` are gone; `types.py` stays as the normalizer's and `describe`'s type parser. The snapshot and
+round-trip tests under `tests/v2/` run through the CLI; `dsl/test/v2/{roundtrip,model}.test.ts` check the
+same snapshots byte for byte on the TypeScript side (every corpus document prints to its snapshot; every
+snapshot is a fixpoint; the v1 expected documents write back exactly). Still open: the cutover of `.pblang`
+to v2.
 
 ## Verification
 

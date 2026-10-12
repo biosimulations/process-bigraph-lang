@@ -85,9 +85,12 @@ def test_decompile_prints_the_snapshot_for_documents_and_specs() -> None:
     assert printed.text == (SNAPSHOTS / "reversible-dimerization.pbl").read_text(encoding="utf-8")
 
 
-def test_the_pivot_is_not_public() -> None:
+def test_there_is_no_python_model() -> None:
+    import importlib.util
+
     assert {"compile_text", "compile_file", "decompile", "check_file"} <= set(v2.__all__)
-    assert not {"write_document", "write_composite_spec", "read_document", "print_document"} & set(v2.__all__)
+    for module in ("model", "reader", "writer", "printer"):
+        assert importlib.util.find_spec(f"process_bigraph_lang.v2.{module}") is None
 
 
 def test_cli_compile_and_decompile(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:

@@ -311,7 +311,7 @@ composite {
       index: 0,
       hover:
         /process Doubler at "local:!demo\.headers\.Doubler"[\s\S]*from `demo\.headers`[\s\S]*doubles a mass/,
-      documentUri: "file:///workspace/demo/hover.pbl",
+      parseOptions: { documentUri: "file:///workspace/demo/hover.pbl" },
     });
     await completion({
       text: `
@@ -320,7 +320,7 @@ composite {
   process d : <|>
 }`,
       index: 0,
-      documentUri: "file:///workspace/demo/completion.pbl",
+      parseOptions: { documentUri: "file:///workspace/demo/completion.pbl" },
       assert: (list) => {
         const item = list.items.find((i) => i.label === "Doubler");
         expect(item?.detail).toBe("process from demo.headers");

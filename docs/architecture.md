@@ -164,20 +164,20 @@ The wheel includes the binary, so installed users do not need Node or Deno.
 
 The language is being redesigned (see [the v2 design](v2/design.md), its [background](v2/research.md), the
 [registry and authoring design](v2/registry-and-authoring.md) and the [plan](v2/plan.md)). The first deliverable is a
-grammar and the checker are TypeScript in `dsl/` (`pblang-v2.langium`, `src/language/v2/check.ts`, served by the
-same language server and CLI as v1 for `.pbl` files); the Python package is the entry to them:
+grammar, the checker, the compiler and the decompiler are TypeScript in `dsl/` (`pblang-v2.langium`,
+`src/language/v2/`: `check.ts`, the model in `model.ts`, `reader.ts`, `writer.ts`, `printer.ts`, `bind.ts`,
+served by the same language server and CLI as v1 for `.pbl` files); the Python package is the entry to them:
 
-- `api.py` is the public API. `compile_text` / `compile_file` parse and check `.pbl` text through `cli-native`
-  and only then write a `{"schema", "state"}` document or a CompositeSpec mapping (`CompileError` on errors);
-  `decompile` prints a document or a CompositeSpec as canonical `.pbl` text with sidecar assets. There is no
-  public way to a runnable document that skips the checker.
-- Internal pivot: `model.py` (stores, nodes, edges, sites, params, emitters), `reader.py` (document or
-  CompositeSpec -> model), `writer.py` (model -> document or CompositeSpec, exact for every v1 expected
-  document), `printer.py` (model -> text), `langium.py` (text -> model, binding the CLI's JSON AST).
-- `interfaces.py` generates interface declarations from a module's step/process classes (`describe_module`) and
-  holds the registry (with a JSON manifest the checker reads) the printer resolves addresses in, printing
-  `import`s instead of inline declarations.
-- `normalize.py` defines document equivalence (`equivalent`, `diff_documents`).
+- `api.py` is the public API. `compile_text` / `compile_file` run `cli-native check` and then
+  `cli-native compile` on `.pbl` text, returning a `{"schema", "state"}` document or a CompositeSpec mapping
+  (`CompileError` on errors); `decompile` runs `cli-native decompile` on a document or a CompositeSpec and
+  returns canonical `.pbl` text with sidecar assets. There is no Python model of a composite and no way to a
+  runnable document that skips the checker.
+- `interfaces.py` generates interface declarations from a module's step/process classes (`describe_module`) as
+  the JSON manifest the CLI reads (types in bigraph-schema's own form); `render_interfaces` has the CLI print
+  the `.pbl` header file. `sbml.py` describes an SBML model as JSON; the CLI renders the model header.
+- `normalize.py` defines document equivalence (`equivalent`, `diff_documents`); `types.py` is its type parser.
+- `langium.py` locates and runs the CLI (`cli-native`, or `node dsl/bin/cli.js` in a checkout).
 - `python -m process_bigraph_lang.v2 compile <file.pbl> [--interfaces m.json] [--to document|spec] -o out`,
   `… decompile <doc.json | x.composite.yaml> [--interfaces m.json]`, `… check <file.pbl | doc.json>`,
   `… diff a.json b.json` and `… describe <module> --manifest m.json --out m.pbl`.

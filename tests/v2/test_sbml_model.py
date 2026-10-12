@@ -3,9 +3,14 @@
 import json
 from pathlib import Path
 
-from process_bigraph_lang.v2.printer import Printed
+import pytest
+
+from process_bigraph_lang.v2 import Printed
+from process_bigraph_lang.v2.langium import langium_cli
 from process_bigraph_lang.v2.sbml import describe_sbml, print_model_header
 from tests.v2.helpers import assert_snapshot
+
+pytestmark = pytest.mark.skipif(langium_cli() is None, reason="no Langium CLI (build dsl/ or install cli-native)")
 
 CARAVAGNA = (
     Path(__file__).resolve().parent.parent / "fixtures" / "data" / "compiler" / "Caravagna2010" / "Caravagna2010.xml"

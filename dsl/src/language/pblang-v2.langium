@@ -228,9 +228,10 @@ V2TypeExpr:
 V2PrimaryType:
     V2NamedType | V2LinkType | V2StructType | V2RawType;
 
+// `float{0.5}`: bigraph-schema's default-in-type form, kept so that schemas carrying defaults round-trip
 V2NamedType:
     name=V2TypeName ('<' args+=V2TypeArg (',' args+=V2TypeArg)* '>')?
-    ('[' dims+=V2Dim (',' dims+=V2Dim)* ']')? ('@' units=STRING)?;
+    ('[' dims+=V2Dim (',' dims+=V2Dim)* ']')? ('@' units=STRING)? ('{' default=V2Value '}')?;
 
 V2TypeArg:
     {infer V2TypeArg} (type=V2TypeExpr | int=INT | float=FLOAT);

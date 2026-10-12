@@ -8,15 +8,13 @@ from pathlib import Path
 from typing import Any
 
 import process_bigraph as pg  # type: ignore[import-untyped]
-from bigraph_schema import json_codec  # type: ignore[import-untyped]
 
-from process_bigraph_lang.v2 import InterfaceRegistry, decode_asset, equivalent
-from process_bigraph_lang.v2.model import ExternalRef
-from process_bigraph_lang.v2.printer import Printed
+from process_bigraph_lang.v2 import InterfaceRegistry, Printed, equivalent, loads
 
 FIXTURES = Path(__file__).resolve().parent.parent / "fixtures" / "data" / "v2"
 CORPUS = FIXTURES / "corpus"
 SNAPSHOTS = FIXTURES / "snapshots"
+INTERFACES = FIXTURES / "interfaces"
 UPDATE = os.environ.get("PBLANG_UPDATE_SNAPSHOTS") == "1"
 
 # the interfaces of the processes the corpus uses; edges that resolve here print as imports.
@@ -27,14 +25,16 @@ REGISTRY = InterfaceRegistry.from_modules(
 )
 REGISTRY.decls.extend(
     InterfaceRegistry.from_manifest(
-        json.loads((FIXTURES / "interfaces" / "viva_pde_particle.manifest.json").read_text(encoding="utf-8"))
+        json.loads((INTERFACES / "viva_pde_particle.manifest.json").read_text(encoding="utf-8"))
     ).decls
 )
+# the same declarations as committed manifests, for the CLI
+MANIFESTS = [INTERFACES / "test_registry.manifest.json", INTERFACES / "viva_pde_particle.manifest.json"]
 
 
 def load_corpus_json(name: str) -> dict[str, Any]:
-    """A corpus document dumped with `bigraph_schema.json_codec` (numpy arrays come back as arrays)."""
-    loaded = json_codec.loads((CORPUS / name).read_text(encoding="utf-8"))
+    """A corpus document dumped with `bigraph_schema.json_codec` (numpy arrays come back as arrays, tuples as tuples)."""
+    loaded = loads((CORPUS / name).read_text(encoding="utf-8"))
     assert isinstance(loaded, dict)
     return loaded
 
@@ -59,22 +59,12 @@ def assert_snapshot(name: str, printed: Printed) -> None:
         assert committed == content.rstrip(b"\n"), f"asset {asset_name} differs"
 
 
-def asset_loader(printed: Printed) -> Any:
-    """An `assets` callback for the writer that resolves the printer's sidecar references."""
-
-    def load(ref: ExternalRef) -> Any:
-        return decode_asset(ref, printed.assets[ref.path])
-
-    return load
-
-
-def snapshot_asset_loader() -> Any:
-    """An `assets` callback that reads the committed sidecar files of the snapshots."""
-
-    def load(ref: ExternalRef) -> Any:
-        return decode_asset(ref, (SNAPSHOTS / ref.path).read_bytes())
-
-    return load
+def snapshot_assets(name: str) -> dict[str, bytes]:
+    """The committed sidecar files of a snapshot, by path (what `compile_text` needs for `file(...)` references)."""
+    directory = SNAPSHOTS / f"{name}.assets"
+    if not directory.is_dir():
+        return {}
+    return {f"{name}.assets/{p.name}": p.read_bytes() for p in sorted(directory.iterdir())}
 
 
 def realized_equivalent(a: dict[str, Any], b: dict[str, Any], core: Any) -> bool:
