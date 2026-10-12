@@ -5,7 +5,9 @@ Given a `Document` and an `InterfaceRegistry` (interface files or manifests), `c
 that the interface does not declare, config keys it does not declare or requires, wires that name no declared
 store (process-bigraph would create one silently), wires whose target's declared type differs from the port's,
 paths that escape the root, an `interval` on a step, components the registry does not know (their ports and
-config go unchecked) and interfaces whose ports depend on an instance (declared by hand later). This is the
+config go unchecked) and interfaces whose ports depend on an instance (declared by hand later). It also analyses
+the writers of each store: additive writers that superpose (for review), an overwriting writer next to another
+writer (order-dependent), and a step publishing an array additively (usually meant `overwrite`). This is the
 S2–S4 slice of the diagnostics model in `docs/v2/design.md`; codes follow `docs/v2/registry-and-authoring.md`.
 """
 
@@ -18,7 +20,7 @@ from process_bigraph_lang.v2.interfaces import InterfaceRegistry
 from process_bigraph_lang.v2.model import Address, Composite, Document, Edge, InterfaceDecl, Node, Site, Store
 from process_bigraph_lang.v2.normalize import _canon_type
 from process_bigraph_lang.v2.paths import Path, Wire
-from process_bigraph_lang.v2.types import Named, Struct, TypeExpr, to_bigraph
+from process_bigraph_lang.v2.types import Group, Named, Struct, TypeExpr, to_bigraph
 from process_bigraph_lang.v2.values import MISSING
 
 
@@ -44,11 +46,20 @@ def check_document(doc: Document, registry: InterfaceRegistry | None = None) -> 
 _Target = tuple[tuple[str | int, ...], TypeExpr | None, bool]  # absolute path, declared type, declared?
 
 
+@dataclass
+class _Writer:
+    port_path: tuple[str | int, ...]
+    kind: str  # process | step
+    port_type: TypeExpr | None
+    store_type: TypeExpr | None
+
+
 class _Checker:
     def __init__(self, registry: InterfaceRegistry | None) -> None:
         self.registry = registry
         self.diagnostics: list[Diagnostic] = []
         self.index: dict[tuple[str | int, ...], Store | Node | Edge] = {}
+        self.writers: dict[tuple[str | int, ...], list[_Writer]] = {}
 
     def report(self, code: str, slug: str, severity: str, path: tuple[str | int, ...], message: str) -> None:
         self.diagnostics.append(Diagnostic(code, slug, severity, "/".join(str(p) for p in path), message))
@@ -57,15 +68,17 @@ class _Checker:
 
     def scope(self, composite: Composite, base: tuple[str | int, ...]) -> None:
         """A composite body: wires inside it are relative to it, so each nested composite is its own scope."""
-        saved = self.index
-        self.index = {}
+        saved, saved_writers = self.index, self.writers
+        self.index, self.writers = {}, {}
         self.index_composite(composite, ())
         for path, element in list(self.index.items()):
             if isinstance(element, Edge):
                 self.edge(element, path)
-                if element.inner is not None:
-                    self.scope(element.inner, (*base, *path))
-        self.index = saved
+        self.writer_analysis()
+        for path, element in list(self.index.items()):
+            if isinstance(element, Edge) and element.inner is not None:
+                self.scope(element.inner, (*base, *path))
+        self.index, self.writers = saved, saved_writers
 
     def index_composite(self, composite: Composite, path: tuple[str | int, ...]) -> None:
         for key, element in composite.children.items():
@@ -98,7 +111,7 @@ class _Checker:
                         port_path,
                         f"{self.name(decl, edge)} has no {label[:-1]} port '{port}' (declared: {known})",
                     )
-                self.wire(wire, port_type, path[:-1], port_path)
+                self.wire(wire, port_type, path[:-1], port_path, writer=edge.kind if label == "outputs" else None)
 
     def declaration(self, edge: Edge, path: tuple[str | int, ...]) -> InterfaceDecl | None:
         if isinstance(edge.address, Site):
@@ -159,17 +172,25 @@ class _Checker:
     # --- wires -------------------------------------------------------------------------------------------------
 
     def wire(
-        self, wire: Wire, port_type: TypeExpr | None, parent: tuple[str | int, ...], port_path: tuple[str | int, ...]
+        self,
+        wire: Wire,
+        port_type: TypeExpr | None,
+        parent: tuple[str | int, ...],
+        port_path: tuple[str | int, ...],
+        writer: str | None = None,
     ) -> None:
+        """Check one wire; `writer` is the edge kind when this is an output wire (it then writes the store)."""
         if isinstance(wire, dict):
             element = _map_value_type(port_type)
             for sub_port, sub_wire in wire.items():
-                self.wire(sub_wire, element, parent, (*port_path, sub_port))
+                self.wire(sub_wire, element, parent, (*port_path, sub_port), writer)
             return
         target = self.resolve(wire, parent, port_path)
         if target is None:
             return
         absolute, store_type, declared = target
+        if writer is not None:
+            self.writers.setdefault(absolute, []).append(_Writer(port_path, writer, port_type, store_type))
         if not declared:
             self.report(
                 "W211",
@@ -196,6 +217,55 @@ class _Checker:
                 port_path,
                 f"port type '{_text(port_type)}' but store '{'/'.join(map(str, absolute))}' is declared '{_text(store_type)}'",
             )
+
+    # --- writers -----------------------------------------------------------------------------------------------
+
+    def writer_analysis(self) -> None:
+        """
+        How the processes that write one store combine. Additive writers superpose (process-bigraph's default
+        model, reported for review); an overwriting writer next to any other writer is order-dependent; a step
+        publishing an array-typed value with accumulate semantics usually meant `overwrite`.
+        """
+        for store, writers in sorted(self.writers.items(), key=lambda kv: tuple(map(str, kv[0]))):
+            store_text = "/".join(map(str, store))
+            store_overwrite = any(_semantics(w.store_type) == "overwrite" for w in writers if w.store_type is not None)
+            kinds = {w.port_path: ("overwrite" if store_overwrite else _semantics(w.port_type)) for w in writers}
+            for w in writers:
+                if (
+                    w.kind == "step"
+                    and kinds[w.port_path] == "accumulate"
+                    and w.port_type is not None
+                    and _contains_array(w.port_type)
+                ):
+                    self.report(
+                        "W223",
+                        "step-array-accumulates",
+                        "warning",
+                        w.port_path,
+                        f"a step publishes array-typed '{_text(w.port_type)}' into '{store_text}' with accumulate semantics; "
+                        "a step usually computes a whole value: did you mean overwrite<...>?",
+                    )
+            if len(writers) < 2:
+                continue
+            names = ", ".join("/".join(map(str, w.port_path)) for w in writers)
+            if any(k == "overwrite" for k in kinds.values()):
+                self.report(
+                    "W221",
+                    "overwrite-conflict",
+                    "warning",
+                    store,
+                    f"'{store_text}' is overwritten by one writer and also written by another ({names}): "
+                    "the last update applied wins, so the result depends on scheduling order",
+                )
+            elif all(k == "accumulate" for k in kinds.values()):
+                self.report(
+                    "W220",
+                    "additive-writers",
+                    "info",
+                    store,
+                    f"'{store_text}' is written additively by {len(writers)} processes ({names}): "
+                    "their contributions are summed each tick (simultaneous splitting)",
+                )
 
     def resolve(self, wire: Path, parent: tuple[str | int, ...], port_path: tuple[str | int, ...]) -> _Target | None:
         absolute: list[str | int] = list(parent)
@@ -263,6 +333,24 @@ def _array_data_type(expr: TypeExpr | None) -> TypeExpr | None:
     if isinstance(expr, Named) and expr.name not in ("array", "list") and len(expr.args) == 2:
         return expr.args[1]  # positive_array<float>[n, m]
     return None
+
+
+def _semantics(expr: TypeExpr | None) -> str:
+    """`overwrite` when the written value replaces the store (also per key for `map<overwrite<T>>`), else `accumulate`."""
+    if expr is None:
+        return "unknown"
+    if isinstance(expr, Named):
+        if expr.name == "overwrite":
+            return "overwrite"
+        if expr.name in ("map", "list", "maybe") and expr.args:
+            return _semantics(expr.args[-1])
+    return "accumulate"
+
+
+def _contains_array(expr: TypeExpr | None) -> bool:
+    if isinstance(expr, Named):
+        return "array" in expr.name or any(_contains_array(a) for a in expr.args if not isinstance(a, Group))
+    return False
 
 
 def _canon(expr: TypeExpr) -> Any:

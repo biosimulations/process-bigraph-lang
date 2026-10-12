@@ -218,6 +218,11 @@ types (`W200`), paths escaping the root (`E110`), an interval on a step (`T130`)
 dynamic ports (`I210`) and untyped stores (`I220`). On the hybrid it finds the `particle_positions` store that
 nothing declares and the three components whose ports only an instance can tell.
 
+The checker also does the writer analysis of the registry design: per store, who writes it and with which apply
+semantics (from the port type, or the store's own `overwrite<T>`); `W220` (info) lists additive writers whose
+contributions superpose, `W221` warns when an overwriting writer sits next to any other writer (order-dependent),
+and `W223` warns when a step publishes an array-typed value with accumulate semantics.
+
 Making the headers static was a change to the wrapped package, not to the tooling: on viva-pde-particle's
 `static-interfaces` branch, `SmoldynHybrid` always declares `particle_positions` (the `emit_positions` flag only
 decides whether the value is produced) and `SpatialRecorder` became `GridRecorder` and `MeshRecorder` with one
