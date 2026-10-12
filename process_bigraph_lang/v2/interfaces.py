@@ -28,7 +28,7 @@ def describe_module(module_name: str) -> list[InterfaceDecl]:
     is_package = hasattr(module, "__path__")
     decls: list[InterfaceDecl] = []
     for name, cls in inspect.getmembers(module, inspect.isclass):
-        if not _is_edge_class(cls) or not _belongs_to(cls, module_name, is_package):
+        if name.startswith("_") or not _is_edge_class(cls) or not _belongs_to(cls, module_name, is_package):
             continue
         decls.append(describe_class(cls, module_name, name))
     return decls

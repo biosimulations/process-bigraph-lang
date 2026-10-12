@@ -20,9 +20,16 @@ CORPUS = FIXTURES / "corpus"
 SNAPSHOTS = FIXTURES / "snapshots"
 UPDATE = os.environ.get("PBLANG_UPDATE_SNAPSHOTS") == "1"
 
-# the interfaces of the processes the corpus uses; edges that resolve here print as imports
+# the interfaces of the processes the corpus uses; edges that resolve here print as imports.
+# The fixture processes are described live; viva-pde-particle's come from the manifest generated in its own env
+# (tests/fixtures/data/v2/interfaces/, by `python -m process_bigraph_lang.v2 describe`), never by import.
 REGISTRY = InterfaceRegistry.from_modules(
     "tests.fixtures.test_registry.toy_library", "tests.fixtures.test_registry.spatio_flux.processes"
+)
+REGISTRY.decls.extend(
+    InterfaceRegistry.from_manifest(
+        json.loads((FIXTURES / "interfaces" / "viva_pde_particle.manifest.json").read_text())
+    ).decls
 )
 
 

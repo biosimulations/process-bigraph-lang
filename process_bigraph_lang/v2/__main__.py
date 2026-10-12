@@ -80,14 +80,41 @@ def _describe(args: argparse.Namespace) -> int:
     registry = InterfaceRegistry.from_modules(*args.modules)
     if args.manifest:
         Path(args.manifest).write_text(json.dumps(registry.to_manifest(), indent=2, default=str) + "\n")
-    text = "".join(
-        print_interfaces([d for d in registry.decls if d.module == module], module) for module in args.modules
-    )
-    if args.out:
-        Path(args.out).write_text(text)
+    files = {
+        module: print_interfaces([d for d in registry.decls if d.module == module], module) for module in args.modules
+    }
+    if args.out and (len(files) > 1 or Path(args.out).is_dir()):
+        out_dir = Path(args.out)
+        out_dir.mkdir(parents=True, exist_ok=True)
+        for module, text in files.items():
+            (out_dir / f"{module}.pblang").write_text(text)
+        print(f"wrote {len(files)} interface file(s) to {out_dir}", file=sys.stderr)
+    elif args.out:
+        Path(args.out).write_text(next(iter(files.values())))
     else:
-        sys.stdout.write(text)
+        sys.stdout.write("".join(files.values()))
     return 0
+
+
+def _check(args: argparse.Namespace) -> int:
+    import json
+
+    from process_bigraph_lang.v2.check import check_document
+
+    path = Path(args.document)
+    loaded, is_spec = _load(path)
+    model = read_composite_spec(loaded) if is_spec else read_document(loaded)
+    registry = None
+    if args.interfaces:
+        registry = InterfaceRegistry()
+        for manifest in args.interfaces:
+            registry.decls.extend(InterfaceRegistry.from_manifest(json.loads(Path(manifest).read_text())).decls)
+    diagnostics = check_document(model, registry)
+    for diagnostic in diagnostics:
+        print(diagnostic)
+    errors = sum(1 for d in diagnostics if d.severity == "error")
+    print(f"{errors} error(s), {sum(1 for d in diagnostics if d.severity == 'warning')} warning(s)", file=sys.stderr)
+    return 1 if errors else 0
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -101,8 +128,14 @@ def main(argv: list[str] | None = None) -> int:
     describe_cmd = commands.add_parser("describe", help="generate interface declarations from Python modules")
     describe_cmd.add_argument("modules", nargs="+", help="importable module names (run in the package's env)")
     describe_cmd.add_argument("--manifest", help="write the JSON manifest here")
-    describe_cmd.add_argument("--out", help="write the .pblang interface file here")
+    describe_cmd.add_argument(
+        "--out", help="the .pblang interface file (one module) or a directory (one file per module)"
+    )
     describe_cmd.set_defaults(run=_describe)
+    check_cmd = commands.add_parser("check", help="statically check a document against interface manifests")
+    check_cmd.add_argument("document")
+    check_cmd.add_argument("--interfaces", action="append", help="a manifest.json (repeatable)")
+    check_cmd.set_defaults(run=_check)
     diff_cmd = commands.add_parser("diff", help="compare two documents after normalization (exit 1 if they differ)")
     diff_cmd.add_argument("a")
     diff_cmd.add_argument("b")

@@ -1,5 +1,10 @@
 // pblang v2 — printed from hybrid_two_way_exchange
 
+import viva_pde_particle.processes.fv_reaction_diffusion.{FVReactionDiffusion};
+import viva_pde_particle.processes.recorder.{SpatialRecorder};
+import viva_pde_particle.processes.stepper.{Stepper};
+import viva_pde_particle.steps.transfer.{GridCountsToConcentration};
+
 composite {
   store fields = {
     B = array(file("hybrid_two_way_exchange.assets/fields_B.json"), dtype = "float64", shape = [3, 11, 11]),
@@ -12,7 +17,7 @@ composite {
   };
   store particle_totals = { A = 0.0 };
 
-  process pde at "local:FVReactionDiffusion" every 0.01 {
+  process pde : FVReactionDiffusion every 0.01 {
     config {
       grid = { origin = [0.0, 0.0, 0.0], size = [10.0, 10.0, 1.0], num = [11, 11, 3] },
       pde = {
@@ -28,7 +33,7 @@ composite {
     inputs { fields -> fields, external_conc -> particle_conc }
     outputs { fields -> fields }
   }
-  step particle_to_field at "local:GridCountsToConcentration" {
+  step particle_to_field : GridCountsToConcentration {
     config {
       grid = { origin = [0.0, 0.0, 0.0], size = [10.0, 10.0, 1.0], num = [11, 11, 3] },
       species = ["A"],
@@ -36,7 +41,7 @@ composite {
     inputs { particle_counts -> particle_counts }
     outputs { particle_conc -> particle_conc }
   }
-  process particles at "local:Stepper" every 0.01 {
+  process particles : Stepper every 0.01 {
     config {
       process = {
         address = "local:SmoldynHybrid",
@@ -61,7 +66,7 @@ composite {
       particle_positions -> particle_positions,
     }
   }
-  process recorder at "local:SpatialRecorder" every 0.01 {
+  process recorder : SpatialRecorder every 0.01 {
     config {
       out_dir = "out/hybrid_two_way_exchange",
       base_dt = 0.01,

@@ -143,6 +143,13 @@ def _from_dict(spec: dict[str, Any]) -> TypeExpr:
     name = spec["_type"]
     if not isinstance(name, str):
         return Raw(dict(spec), source=spec)
+    if any(c in name for c in "[{|~") and set(spec) <= {"_type", "_default"}:
+        inner = _from_string(name)  # `{"_type": "list[string]", "_default": []}`
+        if isinstance(inner, Named) and "_default" in spec:
+            inner.default = spec["_default"]
+        if not isinstance(inner, Group):
+            inner.source = spec
+        return inner
     keys = set(spec) - {"_type", "_default"}
     args: list[TypeExpr] = []
     units: str | None = None

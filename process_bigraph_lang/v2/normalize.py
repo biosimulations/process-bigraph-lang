@@ -17,7 +17,9 @@ from typing import Any
 
 import numpy as np
 
-from process_bigraph_lang.v2.types import Group, Named, Struct, TypeExpr, UnionType, parse_type
+from process_bigraph_lang.v2.interfaces import InterfaceRegistry
+from process_bigraph_lang.v2.model import Address
+from process_bigraph_lang.v2.types import Group, Named, Struct, TypeExpr, UnionType, parse_type, to_bigraph
 from process_bigraph_lang.v2.values import (
     COMPOSITE_OPTION_KEYS,
     EDGE_KINDS,
@@ -30,23 +32,29 @@ from process_bigraph_lang.v2.values import (
 _EdgeTable = dict[tuple[str, ...], dict[str, Any]]
 
 
-def normalize_document(doc: dict[str, Any], core: Any) -> dict[str, Any]:
-    """The canonical shape of a document (see the module docstring). `core` is a bigraph-schema core."""
+def normalize_document(doc: dict[str, Any], core: Any, registry: InterfaceRegistry | None = None) -> dict[str, Any]:
+    """
+    The canonical shape of a document (see the module docstring). `core` is a bigraph-schema core. With a
+    `registry`, an edge's `_inputs`/`_outputs` that merely repeat its interface's face are dropped (process-bigraph
+    merges them with `interface()`, so they carry no information).
+    """
     table: _EdgeTable = {}
     raw_schema = doc.get("schema") or {}
     schema = _norm_schema(raw_schema, core, (), table)
-    state = _norm_state(doc.get("state") or {}, raw_schema, core, (), table)
+    state = _norm_state(doc.get("state") or {}, raw_schema, core, (), table, registry)
     options = {k: _canon(doc[k], core) for k in COMPOSITE_OPTION_KEYS if k in doc}
     return {"schema": schema if isinstance(schema, dict) else {}, "state": state, "options": options}
 
 
-def equivalent(a: dict[str, Any], b: dict[str, Any], core: Any) -> bool:
-    return deep_equal(normalize_document(a, core), normalize_document(b, core))
+def equivalent(a: dict[str, Any], b: dict[str, Any], core: Any, registry: InterfaceRegistry | None = None) -> bool:
+    return deep_equal(normalize_document(a, core, registry), normalize_document(b, core, registry))
 
 
-def diff_documents(a: dict[str, Any], b: dict[str, Any], core: Any, limit: int = 200) -> str:
+def diff_documents(
+    a: dict[str, Any], b: dict[str, Any], core: Any, limit: int = 200, registry: InterfaceRegistry | None = None
+) -> str:
     """A readable account of how two documents differ after normalization (empty when equivalent)."""
-    left, right = normalize_document(a, core), normalize_document(b, core)
+    left, right = normalize_document(a, core, registry), normalize_document(b, core, registry)
     flat_left, flat_right = _flatten(left), _flatten(right)
     lines: list[str] = []
     for key in sorted(set(flat_left) | set(flat_right)):
@@ -187,11 +195,18 @@ _TYPE_ALIASES = {"int": "integer", "bool": "boolean"}
 # --- state half --------------------------------------------------------------------------------------------------
 
 
-def _norm_state(state: Any, schema: Any, core: Any, path: tuple[str, ...], table: _EdgeTable) -> Any:
+def _norm_state(
+    state: Any,
+    schema: Any,
+    core: Any,
+    path: tuple[str, ...],
+    table: _EdgeTable,
+    registry: InterfaceRegistry | None = None,
+) -> Any:
     if is_site(state):
         return _canon_site(state, core)
     if isinstance(state, dict) and (is_edge_node(state) or path in table):
-        return _canon_edge(state, core, path, table)
+        return _canon_edge(state, core, path, table, registry)
     if isinstance(state, dict) and not (isinstance(schema, dict) and "_type" in schema):
         out: dict[str, Any] = {}
         sub_schema = schema if isinstance(schema, dict) else {}
@@ -200,11 +215,11 @@ def _norm_state(state: Any, schema: Any, core: Any, path: tuple[str, ...], table
             if not path and key == "global_time":
                 continue
             if key in state:
-                out[str(key)] = _norm_state(state[key], sub_schema.get(key), core, (*path, str(key)), table)
+                out[str(key)] = _norm_state(state[key], sub_schema.get(key), core, (*path, str(key)), table, registry)
             else:
                 default = _schema_default(sub_schema[key], core)
                 if default is not None:
-                    out[str(key)] = _norm_state(default, sub_schema[key], core, (*path, str(key)), table)
+                    out[str(key)] = _norm_state(default, sub_schema[key], core, (*path, str(key)), table, registry)
         return out
     return _canon(state, core)
 
@@ -220,23 +235,39 @@ def _schema_default(schema: Any, core: Any) -> Any:
     return default[1] if isinstance(default, tuple) and len(default) == 2 else default
 
 
-def _canon_edge(node: dict[str, Any], core: Any, path: tuple[str, ...], table: _EdgeTable) -> dict[str, Any]:
+def _canon_edge(
+    node: dict[str, Any],
+    core: Any,
+    path: tuple[str, ...],
+    table: _EdgeTable,
+    registry: InterfaceRegistry | None = None,
+) -> dict[str, Any]:
     info = table.get(path, {})
     out: dict[str, Any] = {"_type": node.get("_type") or info.get("_type")}
     address = node.get("address")
     if address is not None:
         out["address"] = _canon_address(address, core)
-    for key in ("_inputs", "_outputs"):
+    decl = None
+    if registry is not None and address is not None and not is_site(address):
+        decl = registry.lookup(Address.from_any(_canon_address(address, core)))
+        if decl is not None and decl.address is not None:
+            out["address"] = str(decl.address)  # `local:Name` and `local:!module.Name` name the same component
+    for key, attr in (("_inputs", "inputs"), ("_outputs", "outputs")):
         ports = node.get(key, info.get(key))
-        if ports is not None:
-            out[key] = _canon_ports(ports, core)
+        if ports is None:
+            continue
+        canon = _canon_ports(ports, core)
+        declared = getattr(decl, attr) if decl is not None else None
+        if declared is not None and canon == _canon_ports({k: to_bigraph(v) for k, v in declared.items()}, core):
+            continue  # the node repeats the interface's face: no information
+        out[key] = canon
     config = node.get("config")
     if isinstance(config, dict) and _is_composite_address(address):
         config = dict(config)
         inner_table: _EdgeTable = {}
         inner_schema = config.get("schema") or {}
         config["schema"] = _norm_schema(inner_schema, core, (), inner_table) or {}
-        config["state"] = _norm_state(config.get("state") or {}, inner_schema, core, (), inner_table)
+        config["state"] = _norm_state(config.get("state") or {}, inner_schema, core, (), inner_table, registry)
     if config:
         out["config"] = _canon(config, core)
     for key in ("inputs", "outputs", "_triggers"):

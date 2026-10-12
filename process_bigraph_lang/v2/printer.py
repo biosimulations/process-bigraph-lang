@@ -240,9 +240,15 @@ class _Printer:
         self.lines.append("}")
 
     def config_field(self, name: str, config_field: ConfigField) -> str:
-        text = f"{_key(name)}: {to_surface(config_field.type) if config_field.type is not None else 'node'}"
-        if config_field.default is not MISSING:
-            text += f" = {self.inline(config_field.default, 1)}"
+        field_type = config_field.type
+        default = config_field.default
+        if isinstance(field_type, Named) and field_type.default is not MISSING:
+            if default is MISSING:
+                default = field_type.default
+            field_type = Named(field_type.name, field_type.args, units=field_type.units)
+        text = f"{_key(name)}: {to_surface(field_type) if field_type is not None else 'node'}"
+        if default is not MISSING:
+            text += f" = {self.inline(default, 1)}"
         return text + ";"
 
     def declaration_block(self, label: str, entries: list[str]) -> None:
@@ -616,6 +622,3 @@ def _same_face(a: Face, b: Face) -> bool:
 
 def _ports_text(ports: dict[str, TypeExpr] | None) -> str:
     return json.dumps({k: to_surface(v) for k, v in (ports or {}).items()}, sort_keys=True)
-
-
-_ = Named  # re-exported for type checkers that follow `to_surface`

@@ -52,7 +52,10 @@ def test_snapshot_text_round_trips(name: str, spatio_core: Any) -> None:
     assert print_document(model, name=name, registry=REGISTRY).text == text  # the printer is a fixpoint
     written = write_document(model, assets=snapshot_asset_loader())
     original = _original(name)
-    assert equivalent(original, written, spatio_core), diff_documents(original, written, spatio_core)
+    # `_inputs`/`_outputs` that repeat an imported interface's face are not a difference
+    assert equivalent(original, written, spatio_core, REGISTRY), diff_documents(
+        original, written, spatio_core, registry=REGISTRY
+    )
 
 
 def test_composite_spec_text_round_trips(core: Any) -> None:
@@ -71,7 +74,8 @@ def test_saved_toy_text_round_trips() -> None:
     model = read_text(text, registry=REGISTRY)
     assert print_document(model, name="saved_toy_add_floats", registry=REGISTRY).text == text
     add = model.root.children["add_nums"]
-    assert isinstance(add, Edge) and add.ports is not None and add.ports.inputs is not None
+    # an imported interface is authoritative at runtime: the edge carries no `_inputs`/`_outputs` of its own
+    assert isinstance(add, Edge) and add.ports is None
     assert str(add.address) == "local:!tests.fixtures.test_registry.toy_library.AddFloatsProcess"
 
 

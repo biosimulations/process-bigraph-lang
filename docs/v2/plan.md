@@ -208,6 +208,16 @@ of the sketch in the design and the acceptance spec for the Langium v2 grammar. 
 `replicate`, `{default}` suffixes on types, `when` / `of config.x` faces, and hand-written override files for
 dynamic ports.
 
+Headers for a real package exist too: `tests/fixtures/data/v2/interfaces/` holds the interface files and manifest
+that `python -m process_bigraph_lang.v2 describe` generated from viva-pde-particle's classes inside its own
+environment (the publish-time step). Against them, the hybrid prints with `import`s, and
+`process_bigraph_lang/v2/check.py` (`python -m process_bigraph_lang.v2 check doc.json --interfaces m.json`)
+verifies a document statically, with no process code imported: unknown ports (`S021`), missing or unknown config
+keys (`T121`, `S022`), wires that name no declared store (`W211`), wire type mismatches against declared store
+types (`W200`), paths escaping the root (`E110`), an interval on a step (`T130`), unknown components (`S020`),
+dynamic ports (`I210`) and untyped stores (`I220`). On the hybrid it finds the `particle_positions` store that
+nothing declares and the three components whose ports only an instance can tell.
+
 Two decisions made while building the parser: the normalizer canonicalizes types from the parsed type tree rather
 than through bigraph-schema's renderer (the renderer drops custom type names such as `positive_float` and fails on
 unknown dict-form types, so the two spellings of one type no longer collided), and `///` doc comments are joined with

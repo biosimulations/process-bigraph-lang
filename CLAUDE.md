@@ -165,7 +165,10 @@ design and the plan. The code so far is a round-trip prototype: `reader.py` (doc
 `model.Document`), `writer.py` (→ document / CompositeSpec, exact for every v1 expected document), `printer.py`
 (→ canonical `.pblang` v2 text + sidecar assets), `parser.py` (a Lark grammar that reads that text back; the
 executable form of the grammar sketch), `interfaces.py` (`describe_module` + `InterfaceRegistry` with a JSON
-manifest; resolved addresses print as `import`s) and `normalize.py` (`equivalent` of two documents).
+manifest; resolved addresses print as `import`s), `check.py` (static checks of a document against declarations)
+and `normalize.py` (`equivalent` of two documents; with a registry, `local:Name` and `local:!mod.Name` and
+`_inputs`/`_outputs` that repeat the declared face are not differences). `tests/fixtures/data/v2/interfaces/` holds
+headers generated from viva-pde-particle in its own env.
 The Langium grammar in `dsl/` is still v1; the v2 Langium grammar comes later and binds to the same model.
 
 - `tests/v2/` covers it; `tests/fixtures/data/v2/corpus/` is the corpus (see its README for provenance) and

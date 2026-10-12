@@ -353,7 +353,7 @@ class _Builder(Transformer):
             edge.address = Site(sort, address.default)
         else:
             edge.address = address
-        if decl is not None and (decl.inputs is not None or decl.outputs is not None):
+        if decl is not None and decl.module is None and (decl.inputs is not None or decl.outputs is not None):
             edge.ports = Face(
                 dict(decl.inputs) if decl.inputs is not None else None,
                 dict(decl.outputs) if decl.outputs is not None else None,

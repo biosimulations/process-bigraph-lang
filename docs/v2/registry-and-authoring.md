@@ -130,6 +130,12 @@ set); `{"dynamic": true, "rule": "union_of_children", "children_key": "process"}
 `"pde"`, `"particles"` (`SplittingCoordinator`): ports are computed from the DSL edge literals once the children's
 manifests are imported.
 
+A first generated example lives in the repository: `tests/fixtures/data/v2/interfaces/` holds the interface files and
+`viva_pde_particle.manifest.json` that `python -m process_bigraph_lang.v2 describe` produced from viva-pde-particle's
+classes in that package's own environment. They show the honest output for ports the generator cannot see
+(`inputs { ... }` plus a `// TODO: dynamic ports` note on `Stepper`, `SmoldynHybrid` and `SpatialRecorder`), and
+`process_bigraph_lang/v2/check.py` uses them to verify the hybrid composite without importing process code.
+
 ### 1.3 Stage A: `pblang-describe`
 
 A tiny distribution (`packages/pblang-describe/`; deps: process-bigraph and bigraph-schema only). CLI:
