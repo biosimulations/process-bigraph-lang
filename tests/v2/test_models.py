@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from process_bigraph_lang.v2 import write_document
+from process_bigraph_lang.v2.writer import write_document
 from process_bigraph_lang.v2.check import check_document
 from process_bigraph_lang.v2.langium import langium_cli, read_text
 from process_bigraph_lang.v2.printer import print_model

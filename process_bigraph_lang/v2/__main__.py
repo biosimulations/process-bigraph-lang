@@ -1,9 +1,13 @@
 """
-`python -m process_bigraph_lang.v2 print <doc.json | spec.composite.yaml>`: print a document as `.pblang` v2 text.
+`python -m process_bigraph_lang.v2 compile <file.pbl> [--interfaces m.json]... [--to document|spec] [-o out]`:
+parse and check the text, then write the document (JSON) or the CompositeSpec (yaml); errors stop it.
+`python -m process_bigraph_lang.v2 decompile <doc.json | spec.composite.yaml>`: a document as `.pbl` text.
+`python -m process_bigraph_lang.v2 check <file.pbl | doc.json> [--interfaces m.json]...`: the checker's findings.
 `python -m process_bigraph_lang.v2 diff <a.json> <b.json>`: explain how two documents differ after normalization.
+`python -m process_bigraph_lang.v2 describe <module>...` / `describe-model <sbml>`: headers from code or SBML.
 
 Documents are JSON (`bigraph_schema.json_codec` encoding, so numpy arrays survive) or CompositeSpec yaml.
-Sidecar assets of `print` are written next to the output when `--out` is given, else listed on stderr.
+Sidecar assets of `decompile` are written next to the output when `--out` is given, else listed on stderr.
 """
 
 from __future__ import annotations
@@ -14,13 +18,13 @@ from pathlib import Path
 from typing import Any
 
 from process_bigraph_lang.v2 import (
+    CompileError,
     InterfaceRegistry,
+    compile_file,
+    decompile,
     diff_documents,
     equivalent,
-    print_document,
     print_interfaces,
-    read_composite_spec,
-    read_document,
 )
 
 
@@ -37,16 +41,28 @@ def _load(path: Path) -> tuple[dict[str, Any], bool]:
     return loaded, False
 
 
-def _print(args: argparse.Namespace) -> int:
+def _registry(manifests: list[str] | None) -> InterfaceRegistry | None:
+    if not manifests:
+        return None
+    import json
+
+    registry = InterfaceRegistry(decls=[])
+    for manifest in manifests:
+        registry.decls.extend(
+            InterfaceRegistry.from_manifest(json.loads(Path(manifest).read_text(encoding="utf-8"))).decls
+        )
+    return registry
+
+
+def _decompile(args: argparse.Namespace) -> int:
     path = Path(args.document)
     loaded, is_spec = _load(path)
-    model = read_composite_spec(loaded) if is_spec else read_document(loaded)
-    registry = None
-    if args.interfaces:
-        import json
-
-        registry = InterfaceRegistry.from_manifest(json.loads(Path(args.interfaces).read_text(encoding="utf-8")))
-    printed = print_document(model, name=path.stem.replace(".composite", ""), registry=registry)
+    printed = decompile(
+        loaded,
+        name=path.stem.replace(".composite", ""),
+        registry=_registry(args.interfaces),
+        kind="spec" if is_spec else "document",
+    )
     if args.out:
         out = Path(args.out)
         out.write_text(printed.text, encoding="utf-8")
@@ -59,6 +75,33 @@ def _print(args: argparse.Namespace) -> int:
         sys.stdout.write(printed.text)
         for asset_name in printed.assets:
             print(f"asset (not written): {asset_name}", file=sys.stderr)
+    return 0
+
+
+def _compile(args: argparse.Namespace) -> int:
+    manifests = [Path(m) for m in args.interfaces or []]
+    try:
+        compiled = compile_file(args.document, manifests=manifests, to=args.to, strict=args.strict)
+    except CompileError as error:
+        for diagnostic in error.diagnostics:
+            print(diagnostic, file=sys.stderr)
+        print("compile failed", file=sys.stderr)
+        return 1
+    for diagnostic in compiled.diagnostics:
+        print(diagnostic, file=sys.stderr)
+    if args.to == "spec":
+        import yaml
+
+        text = yaml.safe_dump(compiled.document, sort_keys=False)
+    else:
+        from bigraph_schema import json_codec
+
+        text = json_codec.dumps(compiled.document, indent=2) + "\n"
+    if args.out:
+        Path(args.out).write_text(text, encoding="utf-8")
+        print(f"wrote {args.out}", file=sys.stderr)
+    else:
+        sys.stdout.write(text)
     return 0
 
 
@@ -103,14 +146,14 @@ def _check(args: argparse.Namespace) -> int:
 
     source = Path(args.document)
     manifests = [Path(m) for m in args.interfaces or []]
-    if source.suffix in (".json", ".yaml", ".yml"):  # a document: print it, then check the text
+    if source.suffix in (".json", ".yaml", ".yml"):  # a document: decompile it, then check the text
         import tempfile
 
         loaded, is_spec = _load(source)
-        model = read_composite_spec(loaded) if is_spec else read_document(loaded)
+        printed = decompile(loaded, name=source.stem, kind="spec" if is_spec else "document")
         with tempfile.TemporaryDirectory() as tmp:
             text = Path(tmp) / f"{source.stem}.pbl"
-            text.write_text(print_document(model, name=source.stem).text, encoding="utf-8")
+            text.write_text(printed.text, encoding="utf-8")
             diagnostics = check_file(text, manifests)
     else:
         diagnostics = check_file(source, manifests)
@@ -140,11 +183,22 @@ def _describe_model(args: argparse.Namespace) -> int:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="python -m process_bigraph_lang.v2")
     commands = parser.add_subparsers(dest="command", required=True)
-    print_cmd = commands.add_parser("print", help="print a document or CompositeSpec as .pblang v2 text")
-    print_cmd.add_argument("document")
-    print_cmd.add_argument("--out", help="write the text here (assets go next to it)")
-    print_cmd.add_argument("--interfaces", help="a manifest.json; matching addresses print as imports")
-    print_cmd.set_defaults(run=_print)
+    compile_cmd = commands.add_parser("compile", help="parse and check a .pbl file, then write the document")
+    compile_cmd.add_argument("document", help="a .pbl file (file(...) references resolve next to it)")
+    compile_cmd.add_argument("--interfaces", action="append", help="a manifest.json (repeatable)")
+    compile_cmd.add_argument("--to", choices=["document", "spec"], default="document")
+    compile_cmd.add_argument("--strict", action="store_true", help="warnings fail the compile too")
+    compile_cmd.add_argument("-o", "--out", help="write the document (JSON) or CompositeSpec (yaml) here")
+    compile_cmd.set_defaults(run=_compile)
+    decompile_cmd = commands.add_parser(
+        "decompile", aliases=["print"], help="print a document or CompositeSpec as .pbl text"
+    )
+    decompile_cmd.add_argument("document")
+    decompile_cmd.add_argument("--out", help="write the text here (assets go next to it)")
+    decompile_cmd.add_argument(
+        "--interfaces", action="append", help="a manifest.json (repeatable); matching addresses print as imports"
+    )
+    decompile_cmd.set_defaults(run=_decompile)
     describe_cmd = commands.add_parser("describe", help="generate interface declarations from Python modules")
     describe_cmd.add_argument("modules", nargs="+", help="importable module names (run in the package's env)")
     describe_cmd.add_argument("--manifest", help="write the JSON manifest here")
@@ -157,7 +211,7 @@ def main(argv: list[str] | None = None) -> int:
     model_cmd.add_argument("--manifest", help="write the JSON form here")
     model_cmd.add_argument("--out", help="write the .pblang model header here")
     model_cmd.set_defaults(run=_describe_model)
-    check_cmd = commands.add_parser("check", help="statically check a document against interface manifests")
+    check_cmd = commands.add_parser("check", help="statically check a .pbl file or a document against manifests")
     check_cmd.add_argument(
         "document", help="a .pbl file, or a document (.json) / CompositeSpec (.yaml) to print and check"
     )

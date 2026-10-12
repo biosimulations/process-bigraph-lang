@@ -2,7 +2,8 @@ from typing import Any
 
 import pytest
 
-from process_bigraph_lang.v2 import read_composite_spec, read_document, write_composite_spec
+from process_bigraph_lang.v2.reader import read_composite_spec, read_document
+from process_bigraph_lang.v2.writer import write_composite_spec
 from process_bigraph_lang.v2.model import Address, Edge, Node, ParamRef, Site, Store
 from process_bigraph_lang.v2.paths import Path
 from process_bigraph_lang.v2.types import Named, Struct

@@ -161,13 +161,17 @@ stub. Entry points: `main.ts` (LSP), `main-browser.ts` (Monaco demo, `npm run de
 ## v2 (in progress): `process_bigraph_lang/v2/`
 
 The language is being redesigned; `docs/v2/` holds the research notes, the language design, the registry/authoring
-design and the plan. The code so far is a round-trip prototype: `reader.py` (document or CompositeSpec →
-`model.Document`), `writer.py` (→ document / CompositeSpec, exact for every v1 expected document), `printer.py`
-(→ canonical `.pblang` v2 text + sidecar assets), `interfaces.py` (`describe_module` + `InterfaceRegistry` with a JSON
-manifest; resolved addresses print as `import`s), `check.py` (static checks of a document against declarations)
-and `normalize.py` (`equivalent` of two documents; with a registry, `local:Name` and `local:!mod.Name` and
-`_inputs`/`_outputs` that repeat the declared face are not differences). `tests/fixtures/data/v2/interfaces/` holds
-headers generated from viva-pde-particle in its own env.
+design and the plan. The **public Python API is `api.py`**: `compile_text` / `compile_file` (text → parse → check →
+document or CompositeSpec; `CompileError` on errors) and `decompile` (document or CompositeSpec → `.pbl` text +
+sidecar assets); `python -m process_bigraph_lang.v2 compile | decompile | check | diff | describe`. The dataclass
+model (`model.py`) with `reader.py`, `writer.py`, `printer.py` and `langium.py` is the **internal** pivot: never
+export it from `__init__`, and never add a public path to a runnable document that skips the checker (a Python
+tool targets the DSL text, not the model; the follow-up moves reader/writer/printer into `cli-native`). Also:
+`interfaces.py` (`describe_module` + `InterfaceRegistry` with a JSON manifest; resolved addresses print as
+`import`s), `check.py` (`check_file` over `cli-native check --json`) and `normalize.py` (`equivalent` of two
+documents; with a registry, `local:Name` and `local:!mod.Name` and `_inputs`/`_outputs` that repeat the declared
+face are not differences). `tests/fixtures/data/v2/interfaces/` holds headers generated from viva-pde-particle in
+its own env.
 There is **one grammar and one checker**, both TypeScript: `dsl/src/language/pblang-v2.langium` and
 `dsl/src/language/v2/check.ts` (registered as a Langium validation; `cli-native check --json` is its CLI). Python
 parses v2 text and checks documents by calling `cli-native` (`process_bigraph_lang/v2/langium.py`, `check.py`);

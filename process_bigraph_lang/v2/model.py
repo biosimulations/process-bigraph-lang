@@ -4,6 +4,8 @@ The v2 object model: what a `.pblang` v2 module denotes (see `docs/v2/design.md`
 The model is a tree of stores, plain nodes and edges, plus the module-level parameters, emitter
 declarations and composite options. It is the pivot of the round trip: documents and CompositeSpec
 mappings are read into it, and text, documents and mappings are written from it.
+
+Internal: the pivot of `api.compile_*` and `api.decompile`; not part of the public API.
 """
 
 from __future__ import annotations

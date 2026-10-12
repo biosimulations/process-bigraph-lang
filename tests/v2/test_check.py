@@ -3,7 +3,7 @@
 from copy import deepcopy
 from typing import Any
 
-from process_bigraph_lang.v2 import read_document
+from process_bigraph_lang.v2.reader import read_document
 from process_bigraph_lang.v2.check import check_document
 from process_bigraph_lang.v2.langium import langium_cli
 from tests.compiler.generator.test_toy_add_floats import add_floats_process_expected_config_template
@@ -181,7 +181,7 @@ def test_hybrid_writers_are_clean() -> None:
 
 
 def _spec_codes(spec: dict[str, Any]) -> dict[str, list[str]]:
-    from process_bigraph_lang.v2 import read_composite_spec
+    from process_bigraph_lang.v2.reader import read_composite_spec
 
     out: dict[str, list[str]] = {}
     for d in check_document(read_composite_spec(spec), REGISTRY):

@@ -17,16 +17,10 @@ from process_bigraph.composite_spec import CompositeSpec  # type: ignore[import-
 from process_bigraph.processes.growth_division import grow_divide_agent  # type: ignore[import-untyped]
 from process_bigraph.templates import open_sites, template_document  # type: ignore[import-untyped]
 
-from process_bigraph_lang.v2 import (
-    deep_equal,
-    diff_documents,
-    equivalent,
-    print_document,
-    read_composite_spec,
-    read_document,
-    write_composite_spec,
-    write_document,
-)
+from process_bigraph_lang.v2 import deep_equal, diff_documents, equivalent
+from process_bigraph_lang.v2.printer import print_document
+from process_bigraph_lang.v2.reader import read_composite_spec, read_document
+from process_bigraph_lang.v2.writer import write_composite_spec, write_document
 from tests.compiler.generator.spatio_flux.test_spatio_flux_II import step_config_template as spatio_two
 from tests.compiler.generator.spatio_flux.test_spatio_flux_III import step_config_template as spatio_three
 from tests.compiler.generator.test_dsl_compiler import TEMPLATE_PBLANG, compile_pblang

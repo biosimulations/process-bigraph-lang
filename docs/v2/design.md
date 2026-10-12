@@ -625,6 +625,16 @@ workspace, with the `import` they need added as an additional edit. The keywords
 answer `import a.b.{X}` directly (a document with `module a.b;` declaring `X` is `local:!a.b.X`), so a composite
 next to its generated headers is checked without a manifest; the CLI takes manifests with `--interfaces`.
 
+**The Python API.** `process_bigraph_lang.v2` exposes `compile_text` / `compile_file` (text -> parse -> check ->
+document or CompositeSpec; `CompileError` on errors, `strict=True` makes warnings fatal) and `decompile`
+(document or CompositeSpec -> text plus sidecar assets). The dataclass model behind them, with its reader,
+writer and printer, is internal. This is deliberate: a Python tool that builds composites targets the DSL
+text, where the result is checked, reviewed and documented, rather than a Python object model that would be a
+second authoring surface. A builder in viva-pde-particle, for example, emits `.pbl` text (or a document it then
+decompiles) and compiles that; it does not construct `Document` objects. The follow-up is to move reader,
+writer and printer into `cli-native` as `compile` and `decompile`, so that Python keeps only `describe`
+(introspection must run where the classes import) and thin wrappers, and no Python model exists at all.
+
 ### 5.3 `pblang check`
 
 ```text

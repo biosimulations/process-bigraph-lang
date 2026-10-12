@@ -4,6 +4,8 @@ The v2 model -> documents.
 `write_document` produces the process-bigraph 1.x `{"schema", "state"}` document (plus composite options
 at the top level); `write_composite_spec` produces a CompositeSpec mapping ready for `yaml.safe_dump`.
 Both are the exact inverse of the reader for every form it accepts.
+
+Internal: `api.compile_text` / `api.compile_file` are the public entries, and they check the text first.
 """
 
 from __future__ import annotations

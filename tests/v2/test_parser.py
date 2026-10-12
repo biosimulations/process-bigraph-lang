@@ -10,14 +10,9 @@ import pytest
 import yaml
 from process_bigraph.processes.growth_division import grow_divide_agent  # type: ignore[import-untyped]
 
-from process_bigraph_lang.v2 import (
-    deep_equal,
-    diff_documents,
-    equivalent,
-    print_document,
-    write_composite_spec,
-    write_document,
-)
+from process_bigraph_lang.v2 import deep_equal, diff_documents, equivalent
+from process_bigraph_lang.v2.printer import print_document
+from process_bigraph_lang.v2.writer import write_composite_spec, write_document
 from process_bigraph_lang.v2.model import Edge, ParamRef, Site, Store
 from process_bigraph_lang.v2.langium import langium_cli, read_text
 from tests.compiler.generator.spatio_flux.test_spatio_flux_II import step_config_template as spatio_two

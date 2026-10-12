@@ -5,7 +5,9 @@ from typing import Any
 
 import pytest
 
-from process_bigraph_lang.v2 import deep_equal, read_document, write_document
+from process_bigraph_lang.v2 import deep_equal
+from process_bigraph_lang.v2.reader import read_document
+from process_bigraph_lang.v2.writer import write_document
 from tests.compiler.generator.spatio_flux.test_spatio_flux_I import step_config_template as spatio_one
 from tests.compiler.generator.spatio_flux.test_spatio_flux_II import step_config_template as spatio_two
 from tests.compiler.generator.spatio_flux.test_spatio_flux_III import step_config_template as spatio_three
