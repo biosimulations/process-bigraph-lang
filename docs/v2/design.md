@@ -654,6 +654,32 @@ exit 0 = no errors; 1 = errors; 2 = tool failure
 
 `fmt`, `compile`, `decompile`, `describe` and `doc` share the same envelope.
 
+## 5.4 Scheduling attributes (the Stepper as syntax)
+
+viva-pde-particle's `Stepper` wraps a process to reproduce vcell-fvsolver's lagged coupling: it is a process with
+interval `dt` that does nothing on `k−1` of every `k` ticks and, on the `phase`-th tick, calls its child with
+interval `k·dt`, so the child reads its inputs at `T + phase·dt` and has its outputs applied one `dt` later while
+advancing its own clock by `k·dt`. process-bigraph's single knob, `interval`, cannot say that. The Stepper is
+therefore three scheduling numbers around a real component, and the DSL puts them on the use of the process:
+
+```text
+process particles : SmoldynHybrid every dt stride k phase k - 1 { config {…} inputs {…} outputs {…} }
+```
+
+Meaning: scheduled every `dt`; on slots where `tick mod stride == phase` it runs with interval `stride·dt`,
+reading inputs at the start of that slot and having outputs applied at its end. `every dt` alone is stride 1,
+phase 0.
+
+Today this is sugar: the compiler emits the `local:Stepper` node with `config.process = {address, config}`, `dt`,
+`every` and `phase`, and the decompiler prints that shape back as the attribute. What it buys is static checking:
+the component named in the text has a static header, so the child's config, its wires and the schedule's
+invariants (`0 ≤ phase < stride`, `step_multiplier == stride` for Smoldyn, the wrapper's `interval == dt`) are
+checked before anything runs, instead of as `ValueError`s in `initialize()`. Because the syntax names the schedule
+and not the wrapper, the same text can compile to native scheduling once process-bigraph grows `stride` and
+`phase` on a process node (an upstream ask); until then the desugaring target should live in a shared package
+rather than in viva-pde-particle. `SplittingCoordinator` is the same idea over a group of processes (a
+`schedule` block on a node), a later item.
+
 ## 6. Open questions
 
 1. **Params referenced at several positions in template mode.** Substitute at compile time by default (`--set`);
