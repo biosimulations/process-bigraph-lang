@@ -11,6 +11,11 @@ nav:
   - Home: index.md
   - Architecture: architecture.md
   - Modules: modules.md
+  - v2 (design):
+      - Research notes: v2/research.md
+      - Language design: v2/design.md
+      - Registry and authoring: v2/registry-and-authoring.md
+      - Implementation plan: v2/plan.md
 plugins:
   - search
   - mkdocstrings:

@@ -158,6 +158,26 @@ stub. Entry points: `main.ts` (LSP), `main-browser.ts` (Monaco demo, `npm run de
   see `local:!` classes (bigraph-schema#188). A `Composite` given an open address crashes rather than reporting it
   (process-bigraph#213), so fill with `template_document`.
 
+## v2 (in progress): `process_bigraph_lang/v2/`
+
+The language is being redesigned; `docs/v2/` holds the research notes, the language design, the registry/authoring
+design and the plan. The code so far is a round-trip prototype: `reader.py` (document or CompositeSpec →
+`model.Document`), `writer.py` (→ document / CompositeSpec, exact for every v1 expected document), `printer.py`
+(→ canonical `.pblang` v2 text + sidecar assets), `parser.py` (a Lark grammar that reads that text back; the
+executable form of the grammar sketch), `interfaces.py` (`describe_module` + `InterfaceRegistry` with a JSON
+manifest; resolved addresses print as `import`s), `check.py` (static checks of a document against declarations)
+and `normalize.py` (`equivalent` of two documents; with a registry, `local:Name` and `local:!mod.Name` and
+`_inputs`/`_outputs` that repeat the declared face are not differences). `tests/fixtures/data/v2/interfaces/` holds
+headers generated from viva-pde-particle in its own env.
+The Langium grammar in `dsl/` is still v1; the v2 Langium grammar comes later and binds to the same model.
+
+- `tests/v2/` covers it; `tests/fixtures/data/v2/corpus/` is the corpus (see its README for provenance) and
+  `tests/fixtures/data/v2/snapshots/` the printed text, regenerated with `PBLANG_UPDATE_SNAPSHOTS=1 pytest tests/v2`.
+  Both directories are excluded from prettier.
+- The hybrid fixture is generated in viva-pde-particle's pixi env (`corpus/make_hybrid_fixture.py`).
+- Keep `process_bigraph` out of the shipped package (tests only); `bigraph_schema` and `numpy` are main deps.
+- v1 (`compiler/`, `dsl/`) is untouched and must stay green.
+
 ## Tests
 
 - `tests/compiler/generator/`:

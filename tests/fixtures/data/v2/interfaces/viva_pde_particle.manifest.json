@@ -1,0 +1,421 @@
+{
+  "schema_version": "pblang-manifest/0",
+  "components": [
+    {
+      "name": "FVReactionDiffusion",
+      "kind": "process",
+      "address": "local:!viva_pde_particle.processes.fv_reaction_diffusion.FVReactionDiffusion",
+      "module": "viva_pde_particle.processes.fv_reaction_diffusion",
+      "config": {
+        "grid": {
+          "type": "map"
+        },
+        "pde": {
+          "type": "map"
+        },
+        "dt": {
+          "type": {
+            "_type": "float",
+            "_default": 0.01
+          },
+          "default": 0.01
+        },
+        "domain": {
+          "type": {
+            "_type": "map",
+            "_default": {}
+          },
+          "default": {}
+        }
+      },
+      "inputs": {
+        "fields": "map[array[float]]",
+        "external_conc": "map[array[float]]"
+      },
+      "outputs": {
+        "fields": "map[overwrite[array[float]]]"
+      },
+      "dynamic_ports": false,
+      "doc": "PDE half of a hybrid model (see :func:`viva_pde_particle.model.partition`)."
+    },
+    {
+      "name": "SmoldynHybrid",
+      "kind": "process",
+      "address": "local:!viva_pde_particle.processes.smoldyn_hybrid.SmoldynHybrid",
+      "module": "viva_pde_particle.processes.smoldyn_hybrid",
+      "config": {
+        "grid": {
+          "type": "map"
+        },
+        "config_text": {
+          "type": "string"
+        },
+        "particle_species": {
+          "type": "list[string]"
+        },
+        "field_species": {
+          "type": {
+            "_type": "list[string]",
+            "_default": []
+          },
+          "default": []
+        },
+        "dt": {
+          "type": {
+            "_type": "float",
+            "_default": 0.01
+          },
+          "default": 0.01
+        },
+        "step_multiplier": {
+          "type": {
+            "_type": "integer",
+            "_default": 1
+          },
+          "default": 1
+        },
+        "quiet": {
+          "type": {
+            "_type": "boolean",
+            "_default": true
+          },
+          "default": true
+        },
+        "emit_positions": {
+          "type": {
+            "_type": "boolean",
+            "_default": false
+          },
+          "default": false
+        }
+      },
+      "inputs": {
+        "fields": "map[array[float]]"
+      },
+      "outputs": {
+        "particle_counts": "map[overwrite[array[float]]]",
+        "particle_totals": "map[overwrite[float]]",
+        "particle_positions": "map[overwrite[array[float]]]"
+      },
+      "dynamic_ports": false,
+      "doc": "Particle half of a hybrid model."
+    },
+    {
+      "name": "Stepper",
+      "kind": "process",
+      "address": "local:!viva_pde_particle.processes.stepper.Stepper",
+      "module": "viva_pde_particle.processes.stepper",
+      "config": {
+        "process": {
+          "type": "map"
+        },
+        "dt": {
+          "type": "float"
+        },
+        "every": {
+          "type": {
+            "_type": "integer",
+            "_default": 1
+          },
+          "default": 1
+        },
+        "phase": {
+          "type": {
+            "_type": "integer",
+            "_default": 0
+          },
+          "default": 0
+        }
+      },
+      "inputs": null,
+      "outputs": null,
+      "dynamic_ports": true
+    },
+    {
+      "name": "SplittingCoordinator",
+      "kind": "process",
+      "address": "local:!viva_pde_particle.processes.splitting.SplittingCoordinator",
+      "module": "viva_pde_particle.processes.splitting",
+      "config": {
+        "pde": {
+          "type": "map"
+        },
+        "particles": {
+          "type": "map"
+        },
+        "adapters": {
+          "type": {
+            "_type": "map",
+            "_default": {}
+          },
+          "default": {}
+        },
+        "scheme": {
+          "type": {
+            "_type": "string",
+            "_default": "jacobi"
+          },
+          "default": "jacobi"
+        },
+        "dt": {
+          "type": "float"
+        },
+        "step_multiplier": {
+          "type": {
+            "_type": "integer",
+            "_default": 1
+          },
+          "default": 1
+        }
+      },
+      "inputs": null,
+      "outputs": null,
+      "dynamic_ports": true
+    },
+    {
+      "name": "GridRecorder",
+      "kind": "process",
+      "address": "local:!viva_pde_particle.processes.recorder.GridRecorder",
+      "module": "viva_pde_particle.processes.recorder",
+      "config": {
+        "out_dir": {
+          "type": "string"
+        },
+        "base_dt": {
+          "type": "float"
+        },
+        "every": {
+          "type": "integer"
+        },
+        "layout": {
+          "type": "map"
+        },
+        "species": {
+          "type": "list[string]"
+        },
+        "particle_species": {
+          "type": {
+            "_type": "list[string]",
+            "_default": []
+          },
+          "default": []
+        },
+        "membranes": {
+          "type": {
+            "_type": "map",
+            "_default": {}
+          },
+          "default": {}
+        },
+        "region": {
+          "type": {
+            "_type": "string",
+            "_default": "cell"
+          },
+          "default": "cell"
+        },
+        "source": {
+          "type": {
+            "_type": "string",
+            "_default": ""
+          },
+          "default": ""
+        }
+      },
+      "inputs": {
+        "fields": "map[array[float]]",
+        "particle_positions": "map[array[float]]"
+      },
+      "outputs": {},
+      "dynamic_ports": false,
+      "doc": "Records ``fields`` on a Cartesian grid (``layout.kind == \"grid\"``)."
+    },
+    {
+      "name": "MeshRecorder",
+      "kind": "process",
+      "address": "local:!viva_pde_particle.processes.recorder.MeshRecorder",
+      "module": "viva_pde_particle.processes.recorder",
+      "config": {
+        "out_dir": {
+          "type": "string"
+        },
+        "base_dt": {
+          "type": "float"
+        },
+        "every": {
+          "type": "integer"
+        },
+        "layout": {
+          "type": "map"
+        },
+        "species": {
+          "type": "list[string]"
+        },
+        "particle_species": {
+          "type": {
+            "_type": "list[string]",
+            "_default": []
+          },
+          "default": []
+        },
+        "membranes": {
+          "type": {
+            "_type": "map",
+            "_default": {}
+          },
+          "default": {}
+        },
+        "region": {
+          "type": {
+            "_type": "string",
+            "_default": "cell"
+          },
+          "default": "cell"
+        },
+        "source": {
+          "type": {
+            "_type": "string",
+            "_default": ""
+          },
+          "default": ""
+        }
+      },
+      "inputs": {
+        "field_dofs": "map[array[float]]",
+        "particle_positions": "map[array[float]]"
+      },
+      "outputs": {},
+      "dynamic_ports": false,
+      "doc": "Records ``field_dofs`` on a P1 mesh (``layout.kind == \"mesh\"``)."
+    },
+    {
+      "name": "ExtendGridField",
+      "kind": "step",
+      "address": "local:!viva_pde_particle.steps.transfer.ExtendGridField",
+      "module": "viva_pde_particle.steps.transfer",
+      "config": {
+        "grid": {
+          "type": "map"
+        },
+        "species": {
+          "type": "list[string]"
+        },
+        "staircase": {
+          "type": "map"
+        }
+      },
+      "inputs": {
+        "fields": "map[array[float]]"
+      },
+      "outputs": {
+        "lookup_fields": "map[overwrite[array[float]]]"
+      },
+      "dynamic_ports": false,
+      "doc": "Grid fields \u2192 lookup fields for the particle engine, extended past a staircase PDE domain (7e.5)."
+    },
+    {
+      "name": "GridCountsToConcentration",
+      "kind": "step",
+      "address": "local:!viva_pde_particle.steps.transfer.GridCountsToConcentration",
+      "module": "viva_pde_particle.steps.transfer",
+      "config": {
+        "grid": {
+          "type": "map"
+        },
+        "species": {
+          "type": "list[string]"
+        },
+        "staircase": {
+          "type": {
+            "_type": "map",
+            "_default": {}
+          },
+          "default": {}
+        }
+      },
+      "inputs": {
+        "particle_counts": "map[array[float]]"
+      },
+      "outputs": {
+        "particle_conc": "map[overwrite[array[float]]]"
+      },
+      "dynamic_ports": false,
+      "doc": "Per-node particle counts \u2192 \u00b5M on the same grid (``count / (V_element \u00b7 602.214)``)."
+    },
+    {
+      "name": "GridCountsToMeshConcentration",
+      "kind": "step",
+      "address": "local:!viva_pde_particle.steps.transfer.GridCountsToMeshConcentration",
+      "module": "viva_pde_particle.steps.transfer",
+      "config": {
+        "grid": {
+          "type": "map"
+        },
+        "mesh": {
+          "type": "map"
+        },
+        "species": {
+          "type": "list[string]"
+        }
+      },
+      "inputs": {
+        "particle_counts": "map[array[float]]"
+      },
+      "outputs": {
+        "particle_conc": "map[overwrite[array[float]]]"
+      },
+      "dynamic_ports": false,
+      "doc": "Grid histogram \u2192 P1 DOF concentrations through the transfer matrix: (P\u1d40\u00b7counts)/(M_L\u00b7602.214)."
+    },
+    {
+      "name": "MeshToGridField",
+      "kind": "step",
+      "address": "local:!viva_pde_particle.steps.transfer.MeshToGridField",
+      "module": "viva_pde_particle.steps.transfer",
+      "config": {
+        "grid": {
+          "type": "map"
+        },
+        "mesh": {
+          "type": "map"
+        },
+        "species": {
+          "type": "list[string]"
+        }
+      },
+      "inputs": {
+        "field_dofs": "map[array[float]]"
+      },
+      "outputs": {
+        "fields": "map[overwrite[array[float]]]"
+      },
+      "dynamic_ports": false,
+      "doc": "P1 DOF fields \u2192 grid fields for the particle engine's rate lookups: u_grid = P\u00b7u."
+    },
+    {
+      "name": "PositionsToMeshConcentration",
+      "kind": "step",
+      "address": "local:!viva_pde_particle.steps.transfer.PositionsToMeshConcentration",
+      "module": "viva_pde_particle.steps.transfer",
+      "config": {
+        "grid": {
+          "type": "map"
+        },
+        "mesh": {
+          "type": "map"
+        },
+        "species": {
+          "type": "list[string]"
+        }
+      },
+      "inputs": {
+        "particle_positions": "map[array[float]]"
+      },
+      "outputs": {
+        "particle_conc": "map[overwrite[array[float]]]"
+      },
+      "dynamic_ports": false,
+      "doc": "Molecule positions \u2192 P1 DOF concentrations by the exact point load \u03a3_p \u03c6_j(x_p)/(M_L,j\u00b7602.214)."
+    }
+  ]
+}

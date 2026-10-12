@@ -1,0 +1,28 @@
+// pblang v2 - printed from growth_division
+
+composite {
+  store environment = {};
+
+  composite agent every 1.0 {
+    bridge { inputs { mass -> mass }, outputs { mass -> mass, environment -> environment } }
+    composite {
+      process grow at "local:Grow" {
+        config { rate = 0.1 }
+        inputs { mass -> mass }
+        outputs { mass -> mass }
+      }
+      step divide at "local:Divide" {
+        config {
+          agent_id = "agent",
+          agent_schema = { mass = "float" },
+          threshold = 2.0,
+          divisions = 2,
+        }
+        inputs { trigger -> mass }
+        outputs { environment -> environment }
+      }
+    }
+    inputs { mass -> mass }
+    outputs { mass -> mass, environment -> .. }
+  }
+}

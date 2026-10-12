@@ -1,0 +1,67 @@
+{
+  "schema": {},
+  "state": {
+    "rate": {
+      "_type": "site",
+      "_sort": "float",
+      "_default": 0.5
+    },
+    "p": {
+      "x": {
+        "_type": "site",
+        "_sort": "float"
+      },
+      "y": {
+        "_type": "site",
+        "_sort": "float",
+        "_default": 3.0
+      }
+    },
+    "whole": {
+      "_type": "site",
+      "_sort": {
+        "x": "float",
+        "y": "float"
+      }
+    },
+    "s": {
+      "_type": "process",
+      "_inputs": {
+        "x": "float"
+      },
+      "_outputs": {
+        "y": "float"
+      },
+      "address": {
+        "_type": "site",
+        "_sort": {
+          "_type": "link",
+          "_inputs": {
+            "x": "float"
+          },
+          "_outputs": {
+            "y": "float"
+          }
+        }
+      },
+      "config": {
+        "rate": {
+          "_type": "site",
+          "_sort": "float"
+        }
+      },
+      "inputs": {
+        "x": [
+          "p",
+          "x"
+        ]
+      },
+      "outputs": {
+        "y": [
+          "p",
+          "y"
+        ]
+      }
+    }
+  }
+}

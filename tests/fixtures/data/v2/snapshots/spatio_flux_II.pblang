@@ -1,0 +1,115 @@
+// pblang v2 - printed from spatio_flux_II
+
+import tests.fixtures.test_registry.spatio_flux.processes.{DynamicFBA};
+
+composite {
+  node fields {
+    store acetate: array<positive_float>[2, 3] = array([
+      [0.3, 0.3, 0.3],
+      [0.3, 0.3, 0.3],
+    ], dtype = "float64");
+    store biomass: array<positive_float>[2, 3] = array([
+      [0.1, 0.1, 0.1],
+      [0.1, 0.1, 0.1],
+    ], dtype = "float64");
+    store glucose: array<positive_float>[2, 3] = array([
+      [10.0, 10.0, 10.0],
+      [10.0, 10.0, 10.0],
+    ], dtype = "float64");
+  }
+
+  process "dFBA[0,0]" : DynamicFBA every 1.0 {
+    config {
+      biomass_identifier = "biomass",
+      bounds = { ATPM = { lower = 1.0, upper = 1.0 }, EX_o2_e = { lower = -2.0, upper = null } },
+      kinetic_params = { acetate = (0.5, 2.0), glucose = (0.5, 1.0) },
+      model_file = "textbook",
+      substrate_update_reactions = { acetate = "EX_ac_e", glucose = "EX_glc__D_e" },
+    }
+    inputs {
+      substrates { acetate -> fields.acetate[0][0], biomass -> fields.biomass[0][0], glucose -> fields.glucose[0][0] },
+    }
+    outputs {
+      substrates { acetate -> fields.acetate[0][0], biomass -> fields.biomass[0][0], glucose -> fields.glucose[0][0] },
+    }
+  }
+  process "dFBA[0,1]" : DynamicFBA every 1.0 {
+    config {
+      biomass_identifier = "biomass",
+      bounds = { ATPM = { lower = 1.0, upper = 1.0 }, EX_o2_e = { lower = -2.0, upper = null } },
+      kinetic_params = { acetate = (0.5, 2.0), glucose = (0.5, 1.0) },
+      model_file = "textbook",
+      substrate_update_reactions = { acetate = "EX_ac_e", glucose = "EX_glc__D_e" },
+    }
+    inputs {
+      substrates { acetate -> fields.acetate[0][1], biomass -> fields.biomass[0][1], glucose -> fields.glucose[0][1] },
+    }
+    outputs {
+      substrates { acetate -> fields.acetate[0][1], biomass -> fields.biomass[0][1], glucose -> fields.glucose[0][1] },
+    }
+  }
+  process "dFBA[0,2]" : DynamicFBA every 1.0 {
+    config {
+      biomass_identifier = "biomass",
+      bounds = { ATPM = { lower = 1.0, upper = 1.0 }, EX_o2_e = { lower = -2.0, upper = null } },
+      kinetic_params = { acetate = (0.5, 2.0), glucose = (0.5, 1.0) },
+      model_file = "textbook",
+      substrate_update_reactions = { acetate = "EX_ac_e", glucose = "EX_glc__D_e" },
+    }
+    inputs {
+      substrates { acetate -> fields.acetate[0][2], biomass -> fields.biomass[0][2], glucose -> fields.glucose[0][2] },
+    }
+    outputs {
+      substrates { acetate -> fields.acetate[0][2], biomass -> fields.biomass[0][2], glucose -> fields.glucose[0][2] },
+    }
+  }
+  process "dFBA[1,0]" : DynamicFBA every 1.0 {
+    config {
+      biomass_identifier = "biomass",
+      bounds = { ATPM = { lower = 1.0, upper = 1.0 }, EX_o2_e = { lower = -2.0, upper = null } },
+      kinetic_params = { acetate = (0.5, 2.0), glucose = (0.5, 1.0) },
+      model_file = "textbook",
+      substrate_update_reactions = { acetate = "EX_ac_e", glucose = "EX_glc__D_e" },
+    }
+    inputs {
+      substrates { acetate -> fields.acetate[1][0], biomass -> fields.biomass[1][0], glucose -> fields.glucose[1][0] },
+    }
+    outputs {
+      substrates { acetate -> fields.acetate[1][0], biomass -> fields.biomass[1][0], glucose -> fields.glucose[1][0] },
+    }
+  }
+  process "dFBA[1,1]" : DynamicFBA every 1.0 {
+    config {
+      biomass_identifier = "biomass",
+      bounds = { ATPM = { lower = 1.0, upper = 1.0 }, EX_o2_e = { lower = -2.0, upper = null } },
+      kinetic_params = { acetate = (0.5, 2.0), glucose = (0.5, 1.0) },
+      model_file = "textbook",
+      substrate_update_reactions = { acetate = "EX_ac_e", glucose = "EX_glc__D_e" },
+    }
+    inputs {
+      substrates { acetate -> fields.acetate[1][1], biomass -> fields.biomass[1][1], glucose -> fields.glucose[1][1] },
+    }
+    outputs {
+      substrates { acetate -> fields.acetate[1][1], biomass -> fields.biomass[1][1], glucose -> fields.glucose[1][1] },
+    }
+  }
+  process "dFBA[1,2]" : DynamicFBA every 1.0 {
+    config {
+      biomass_identifier = "biomass",
+      bounds = { ATPM = { lower = 1.0, upper = 1.0 }, EX_o2_e = { lower = -2.0, upper = null } },
+      kinetic_params = { acetate = (0.5, 2.0), glucose = (0.5, 1.0) },
+      model_file = "textbook",
+      substrate_update_reactions = { acetate = "EX_ac_e", glucose = "EX_glc__D_e" },
+    }
+    inputs {
+      substrates { acetate -> fields.acetate[1][2], biomass -> fields.biomass[1][2], glucose -> fields.glucose[1][2] },
+    }
+    outputs {
+      substrates { acetate -> fields.acetate[1][2], biomass -> fields.biomass[1][2], glucose -> fields.glucose[1][2] },
+    }
+  }
+  step emitter at "local:RAMEmitter" {
+    config { emit = { fields = "node", global_time = "node" } }
+    inputs { fields -> fields, global_time -> global_time }
+  }
+}
