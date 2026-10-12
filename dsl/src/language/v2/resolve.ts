@@ -85,7 +85,9 @@ export function resolveEdge(
   registry: Registry,
 ): Resolution {
   if (ast.isCompositeEdge(edge)) return { kind: "composite" };
-  const head = edge.head;
+  // absent while the edge is half-typed (`step x` before its `: Interface`): parser recovery leaves no head
+  const head = edge.head as ast.EdgeHead | undefined;
+  if (head === undefined) return { kind: "none" };
   if (head.sharedRef !== undefined) return { kind: "shared" };
   if (head.address?.site) return { kind: "open" };
   const name = head.iface?.$refText;
@@ -109,7 +111,8 @@ export function edgeAddress(
     return edge.address !== undefined
       ? normalizeAddress(edge.address)
       : "local:Composite";
-  const head = edge.head;
+  const head = edge.head as ast.EdgeHead | undefined;
+  if (head === undefined) return undefined;
   const name = head.iface?.$refText;
   if (name !== undefined && ctx.interfaces.has(name))
     return ctx.interfaces.get(name)!.address;

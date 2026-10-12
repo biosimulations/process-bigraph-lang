@@ -394,11 +394,11 @@ function declarationLine(store: ast.Store): string {
 
 function edgeHeadText(edge: EdgeNode): string {
   if (ast.isCompositeEdge(edge)) return "";
-  const head = edge.head;
+  const head = edge.head as ast.EdgeHead | undefined;
   const parts: string[] = [];
-  if (head.sharedRef !== undefined) parts.push(`: shared ${head.sharedRef}`);
-  else if (head.iface) parts.push(`: ${head.iface.$refText}`);
-  if (head.address?.literal !== undefined)
+  if (head?.sharedRef !== undefined) parts.push(`: shared ${head.sharedRef}`);
+  else if (head?.iface) parts.push(`: ${head.iface.$refText}`);
+  if (head?.address?.literal !== undefined)
     parts.push(`at ${JSON.stringify(head.address.literal)}`);
   if (ast.isPlainEdge(edge) && edge.interval)
     parts.push(`every ${edge.interval.$cstNode?.text ?? ""}`);

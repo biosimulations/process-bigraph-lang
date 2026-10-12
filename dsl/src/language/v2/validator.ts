@@ -75,7 +75,17 @@ export class PblangValidator {
   constructor(private readonly registry: WorkspaceRegistry) {}
 
   checkModule(module: ast.Module, accept: ValidationAcceptor): void {
-    for (const d of checkModule(module, this.registry)) {
+    let diagnostics: ReturnType<typeof checkModule>;
+    try {
+      diagnostics = checkModule(module, this.registry);
+    } catch (error) {
+      // Text being typed parses into a partial tree whose statements may lack parts every check relies on. Its
+      // parse errors are already reported, so there the checks wait for the text to parse; on text that parses, a
+      // crash is a bug and stays visible.
+      if ((module.$document?.parseResult.parserErrors.length ?? 0) > 0) return;
+      throw error;
+    }
+    for (const d of diagnostics) {
       accept(d.severity, d.message, {
         node: d.node,
         property: d.property,
