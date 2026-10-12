@@ -204,10 +204,8 @@ def test_emit_paths_are_checked_against_stores_and_writers() -> None:
     }
     codes = _spec_codes(spec)
     assert codes.get("W240") == ["emit/0/nope"]  # names nothing: the emitter would record an empty value
-    assert codes.get("W241") == ["emit/0/label", "emit/0/pt/x"]  # declared, but no edge writes them: constants
-    # `A` is read only but `global_time` is the scheduler's; neither is reported as unknown, and `C` is written
-    assert "emit/0/global_time" not in codes.get("W241", []) and "emit/0/C" not in codes.get("W241", [])
-    assert "emit/0/A" in codes["W241"]
+    # declared but written by no edge: constants (`A` is only read); `C` is written; `global_time` is the scheduler's
+    assert codes.get("W241") == ["emit/0/A", "emit/0/label", "emit/0/pt/x"]
 
 
 def test_reversible_dimerization_emits_are_clean() -> None:
