@@ -84,10 +84,29 @@ infrastructure from the grammar; the project adds its own services and reuses th
 | Language server (Node)       | `src/language/main.ts`          | The VS Code extension                                                                                                                                                                 |
 | Language server (web worker) | `src/language/main-browser.ts`  | The Monaco-based browser demo (`npm run dev`, `static/`, `setup*.ts`)                                                                                                                 |
 | VS Code extension client     | `src/extension/main.ts`         | VS Code. Starts the language server.                                                                                                                                                  |
+| Embeddable API               | `src/api.ts`                    | Other applications (web apps, scripts, workers): a `Pblang` session that checks, compiles, decompiles and graphs from strings and plain values. See "Embedding" below.                |
 | CLI                          | `src/cli/main.ts`, `bin/cli.js` | Humans and the Python package: `check [--json]`, `compile [--to document\|spec] [--strict] [--force]`, `decompile`, `headers`, `model-header`, `graph`, `generate` (the AST as JSON). |
 
-`npm run build` compiles TypeScript and bundles with esbuild into `out/`. `npm run build:native` also runs
-`deno compile` to produce a standalone `dist/cli-native` executable that does not need Node at runtime.
+`npm run build` compiles TypeScript (with declarations) and bundles with esbuild into `out/`. `npm run build:native` also
+runs `deno compile` to produce a standalone `dist/cli-native` executable that does not need Node at runtime.
+
+### Embedding in another application
+
+`dsl/` is also an npm package (`npm pack` builds it; `npm run pack` writes the tarball to `dist/`). Nothing in
+`src/language/` or `src/api.ts` touches the file system, so the whole language runs in a browser. The package exports:
+
+| Export                                        | What it is                                                                                                                                                                 |
+| --------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `process-bigraph-lang`                        | `Pblang`: `addManifest`, `addHeader`, `check`, `compile` (`to: "document" \| "spec"`, `strict`, `force`, `assets`), `decompile` (text + sidecar assets by path), `graph`.  |
+| `process-bigraph-lang/worker`                 | The language server as a web worker entry (`main-browser.ts`): diagnostics as you type, hover and completion for an editor such as Monaco through `monaco-languageclient`. |
+| `process-bigraph-lang/monarch`                | The Monarch tokenizer (Monaco's "classic" highlighting).                                                                                                                   |
+| `process-bigraph-lang/textmate`               | The TextMate grammar (`source.pblang`), for VS Code-style highlighting.                                                                                                    |
+| `process-bigraph-lang/language-configuration` | Comments, brackets and auto-closing pairs.                                                                                                                                 |
+
+A viewer decompiles a run's document on the main thread with a `Pblang` session, shows the text in an editor fed by
+the worker, and draws `graph(...)`. An authoring tool adds the registry's manifests to both (the session through
+`addManifest`; the worker has no channel for them yet), compiles the text and submits the document. `static/` and
+`src/setup*.ts` are the reference wiring of Monaco to the worker (`npm run dev`).
 
 ## The Python package (`process_bigraph_lang/v2/`)
 

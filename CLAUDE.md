@@ -46,6 +46,7 @@ npm test                     # vitest run
 npx vitest run test/v2/check.test.ts           # single test file
 npx tsc --noEmit -p tsconfig.json              # type-check src/ AND test/ (vitest does not type-check)
 npm run build:native         # also builds dist/cli-native with `deno compile` (Deno required, ~10 s)
+npm run pack                 # the npm tarball (prepack regenerates and builds) into dist/, for other apps to install
 ./bin/cli.js check <file.pblang> [-i manifest.json...] [--json]
 ./bin/cli.js compile <file.pblang> [-i ...] [--to document|spec] [--strict] [--force] [-o out]
 ./bin/cli.js decompile <doc.json | x.composite.yaml> [-i ...] [--name n] [-o out.pblang]
@@ -101,6 +102,11 @@ store-not-declared`, `T121 config-missing`, `W220/W221/W223` writers, `W240/W241
   (inline, import, registry), how a path walks the tree. `WorkspaceRegistry` (`validator.ts`) answers imports from manifests
   (CLI `--interfaces`) or from header `.pblang` files open in the workspace (`module a.b;` + `X` is
   `local:!a.b.X`).
+- `src/api.ts` is the embeddable API (package export `process-bigraph-lang`): a `Pblang` session with `addManifest`,
+  `addHeader`, `check`, `compile`, `decompile`, `graph`, all from strings and plain values, no file system; the CLI
+  shares its diagnostic mapping and spec detection. `process-bigraph-lang/worker` is the language server for a
+  browser editor; `/monarch`, `/textmate`, `/language-configuration` are the grammars. `npm run bundle` (Vite) empties
+  `dist/`, which also removes `dist/cli-native`.
 - The generated AST's names (`Store`, `Node`, `Path`, `Composite`, ...) coincide with the object model's, so every
   consumer imports it as a namespace: `import * as ast from "../generated/ast.js"`, then `ast.Store`, `ast.isPlainEdge`.
 - **Adding a check:** add it in `check.ts`, add a case to `dsl/test/v2/check.test.ts`; the Python tests under
@@ -121,7 +127,8 @@ store-not-declared`, `T121 config-missing`, `W220/W221/W223` writers, `W240/W241
 
 - `dsl/test/v2/`: `check.test.ts`, `hover-completion.test.ts`, `snapshots.test.ts` (every snapshot parses),
   `model.test.ts` (reader, printer, types, paths), `roundtrip.test.ts` (every corpus document prints to its
-  snapshot byte for byte; every snapshot is a fixpoint; the v1 expected documents write back exactly).
+  snapshot byte for byte; every snapshot is a fixpoint; the v1 expected documents write back exactly),
+  `api.test.ts` (the embeddable API against the snapshots and the CLI).
 - `tests/v2/`: round trips, equivalence and realized equivalence through the CLI; `describe`; the SBML header;
   the checker's cases. Test processes live in `tests/fixtures/test_registry/` (`local:!` addresses import them
   directly; `pg.allocate_core()`; the spatio-flux custom types register with `register_types`).
