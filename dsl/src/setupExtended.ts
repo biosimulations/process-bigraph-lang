@@ -15,11 +15,8 @@ export const setupConfigExtended = (): UserConfig => {
     new URL("../language-configuration.json", import.meta.url),
   );
   extensionFilesOrContents.set(
-    "/process-bigraph-language-grammar.json",
-    new URL(
-      "../syntaxes/process-bigraph-language.tmLanguage.json",
-      import.meta.url,
-    ),
+    "/pblang-grammar.json",
+    new URL("../syntaxes/pblang-v2.tmLanguage.json", import.meta.url),
   );
 
   return {
@@ -27,13 +24,13 @@ export const setupConfigExtended = (): UserConfig => {
       serviceConfig: defineUserServices(),
       editorAppConfig: {
         $type: "extended",
-        languageId: "process-bigraph-language",
+        languageId: "pblang-v2",
         code: SAMPLE_PBLANG,
         useDiffEditor: false,
         extensions: [
           {
             config: {
-              name: "process-bigraph-language-web",
+              name: "pblang-web",
               publisher: "generator-langium",
               version: "1.0.0",
               engines: {
@@ -42,16 +39,16 @@ export const setupConfigExtended = (): UserConfig => {
               contributes: {
                 languages: [
                   {
-                    id: "process-bigraph-language",
-                    extensions: [".process-bigraph-language"],
+                    id: "pblang-v2",
+                    extensions: [".pblang", ".pbl"],
                     configuration: "./language-configuration.json",
                   },
                 ],
                 grammars: [
                   {
-                    language: "process-bigraph-language",
-                    scopeName: "source.process-bigraph-language",
-                    path: "./process-bigraph-language-grammar.json",
+                    language: "pblang-v2",
+                    scopeName: "source.pblang-v2",
+                    path: "./pblang-grammar.json",
                   },
                 ],
               },

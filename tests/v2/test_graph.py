@@ -56,10 +56,6 @@ def test_nested_composite_graph_is_recursive(tmp_path: Path) -> None:
 
 
 def test_sub_port_wires_and_indices(tmp_path: Path) -> None:
-    from copy import deepcopy
-
-    from tests.compiler.generator.spatio_flux.test_spatio_flux_II import step_config_template
-
-    graph = document_graph(deepcopy(step_config_template), tmp_path, MANIFESTS)
+    graph = document_graph(load_corpus_json("v1/spatio_flux_II.json"), tmp_path, MANIFESTS)
     edges = {(e["node"], e["port"], e["store"]) for e in graph["edges"]}
     assert ("dFBA[0,1]", "substrates/glucose", "fields/glucose/[0]/[1]") in edges

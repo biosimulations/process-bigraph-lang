@@ -1,10 +1,6 @@
-import type { Model } from "../language/generated/ast.js";
 import chalk from "chalk";
 import { Command } from "commander";
-import {
-  PblangV2LanguageMetaData,
-  ProcessBigraphLanguageLanguageMetaData,
-} from "../language/generated/module.js";
+import { PblangV2LanguageMetaData } from "../language/generated/module.js";
 import { createProcessBigraphLanguageServices } from "../language/process-bigraph-language-module.js";
 import { extractAstNode, extractDocument } from "./cli-util.js";
 import { generateJson } from "./generator.js";
@@ -41,18 +37,19 @@ const __dirname = url.fileURLToPath(new URL(".", import.meta.url));
 const packagePath = path.resolve(__dirname, "..", "..", "package.json");
 const packageContent = await fs.readFile(packagePath, "utf-8");
 
-/** The language services for a file: v2 for `.pbl`, v1 for `.pblang`. */
-const servicesFor = (fileName: string) => {
-  const all = createProcessBigraphLanguageServices(NodeFileSystem);
-  return fileName.endsWith(".pbl") ? all.PblangV2 : all.ProcessBigraphLanguage;
-};
+const servicesFor = (_fileName: string) =>
+  createProcessBigraphLanguageServices(NodeFileSystem).PblangV2;
 
 export const generateAction = async (
   fileName: string,
   opts: GenerateOptions,
 ): Promise<void> => {
   const services = servicesFor(fileName);
-  const model = await extractAstNode<Model>(fileName, services, opts.lenient);
+  const model = await extractAstNode<V2Module>(
+    fileName,
+    services,
+    opts.lenient,
+  );
   const generatedFilePath = generateJson(model, fileName, opts.destination);
   console.log(
     chalk.green(`JavaScript code generated successfully: ${generatedFilePath}`),
@@ -107,7 +104,7 @@ interface CliDiagnostic {
   message: string;
 }
 
-/** Build and validate a `.pbl` file against header manifests (and the workspace); the findings as data. */
+/** Build and validate a `.pblang` file against header manifests (and the workspace); the findings as data. */
 async function checkFile(
   fileName: string,
   manifests: string[],
@@ -158,7 +155,7 @@ function diagnosticLine(d: CliDiagnostic): string {
 }
 
 /**
- * Statically check a .pbl file against header manifests; prints the `pblang-diagnostics/1` envelope with
+ * Statically check a .pblang file against header manifests; prints the `pblang-diagnostics/1` envelope with
  * `--json`, one line per finding otherwise. Exit 1 when there are errors.
  */
 export const checkAction = async (
@@ -201,7 +198,7 @@ export type CompileOptions = {
 };
 
 /**
- * Parse and check a .pbl file, then write the document (JSON, `bigraph_schema.json_codec` encoding) or the
+ * Parse and check a .pblang file, then write the document (JSON, `bigraph_schema.json_codec` encoding) or the
  * CompositeSpec (yaml). Findings go to stderr; an error (or, with `--strict`, a warning) stops the compile.
  */
 export const compileAction = async (
@@ -248,7 +245,7 @@ export type DecompileOptions = {
   out?: string;
 };
 
-/** Print a document (JSON) or a CompositeSpec (yaml) as `.pbl` text; sidecar assets go next to `--out`. */
+/** Print a document (JSON) or a CompositeSpec (yaml) as `.pblang` text; sidecar assets go next to `--out`. */
 export const decompileAction = async (
   fileName: string,
   opts: DecompileOptions,
@@ -349,7 +346,7 @@ export const headersAction = async (
   } else await emit([...files.values()].join(""), opts.out);
 };
 
-/** A `.pbl` model header from the JSON `describe-model` writes. */
+/** A `.pblang` model header from the JSON `describe-model` writes. */
 export const modelHeaderAction = async (
   headerFile: string,
   opts: { out?: string },
@@ -363,14 +360,14 @@ export const modelHeaderAction = async (
   );
 };
 
-/** The wiring graph (JSON) of a `.pbl` file or a document, for viewers. */
+/** The wiring graph (JSON) of a `.pblang` file or a document, for viewers. */
 export const graphAction = async (
   fileName: string,
   opts: { interfaces?: string[] },
 ): Promise<void> => {
   let model;
   let registry: Registry;
-  if (fileName.endsWith(".pbl")) {
+  if (/\.pbl(ang)?$/.test(fileName)) {
     const { services, document } = await checkFile(
       fileName,
       opts.interfaces ?? [],
@@ -396,10 +393,7 @@ export default function (): void {
 
   program.version(JSON.parse(packageContent).version);
 
-  const fileExtensions = [
-    ...ProcessBigraphLanguageLanguageMetaData.fileExtensions,
-    ...PblangV2LanguageMetaData.fileExtensions,
-  ].join(", ");
+  const fileExtensions = PblangV2LanguageMetaData.fileExtensions.join(", ");
   program
     .command("generate")
     .argument(
@@ -411,13 +405,11 @@ export default function (): void {
       "--lenient",
       "fail only on lexer/parser errors; leave semantic findings to `check`",
     )
-    .description(
-      'generates JavaScript code that prints "Hello, {name}!" for each greeting in a source file',
-    )
+    .description("write the linked AST of a composite as JSON")
     .action(generateAction);
   program
     .command("check")
-    .argument("<file>", "a .pbl file")
+    .argument("<file>", "a .pblang file")
     .option(
       "-i, --interfaces <manifest...>",
       "header manifests (JSON) to resolve component addresses in",
@@ -427,7 +419,10 @@ export default function (): void {
     .action(checkAction);
   program
     .command("compile")
-    .argument("<file>", "a .pbl file (file(...) references resolve next to it)")
+    .argument(
+      "<file>",
+      "a .pblang file (file(...) references resolve next to it)",
+    )
     .option("-i, --interfaces <manifest...>", "header manifests (JSON)")
     .option(
       "--to <form>",
@@ -462,7 +457,7 @@ export default function (): void {
       "-o, --out <file>",
       "write the text here (sidecar assets go next to it)",
     )
-    .description("print a document or CompositeSpec as .pbl text")
+    .description("print a document or CompositeSpec as .pblang text")
     .action(decompileAction);
   program
     .command("headers")
@@ -471,17 +466,17 @@ export default function (): void {
       "-o, --out <path>",
       "a .pbl file (one module) or a directory (one file per module)",
     )
-    .description("print .pbl interface files from a manifest")
+    .description("print .pblang interface files from a manifest")
     .action(headersAction);
   program
     .command("model-header")
     .argument("<header>", "a model header (JSON, pblang-model/0)")
-    .option("-o, --out <file>", "write the .pbl model header here")
-    .description("print a .pbl model header from describe-model's JSON")
+    .option("-o, --out <file>", "write the .pblang model header here")
+    .description("print a .pblang model header from describe-model's JSON")
     .action(modelHeaderAction);
   program
     .command("graph")
-    .argument("<file>", "a .pbl file or a document (.json)")
+    .argument("<file>", "a .pblang file or a document (.json)")
     .option("-i, --interfaces <manifest...>", "header manifests (JSON)")
     .description("print the wiring graph (JSON) for viewers")
     .action(graphAction);

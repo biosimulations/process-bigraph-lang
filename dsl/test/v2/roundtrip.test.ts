@@ -73,7 +73,7 @@ describe("decompile prints the committed snapshots", () => {
         name,
         registry,
       });
-      expect(printed.text).toBe(snapshot(`${name}.pbl`));
+      expect(printed.text).toBe(snapshot(`${name}.pblang`));
       for (const [asset, content] of printed.assets) {
         // pre-commit's end-of-file fixer appends a newline to committed assets; that is not a difference
         const committed = snapshot(asset).replace(/\n$/, "");
@@ -91,14 +91,14 @@ describe("decompile prints the committed snapshots", () => {
     const printed = printDocument(readCompositeSpec(spec), {
       name: "reversible-dimerization",
     });
-    expect(printed.text).toBe(snapshot("reversible-dimerization.pbl"));
+    expect(printed.text).toBe(snapshot("reversible-dimerization.pblang"));
   });
 });
 
 describe("every snapshot is a fixpoint through parse, bind and print", () => {
   const files = fs
     .readdirSync(path.join(fixtures, "snapshots"))
-    .filter((f) => f.endsWith(".pbl"));
+    .filter((f) => f.endsWith(".pblang"));
   const strip = (t: string) =>
     t
       .split("\n")
@@ -110,7 +110,7 @@ describe("every snapshot is a fixpoint through parse, bind and print", () => {
       const document = await parse(text);
       expect(document.parseResult.parserErrors).toEqual([]);
       const model = bindModule(document.parseResult.value, registry);
-      const name = file.replace(/\.pbl$/, "");
+      const name = file.replace(/\.pblang$/, "");
       let printed: string;
       if (
         model.models.length > 0 &&

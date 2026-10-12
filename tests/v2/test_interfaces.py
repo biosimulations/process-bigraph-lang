@@ -1,7 +1,6 @@
 """Interface declarations generated from Python classes, the manifest round trip, and `import` resolution."""
 
 import json
-from copy import deepcopy
 from typing import Any
 
 import pytest
@@ -9,8 +8,7 @@ import pytest
 from process_bigraph_lang.v2 import InterfaceRegistry, Printed, decompile, describe_module, render_interfaces
 from process_bigraph_lang.v2.langium import langium_cli
 from process_bigraph_lang.v2.types import parse_type
-from tests.compiler.generator.test_toy_add_floats import add_floats_process_expected_config_template
-from tests.v2.helpers import assert_snapshot
+from tests.v2.helpers import assert_snapshot, load_corpus_json
 
 TOY = "tests.fixtures.test_registry.toy_library"
 SPATIO = "tests.fixtures.test_registry.spatio_flux.processes"
@@ -66,7 +64,7 @@ def test_interface_file_snapshot() -> None:
 @needs_cli
 def test_decompiling_against_a_registry_imports_instead_of_declaring() -> None:
     registry = InterfaceRegistry.from_modules(TOY)
-    text = decompile(deepcopy(add_floats_process_expected_config_template), registry=registry).text
+    text = decompile(load_corpus_json("v1/toy_process.json"), registry=registry).text
     assert f"import {TOY}.{{AddFloatsProcess, SaveFloatToFileStep}};" in text
     assert "process add_nums : AddFloatsProcess {" in text and "step print_result : SaveFloatToFileStep {" in text
     assert 'at "local:!' not in text and "ports {" not in text
@@ -75,7 +73,7 @@ def test_decompiling_against_a_registry_imports_instead_of_declaring() -> None:
 @needs_cli
 def test_edge_ports_that_differ_from_the_interface_are_kept() -> None:
     registry = InterfaceRegistry.from_modules(TOY)
-    original: dict[str, Any] = deepcopy(add_floats_process_expected_config_template)
+    original: dict[str, Any] = load_corpus_json("v1/toy_process.json")
     original["state"]["add_nums"]["_outputs"] = {"result": "integer"}
     text = decompile(original, registry=registry).text
     assert "process add_nums : AddFloatsProcess {" in text and "ports {" in text and "outputs { result: int; }" in text

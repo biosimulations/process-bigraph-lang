@@ -1,13 +1,13 @@
-import type { Model } from "../language/generated/ast.js";
+import type { V2Module } from "../language/generated/ast.js";
 import * as fs from "node:fs";
 import * as path from "node:path";
 import { extractDestinationAndName } from "./cli-util.js";
 import { NodeFileSystem } from "langium/node";
 import { createProcessBigraphLanguageServices } from "../language/process-bigraph-language-module.js";
-import { AstNode } from "langium";
 
+/** Write the linked AST of a module as JSON (a debugging aid; the Python side no longer reads it). */
 export function generateJson(
-  model: Model,
+  model: V2Module,
   filePath: string,
   destination: string | undefined,
 ): string {
@@ -17,15 +17,13 @@ export function generateJson(
   if (!fs.existsSync(data.destination)) {
     fs.mkdirSync(data.destination, { recursive: true });
   }
-  const json = generate(model);
-  fs.writeFileSync(generatedFilePath, json);
+  fs.writeFileSync(generatedFilePath, generate(model));
   return generatedFilePath;
 }
 
-export function generate(model: AstNode): string {
-  const all = createProcessBigraphLanguageServices(NodeFileSystem);
+export function generate(model: V2Module): string {
   const services =
-    model.$type === "V2Module" ? all.PblangV2 : all.ProcessBigraphLanguage;
+    createProcessBigraphLanguageServices(NodeFileSystem).PblangV2;
   return services.serializer.JsonSerializer.serialize(model, {
     space: 2,
     sourceText: true,

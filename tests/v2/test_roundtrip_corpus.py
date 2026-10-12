@@ -1,8 +1,8 @@
 """
-The round-trip corpus: real documents are decompiled to `.pbl` text (snapshot), compiled back and compared.
+The round-trip corpus: real documents are decompiled to `.pblang` text (snapshot), compiled back and compared.
 
 Each entry checks `equivalent(original, compile(decompile(original)))` under the normalizer, that the printed
-text matches the committed `.pbl` snapshot (regenerate with `PBLANG_UPDATE_SNAPSHOTS=1`), and, where the
+text matches the committed `.pblang` snapshot (regenerate with `PBLANG_UPDATE_SNAPSHOTS=1`), and, where the
 processes are available here, that process-bigraph realizes both documents to the same thing. Everything runs
 through the CLI: there is no Python model in between.
 """
@@ -20,10 +20,6 @@ from process_bigraph.templates import open_sites, template_document  # type: ign
 
 from process_bigraph_lang.v2 import compile_text, decompile, deep_equal, diff_documents, equivalent
 from process_bigraph_lang.v2.langium import langium_cli
-from tests.compiler.generator.spatio_flux.test_spatio_flux_II import step_config_template as spatio_two
-from tests.compiler.generator.spatio_flux.test_spatio_flux_III import step_config_template as spatio_three
-from tests.compiler.generator.test_dsl_compiler import TEMPLATE_PBLANG, compile_pblang
-from tests.compiler.generator.test_toy_add_floats import add_floats_process_expected_config_template
 from tests.fixtures.test_registry.toy_library import AddFloatsProcess
 from tests.v2.helpers import CORPUS, REGISTRY, assert_snapshot, load_corpus_json, realized_equivalent
 
@@ -91,17 +87,18 @@ def test_saved_nested_composite_loses_inner_state(core: Any) -> None:
     assert "inner state lost" in printed.text
 
 
-# 4. spatio-flux: array-indexed wires, ndarray state, dict-form custom array types
+# 4. spatio-flux: array-indexed wires, ndarray state, dict-form custom array types (the v1 expected documents)
 
 
 def test_spatio_flux_grid(spatio_core: Any) -> None:
-    written = _round_trip("spatio_flux_II", spatio_two, spatio_core)
+    written = _round_trip("spatio_flux_II", load_corpus_json("v1/spatio_flux_II.json"), spatio_core)
     assert written["state"]["dFBA[0,1]"]["inputs"]["substrates"]["glucose"] == ["fields", "glucose", 0, 1]
 
 
 def test_spatio_flux_arrays(spatio_core: Any) -> None:
-    written = _round_trip("spatio_flux_III", spatio_three, spatio_core)
-    assert realized_equivalent(spatio_three, written, spatio_core)
+    original = load_corpus_json("v1/spatio_flux_III.json")
+    written = _round_trip("spatio_flux_III", original, spatio_core)
+    assert realized_equivalent(original, written, spatio_core)
 
 
 # 5. template sites: open stores, config sites and an address site; a written template still fills and runs
@@ -111,11 +108,24 @@ def test_template_sites(core: Any) -> None:
     _round_trip("template_sites", load_corpus_json("template_sites.json"), core)
 
 
+TEMPLATE = """
+process AddFloats { inputs { left_hand_addend: float; right_hand_addend: float; } outputs { result: float; } }
+composite {
+  node operands { store a: float = ?; store b: float = ?(3.5); }
+  store total: float = 0.0;
+  process add : AddFloats at ? every 1.0 {
+    inputs { left_hand_addend -> operands.a, right_hand_addend -> operands.b }
+    outputs { result -> total }
+  }
+}
+"""
+
+
 def test_written_template_fills_and_runs() -> None:
     core = pg.allocate_core()
     core.register_link("AddFloatsProcess", AddFloatsProcess)
-    original = compile_pblang(TEMPLATE_PBLANG)
-    written = compile_text(decompile(deepcopy(original)).text).document
+    written = compile_text(TEMPLATE).document
+    assert decompile(deepcopy(written)).text == decompile(compile_text(decompile(written).text).document).text
     template = core.access(written["state"])
     assert sorted(open_sites(template)) == [("add", "address"), ("operands", "a"), ("operands", "b")]
     state = template_document(core, template, {"operands/a": 2.07, "add/address": "local:AddFloatsProcess"})
@@ -128,7 +138,7 @@ def test_written_template_fills_and_runs() -> None:
 
 
 def test_saved_toy_add_floats(core: Any) -> None:
-    authoring: dict[str, Any] = deepcopy(add_floats_process_expected_config_template)
+    authoring: dict[str, Any] = load_corpus_json("v1/toy_process.json")
     del authoring["state"]["print_result"]  # the file-writing step would write output.txt
     composite = pg.Composite(deepcopy(authoring), core=core)
     saved = {"schema": composite.serialize_schema(), "state": composite.serialize_state()}

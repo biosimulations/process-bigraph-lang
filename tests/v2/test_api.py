@@ -63,13 +63,13 @@ def test_warnings_do_not_stop_the_compile_unless_strict() -> None:
 
 
 def test_compile_file_resolves_sidecar_assets(spatio_core: Any) -> None:
-    compiled = compile_file(SNAPSHOTS / "hybrid_two_way_exchange.pbl", registry=REGISTRY)
+    compiled = compile_file(SNAPSHOTS / "hybrid_two_way_exchange.pblang", registry=REGISTRY)
     original = load_corpus_json("hybrid_two_way_exchange.json")
     assert equivalent(original, compiled.document, spatio_core, REGISTRY)
 
 
 def test_compile_to_composite_spec() -> None:
-    text = (SNAPSHOTS / "reversible-dimerization.pbl").read_text(encoding="utf-8")
+    text = (SNAPSHOTS / "reversible-dimerization.pblang").read_text(encoding="utf-8")
     compiled = compile_text(text, to="spec")
     spec = yaml.safe_load((CORPUS / "reversible-dimerization.composite.yaml").read_text(encoding="utf-8"))
     for key in ("name", "description", "tags", "requires", "emitters"):
@@ -79,10 +79,10 @@ def test_compile_to_composite_spec() -> None:
 
 def test_decompile_prints_the_snapshot_for_documents_and_specs() -> None:
     document = decompile(load_corpus_json("template_sites.json"), name="template_sites", registry=REGISTRY)
-    assert document.text == (SNAPSHOTS / "template_sites.pbl").read_text(encoding="utf-8")
+    assert document.text == (SNAPSHOTS / "template_sites.pblang").read_text(encoding="utf-8")
     spec = yaml.safe_load((CORPUS / "reversible-dimerization.composite.yaml").read_text(encoding="utf-8"))
     printed = decompile(spec, name="reversible-dimerization")  # detected as a spec by its keys
-    assert printed.text == (SNAPSHOTS / "reversible-dimerization.pbl").read_text(encoding="utf-8")
+    assert printed.text == (SNAPSHOTS / "reversible-dimerization.pblang").read_text(encoding="utf-8")
 
 
 def test_there_is_no_python_model() -> None:
@@ -94,7 +94,7 @@ def test_there_is_no_python_model() -> None:
 
 
 def test_cli_compile_and_decompile(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
-    source = tmp_path / "add.pbl"
+    source = tmp_path / "add.pblang"
     source.write_text(ADD, encoding="utf-8")
     out = tmp_path / "add.json"
     assert main(["compile", str(source), "-o", str(out)]) == 0

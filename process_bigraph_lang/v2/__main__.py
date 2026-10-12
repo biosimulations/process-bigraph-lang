@@ -1,8 +1,8 @@
 """
-`python -m process_bigraph_lang.v2 compile <file.pbl> [--interfaces m.json]... [--to document|spec] [-o out]`:
+`python -m process_bigraph_lang.v2 compile <file.pblang> [--interfaces m.json]... [--to document|spec] [-o out]`:
 parse and check the text, then write the document (JSON) or the CompositeSpec (yaml); errors stop it.
-`python -m process_bigraph_lang.v2 decompile <doc.json | spec.composite.yaml>`: a document as `.pbl` text.
-`python -m process_bigraph_lang.v2 check <file.pbl | doc.json> [--interfaces m.json]...`: the checker's findings.
+`python -m process_bigraph_lang.v2 decompile <doc.json | spec.composite.yaml>`: a document as `.pblang` text.
+`python -m process_bigraph_lang.v2 check <file.pblang | doc.json> [--interfaces m.json]...`: the checker's findings.
 `python -m process_bigraph_lang.v2 diff <a.json> <b.json>`: explain how two documents differ after normalization.
 `python -m process_bigraph_lang.v2 describe <module>...` / `describe-model <sbml>`: headers from code or SBML.
 
@@ -112,7 +112,7 @@ def _describe(args: argparse.Namespace) -> int:
         out_dir = Path(args.out)
         out_dir.mkdir(parents=True, exist_ok=True)
         for module, text in files.items():
-            (out_dir / f"{module}.pbl").write_text(text, encoding="utf-8")
+            (out_dir / f"{module}.pblang").write_text(text, encoding="utf-8")
         print(f"wrote {len(files)} interface file(s) to {out_dir}", file=sys.stderr)
     elif args.out:
         Path(args.out).write_text(next(iter(files.values())), encoding="utf-8")
@@ -157,15 +157,15 @@ def _describe_model(args: argparse.Namespace) -> int:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="python -m process_bigraph_lang.v2")
     commands = parser.add_subparsers(dest="command", required=True)
-    compile_cmd = commands.add_parser("compile", help="parse and check a .pbl file, then write the document")
-    compile_cmd.add_argument("document", help="a .pbl file (file(...) references resolve next to it)")
+    compile_cmd = commands.add_parser("compile", help="parse and check a .pblang file, then write the document")
+    compile_cmd.add_argument("document", help="a .pblang file (file(...) references resolve next to it)")
     compile_cmd.add_argument("--interfaces", action="append", help="a manifest.json (repeatable)")
     compile_cmd.add_argument("--to", choices=["document", "spec"], default="document")
     compile_cmd.add_argument("--strict", action="store_true", help="warnings fail the compile too")
     compile_cmd.add_argument("-o", "--out", help="write the document (JSON) or CompositeSpec (yaml) here")
     compile_cmd.set_defaults(run=_compile)
     decompile_cmd = commands.add_parser(
-        "decompile", aliases=["print"], help="print a document or CompositeSpec as .pbl text"
+        "decompile", aliases=["print"], help="print a document or CompositeSpec as .pblang text"
     )
     decompile_cmd.add_argument("document")
     decompile_cmd.add_argument("--out", help="write the text here (assets go next to it)")
@@ -176,16 +176,18 @@ def main(argv: list[str] | None = None) -> int:
     describe_cmd = commands.add_parser("describe", help="generate interface declarations from Python modules")
     describe_cmd.add_argument("modules", nargs="+", help="importable module names (run in the package's env)")
     describe_cmd.add_argument("--manifest", help="write the JSON manifest here")
-    describe_cmd.add_argument("--out", help="the .pbl interface file (one module) or a directory (one file per module)")
+    describe_cmd.add_argument(
+        "--out", help="the .pblang interface file (one module) or a directory (one file per module)"
+    )
     describe_cmd.set_defaults(run=_describe)
     model_cmd = commands.add_parser("describe-model", help="generate a model header from an SBML file")
     model_cmd.add_argument("model", help="an SBML file")
     model_cmd.add_argument("--manifest", help="write the JSON form here")
-    model_cmd.add_argument("--out", help="write the .pbl model header here")
+    model_cmd.add_argument("--out", help="write the .pblang model header here")
     model_cmd.set_defaults(run=_describe_model)
-    check_cmd = commands.add_parser("check", help="statically check a .pbl file or a document against manifests")
+    check_cmd = commands.add_parser("check", help="statically check a .pblang file or a document against manifests")
     check_cmd.add_argument(
-        "document", help="a .pbl file, or a document (.json) / CompositeSpec (.yaml) to decompile and check"
+        "document", help="a .pblang file, or a document (.json) / CompositeSpec (.yaml) to decompile and check"
     )
     check_cmd.add_argument("--interfaces", action="append", help="a manifest.json (repeatable)")
     check_cmd.set_defaults(run=_check)

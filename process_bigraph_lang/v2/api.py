@@ -4,10 +4,10 @@ CLI (`cli-native`, TypeScript): parsing, checking, compiling and decompiling. Th
 composite, so a Python tool that builds composites targets the DSL text, where the result is checked, reviewed
 and documented (docs/v2/design.md, section 5.3).
 
-- `compile_text` / `compile_file`: `.pbl` text -> parse -> check -> a process-bigraph `{"schema", "state"}`
+- `compile_text` / `compile_file`: `.pblang` text -> parse -> check -> a process-bigraph `{"schema", "state"}`
   document or a CompositeSpec mapping. An error-level finding stops the compile (`CompileError` carries every
   finding); warnings and infos come back on the result.
-- `decompile`: a document or a CompositeSpec mapping -> canonical `.pbl` text plus sidecar assets.
+- `decompile`: a document or a CompositeSpec mapping -> canonical `.pblang` text plus sidecar assets.
 
 Documents cross the CLI boundary as JSON in `bigraph_schema.json_codec`'s encoding (numpy arrays tagged), with
 tuples tagged as `{"__tuple__": true, "data": [...]}` so that they survive too.
@@ -44,7 +44,7 @@ class Compiled:
 
 @dataclass
 class Printed:
-    """What `decompile` returns: the `.pbl` text and its sidecar assets (`<name>.assets/...`), by path."""
+    """What `decompile` returns: the `.pblang` text and its sidecar assets (`<name>.assets/...`), by path."""
 
     text: str
     assets: dict[str, bytes] = field(default_factory=dict)
@@ -71,7 +71,7 @@ def compile_text(
 ) -> Compiled:
     """Compile v2 text. `assets` holds the sidecar files `file(...)` references name, by path."""
     with tempfile.TemporaryDirectory() as tmp:
-        source = Path(tmp) / "document.pbl"
+        source = Path(tmp) / "document.pblang"
         source.write_text(text, encoding="utf-8")
         for name, content in (assets or {}).items():
             target = Path(tmp) / name
@@ -90,7 +90,7 @@ def compile_file(
     force: bool = False,
 ) -> Compiled:
     """
-    Compile a `.pbl` file; `file(...)` references resolve next to it. `force` compiles despite the checker's
+    Compile a `.pblang` file; `file(...)` references resolve next to it. `force` compiles despite the checker's
     errors (parse errors still stop it): the escape for documents that rely on defaults the checker flags.
     """
     source = Path(path).resolve()
@@ -120,11 +120,11 @@ def decompile(
     registry: InterfaceRegistry | None = None,
     manifests: list[Path] | None = None,
 ) -> Printed:
-    """Canonical `.pbl` text (and sidecar assets) for a document or a CompositeSpec mapping (told apart by keys)."""
+    """Canonical `.pblang` text (and sidecar assets) for a document or a CompositeSpec mapping (told apart by keys)."""
     with tempfile.TemporaryDirectory() as tmp:
         source = Path(tmp) / f"{name}.json"
         source.write_text(dumps(mapping), encoding="utf-8")
-        out = Path(tmp) / f"{name}.pbl"
+        out = Path(tmp) / f"{name}.pblang"
         args = ["decompile", str(source), "--name", name, "--out", str(out)]
         manifest_paths = [*(manifests or []), *registry_manifests(registry, Path(tmp))]
         if manifest_paths:

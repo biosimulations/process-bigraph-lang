@@ -12,9 +12,7 @@ from tests.v2.helpers import SNAPSHOTS
 pytestmark = pytest.mark.skipif(langium_cli() is None, reason="no Langium CLI (build dsl/ or install cli-native)")
 
 
-CARAVAGNA = (
-    Path(__file__).resolve().parent.parent / "fixtures" / "data" / "compiler" / "Caravagna2010" / "Caravagna2010.xml"
-)
+CARAVAGNA = Path(__file__).resolve().parent.parent / "fixtures" / "data" / "v2" / "models" / "Caravagna2010.xml"
 HEADER = print_model_header(describe_sbml(CARAVAGNA)) if langium_cli() else ""
 
 
@@ -30,7 +28,7 @@ def _codes(text: str) -> dict[str, list[str]]:
 
 
 def test_generated_header_matches_the_snapshot_and_compiles() -> None:
-    snapshot = (SNAPSHOTS / "Caravagna2010.model.pbl").read_text(encoding="utf-8")
+    snapshot = (SNAPSHOTS / "Caravagna2010.model.pblang").read_text(encoding="utf-8")
     assert _without_comments(HEADER) == _without_comments(snapshot)
     document = compile_text(snapshot + "composite { store model : Caravagna2010 = Caravagna2010; }\n").document
     # a header used as its own sort fills the site with the model tree

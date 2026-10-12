@@ -621,7 +621,7 @@ unwired ports in `inputs { }` / `outputs { }`, its config fields in `config { }`
 inserted), the stores and nodes of the edge's parent in a wire path and the keys below a dict store, the emitter
 aliases after `emit`, and interfaces at `process x : ` from the registry and from header files open in the
 workspace, with the `import` they need added as an additional edit. The keywords a key may coincide with
-(`every`, `process`, ...) are not proposed in key positions. In the editor, header `.pbl` files in the workspace
+(`every`, `process`, ...) are not proposed in key positions. In the editor, header `.pblang` files in the workspace
 answer `import a.b.{X}` directly (a document with `module a.b;` declaring `X` is `local:!a.b.X`), so a composite
 next to its generated headers is checked without a manifest; the CLI takes manifests with `--interfaces`.
 
@@ -634,7 +634,7 @@ tagged; tuples tagged as `__tuple__` by the Python side), with ints and floats k
 dicts in source order, and Python's float and string spellings reproduced so that printed text and sidecar
 assets are byte-identical on both sides. `compile` runs the checker first and stops on errors (`--strict`
 makes warnings fatal; `--force` compiles an existing document that relies on defaults the checker flags).
-`headers` renders a manifest as `.pbl` header files, `model-header` renders `describe-model`'s JSON, `graph`
+`headers` renders a manifest as `.pblang` header files, `model-header` renders `describe-model`'s JSON, `graph`
 prints the wiring graph for viewers.
 
 **The Python API.** `process_bigraph_lang.v2` exposes `compile_text` / `compile_file` and `decompile`, thin
@@ -643,7 +643,7 @@ classes import; it writes the manifest the CLI reads), `describe_sbml` (the mode
 normalizer (`equivalent`, `diff_documents`; it needs bigraph-schema's `core.render`). There is no Python
 model of a composite. This is deliberate: a Python tool that builds composites targets the DSL text, where
 the result is checked, reviewed and documented, rather than a Python object model that would be a second
-authoring surface. A builder in viva-pde-particle, for example, emits `.pbl` text (or a document it then
+authoring surface. A builder in viva-pde-particle, for example, emits `.pblang` text (or a document it then
 decompiles) and compiles that.
 
 ### 5.3 `pblang check`

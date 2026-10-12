@@ -6,7 +6,19 @@
 [![Commit activity](https://img.shields.io/github/commit-activity/m/biosimulations/process-bigraph-lang)](https://img.shields.io/github/commit-activity/m/biosimulations/process-bigraph-lang)
 [![License](https://img.shields.io/github/license/biosimulations/process-bigraph-lang)](https://img.shields.io/github/license/biosimulations/process-bigraph-lang)
 
-This is a LSP, CLI and Python package for a domain specific language for process bigraphs.
+A language server, CLI and Python package for `.pblang`, a domain specific language that describes
+[process bigraph](https://github.com/vivarium-collective/process-bigraph) composites: a tree-shaped, verifiable
+projection of the composite document, with imported interface declarations, parameters, open sites, units and
+model headers that the checker verifies before anything runs. See [the architecture](docs/architecture.md) and
+[the design](docs/v2/design.md).
+
+```bash
+pip install process_bigraph_lang
+python -m process_bigraph_lang.v2 compile composite.pblang --interfaces headers.manifest.json -o composite.json
+python -m process_bigraph_lang.v2 decompile composite.json
+python -m process_bigraph_lang.v2 check composite.pblang --interfaces headers.manifest.json
+python -m process_bigraph_lang.v2 describe my_package.processes --manifest headers.manifest.json --out headers/
+```
 
 - **Github repository**: <https://github.com/biosimulations/process-bigraph-lang/>
 - **Documentation** <https://biosimulations.github.io/process-bigraph-lang/>

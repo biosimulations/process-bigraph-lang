@@ -11,23 +11,6 @@ let client: LanguageClient;
 // This function is called when the extension is activated.
 export function activate(context: vscode.ExtensionContext): void {
   client = startLanguageClient(context);
-
-  // Register the `pblang/generateStub` command in the VS Code extension
-  context.subscriptions.push(
-    vscode.commands.registerCommand("pblang/generateStub", async () => {
-      const editor = vscode.window.activeTextEditor;
-      if (editor) {
-        const uri = editor.document.uri.toString();
-        // Send the command to the language server
-        await client.sendRequest("workspace/executeCommand", {
-          command: "pblang/generateStub",
-          arguments: [uri],
-        });
-      } else {
-        vscode.window.showErrorMessage("No active editor found.");
-      }
-    }),
-  );
 }
 
 // This function is called when the extension is deactivated.
@@ -67,7 +50,7 @@ function startLanguageClient(context: vscode.ExtensionContext): LanguageClient {
 
   // Options to control the language client
   const clientOptions: LanguageClientOptions = {
-    documentSelector: [{ scheme: "*", language: "process-bigraph-language" }],
+    documentSelector: [{ scheme: "*", language: "pblang-v2" }],
   };
 
   // Create the language client and start the client.

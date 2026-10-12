@@ -4,11 +4,18 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-A statically typed domain-specific language (`.pblang`) for describing process bigraphs, shipped as:
+A domain-specific language (`.pblang`) for describing process-bigraph composites, shipped as:
 
-- a **Langium** language server / VS Code extension / CLI (TypeScript, in `dsl/`) that parses and type-checks it, and
-- a **Python package** (`process_bigraph_lang/`) that compiles it into a process-bigraph composite document
-  (`{"schema": ..., "state": ...}`) for **process-bigraph ≥ 1.8 / bigraph-schema ≥ 1.6**.
+- a **Langium** language server / VS Code extension / CLI (TypeScript, in `dsl/`) that parses, checks, compiles
+  and decompiles it, and
+- a **Python package** (`process_bigraph_lang/`) that calls that CLI (`compile`, `decompile`, `check`), describes
+  Python packages and SBML models as headers, and compares documents, for **process-bigraph ≥ 1.8 /
+  bigraph-schema ≥ 1.6**.
+
+`docs/v2/` holds the design (`design.md`), the research notes, the registry/authoring design and the plan. The
+language is a tree-shaped, verifiable projection of the composite document; the DSL text is the target that
+authoring tools (prompt-guided or human) produce and that the checker verifies. **There is no Python model of a
+composite**: never add a Python path to a runnable document that skips the checker.
 
 ## Commands
 
@@ -18,13 +25,15 @@ A statically typed domain-specific language (`.pblang`) for describing process b
 make install                 # poetry install + pre-commit hooks
 make check                   # poetry check --lock, pre-commit on ALL tracked files (ruff, ruff-format, prettier), mypy, deptry
 make test                    # pytest with coverage
-poetry run pytest tests/compiler/generator/test_dsl_compiler.py::test_type_schemas   # single test
-poetry run mypy              # strict typing over process_bigraph_lang/ and tests/ (antlr/ excluded)
+poetry run pytest tests/v2/test_roundtrip_corpus.py::test_template_sites   # single test
+poetry run mypy              # strict typing over process_bigraph_lang/ and tests/
 make docs                    # mkdocs serve
+python -m process_bigraph_lang.v2 compile | decompile | check | diff | describe | describe-model
 ```
 
 Ruff line length is 120. `make check` is what CI's `quality` job runs. It only sees tracked files, so `git add`
-new files before running it.
+new files before running it. `poetry install` runs `build.py` (`npm install` + native build), which dirties
+`dsl/package-lock.json` when nothing changed in `package.json`; restore it with `git checkout dsl/package-lock.json`.
 
 ### DSL (`dsl/`, npm)
 
@@ -34,183 +43,105 @@ npm run langium:generate     # regenerate src/language/generated/ and syntaxes/ 
 npm run build                # tsc + esbuild -> out/
 npm run lint
 npm test                     # vitest run
-npx vitest run test/validating/sites.test.ts   # single test file
+npx vitest run test/v2/check.test.ts           # single test file
 npx tsc --noEmit -p tsconfig.json              # type-check src/ AND test/ (vitest does not type-check)
 npm run build:native         # also builds dist/cli-native with `deno compile` (Deno required, ~10 s)
-./bin/cli.js generate <file.pblang> -d <outdir>     # dump AST as JSON (exits 1 on validation errors)
-./bin/cli.js parseAndValidate <file.pblang>
+./bin/cli.js check <file.pblang> [-i manifest.json...] [--json]
+./bin/cli.js compile <file.pblang> [-i ...] [--to document|spec] [--strict] [--force] [-o out]
+./bin/cli.js decompile <doc.json | x.composite.yaml> [-i ...] [--name n] [-o out.pblang]
+./bin/cli.js headers <manifest.json> [-o dir]; ./bin/cli.js model-header <model.json>; ./bin/cli.js graph <file>
 ```
 
 Run `langium:generate` after every grammar change; `src/language/generated/` is gitignored.
 
-### ANTLR (`antlr/`, legacy)
+**`cli-native` is gitignored and must match the TypeScript.** After any grammar or TS change, rebuild it with
+`python build.py` (also the Poetry build script, which is how CI builds it), or quickly with
+`cd dsl && npm run build:native && cp dist/cli-native ../process_bigraph_lang/bin/`. The Python tests skip when
+no CLI is built.
 
-`antlr/pblang.g4` is the **old** grammar and is not used for parsing. Only `tests/dsl/test_antlr_grammar.py` still
-uses it, against the old-syntax fixture `tests/fixtures/data/antlr/abc.pblang`. `make -C antlr` regenerates it
-(requires Java).
+## The language (`dsl/src/language/pblang-v2.langium`)
 
-## The language (`dsl/src/language/process-bigraph-language.langium`)
+Language id `pblang-v2`, files `.pblang` (and `.pbl`). Rule names carry a `V2` prefix from the time the v1 and v2
+grammars coexisted (`V2Module`, `V2Store`, ...). A module is a flat list of statements:
 
-`Model` is a flat list of elements:
+- `module a.b;` (headers), `import a.b.{X, Y};` (`a.b.{` lexes as one `IMPORT_PATH` token), `param x: T = v;`
+  (`= ?` open, `choices [...]`), `meta { ... }`, `options { ... }`, `emit alias { paths } with { ... };`.
+- Interface declarations (headers): `process|step|adapter Name at "addr" { config { f: T = v; } inputs { p: T @
+"units"; } outputs { ... } }`; `{ ... }` marks an open face (dynamic ports).
+- Model declarations: `model Name from "file" { time @ "s"; species { A: float @ "uM" = 1.0; } ... }`; without
+  `from` it is a sort; `_` stands for every member, a trailing `...` admits more.
+- The composite tree: `composite name { store s: T = v; node n : T { ... } process p : Iface at ? every dt priority
+k { config { ... } inputs { port -> path } outputs { ... } ports { ... } extra { ... } } composite c every dt {
+bridge { ... } interface { ... } composite { ... } } shared process ...; schema { ... } }`.
+- Values: ints, floats (`1.0`, `1e-3`), strings, `true`/`false`/`null`, `${param}`, `?`/`?(default)`/`? as T`,
+  struct literals `{ a = 1 }` and map literals `{ "a" = 1 }`, lists, tuples `( ... )`, `array([...], dtype =
+"float64")`, `file("...")`, a model reference by name. Paths: `../fields.A[0][1]`.
+- Types: `float`, `int`, `bool`, `string`, `list<T>`, `map<string, V>`, `maybe<T>`, `overwrite<T>`, `enum<a, b>`,
+  `array<float>[3, 3] @ "uM"`, `{ a: T; b: U; }`, `A | B`, `link<{...}, {...}>`, a raw string, and `float{0.5}`
+  (bigraph-schema's default-in-type form). Keywords are admitted as keys and type names.
 
-- **Types:** `type float builtin`, `type Conc = float` (alias), `struct Point { x: float; y: float = 0.0; }`,
-  plus `array<T>`, `map<K, V>` and named tuples `(a: float, b: string)`.
-- **Values and state:**
-  - `let x: T = value;`, or the destructuring form `let (a: A, b: B): T = …;`
-  - `store s: T;` with `init s = value;`
-- **Steps and processes:**
-  - `remote step|process Name at "py.path.Class" { config (…) inputs (…) outputs (…) }` declares a type.
-  - An instance is a _callable literal_: `let g: Name = Name(cfg = 1.0);`.
-  - Without `at`, the remote is an **interface**, whose instances leave their implementation open.
-- **Wiring:** `connect g inputs (port = a.b) outputs (port = c);`. Both clauses are optional, and the instance may be a
-  member chain (`connect group.g …`).
-- **References:** references in values and bindings are `MemberCall` chains (`a.b.c`) over
-  `type NamedElement = VarDef | Field | StoreDecl | ParamDecl`.
-- **Open values (template sites):** `?` (required) and `?(default)` (optional). They're only allowed where they
-  stand for a whole store or a whole config argument.
-- **Literals:**
-  - Map keys must be literals, so `{ name = … }` is always a struct and `{ "name" = … }` a map; `{}` is either.
-  - `INT` / `FLOAT` accept a leading `-`, and `FLOAT` needs a `.` (`1.`, `.5`, `2.5e-3`).
-- **Units:** `unit name: ["symbol"]`.
+### The TypeScript side (`dsl/src/language/v2/`)
 
-### Type checking and scoping (`dsl/src/language/validation/`)
+- `check.ts` is the checker, registered as a Langium validation (`validator.ts`); codes follow
+  `docs/v2/registry-and-authoring.md` section 4 (`S021 unknown-port`, `W200 wire-type-mismatch`, `W211
+store-not-declared`, `T121 config-missing`, `W220/W221/W223` writers, `W240/W241` emit, `W201`/`I230-I232`
+  units, `G300/G301` model sites, ...). Diagnostics carry `code` and `data: {slug, path}`. Compliance suite:
+  `dsl/test/v2/check.test.ts`.
+- `headers.ts` (interface and model declarations from manifests and the text; `Registry.lookup` by address or
+  unique short name), `types.ts` (type expressions: bigraph-schema's forms, the DSL spelling `surface`, a
+  canonical form; parsed types keep their `source` so `toBigraph` is lossless), `units.ts` (mathjs; unit
+  variables `?U`).
+- `model.ts` is the object model: ints `bigint`, floats `number`, dicts `Map` (source order whatever the keys),
+  tagged objects for numpy arrays (`$kind: "ndarray"`), tuples, params, sidecar refs, sites and model refs;
+  `MISSING` for absent values. `json.ts` is the lossless codec (`__numpy__`, `__tuple__`); `yaml.ts` the
+  CompositeSpec form with bigint ints.
+- `reader.ts` (document/CompositeSpec → model), `writer.ts` (model → document/CompositeSpec), `printer.ts`
+  (model → text + sidecar assets; `format.ts` reproduces Python's float repr and `json.dumps` so snapshots
+  stay byte-identical), `bind.ts` (AST → model), `assets.ts` (sidecar decoding), `graph.ts`, `modelheader.ts`.
+- `resolve.ts` is shared by the checker, `hover.ts` and `completion.ts`: which header an edge is declared by
+  (inline, import, registry), how a path walks the tree. `V2Registry` answers imports from manifests
+  (CLI `--interfaces`) or from header `.pblang` files open in the workspace (`module a.b;` + `X` is
+  `local:!a.b.X`).
+- **Adding a check:** add it in `check.ts`, add a case to `dsl/test/v2/check.test.ts`; the Python tests under
+  `tests/v2/` run the same expectations through the CLI.
 
-- `scope-provider.ts`:
-  - Scopes each segment of a member chain to the struct fields or tuple elements of the previous segment's type
-    (aliases unwrapped).
-  - `inferType(memberCall)` is also what the type checker uses to type references.
-- `type-resolver.ts`:
-  - `resolveType` turns a `TypeRef` into a `ResolvedType`.
-  - `validateValueAgainstType` checks a value against it recursively.
-  - `isTypeAssignable` allows `int` → `float` and is nominal for structs and remote types.
-- `type-validator.ts`: per-node checks. They're registered in `validator.ts` and wired into DI in
-  `process-bigraph-language-module.ts`.
-- **Adding a check:** add a method to `TypeValidator`, register the node type in `validator.ts`, and add a vitest case
-  under `dsl/test/validating/`.
+### The Python side (`process_bigraph_lang/v2/`)
 
-Other files: `sbml.ts` + `commands.ts` implement the "Generate SBML Stub" command, which writes a data-only `.pblang`
-stub. Entry points: `main.ts` (LSP), `main-browser.ts` (Monaco demo, `npm run dev`), `../extension/main.ts`,
-`../cli/main.ts`.
+- `api.py`: `compile_text` / `compile_file` (check, then compile; `CompileError` on errors; `strict`, `force`)
+  and `decompile` (text + assets). Documents cross the CLI as `json_codec` JSON with `__tuple__` tags
+  (`dumps` / `loads`).
+- `interfaces.py`: `describe_module` → `InterfaceDecl`s with types in bigraph-schema's own form → manifest JSON
+  (`pblang-manifest/0`); `render_interfaces` via the CLI. `sbml.py`: `describe_sbml` → JSON (`pblang-model/0`);
+  `print_model_header` via the CLI. `check.py`: `check_file` / `check_text`. `normalize.py`: `equivalent`,
+  `diff_documents`, `deep_equal` (+ `types.py`, its parser). `langium.py`: `langium_cli`, `run_cli`.
+- Keep `process_bigraph` out of the shipped package (tests only); `bigraph_schema` and `numpy` are main deps.
 
-## Python package
+## Tests and fixtures
 
-### Parsing: shells out to the Langium CLI
+- `dsl/test/v2/`: `check.test.ts`, `hover-completion.test.ts`, `snapshots.test.ts` (every snapshot parses),
+  `model.test.ts` (reader, printer, types, paths), `roundtrip.test.ts` (every corpus document prints to its
+  snapshot byte for byte; every snapshot is a fixpoint; the v1 expected documents write back exactly).
+- `tests/v2/`: round trips, equivalence and realized equivalence through the CLI; `describe`; the SBML header;
+  the checker's cases. Test processes live in `tests/fixtures/test_registry/` (`local:!` addresses import them
+  directly; `pg.allocate_core()`; the spatio-flux custom types register with `register_types`).
+- `tests/fixtures/data/v2/`: `corpus/` (yaml, hybrid JSON generated in viva-pde-particle's pixi env,
+  `template_sites.json`, `v1/*.json` the former v1 compiler's expected documents, `make_v1_fixtures.py`),
+  `snapshots/` (regenerate with `PBLANG_UPDATE_SNAPSHOTS=1 pytest tests/v2`; run the corpus, interfaces and
+  sbml tests first), `interfaces/` (manifests + headers), `models/` (SBML). `corpus/` and `snapshots/` are
+  excluded from prettier and checked out with LF line endings (`.gitattributes`): the tests compare bytes.
+- The toy add-floats composite writes `output.txt` into the working directory when run.
 
-- `dsl/langium_pblang.py` runs `process_bigraph_lang/bin/cli-native generate`. It renames
-  `$type`/`$ref`/`$refText` to `obj_type`/`ref`/`ref_text` and validates the JSON into `dsl/ast_model.py`.
-- `generate` refuses invalid models, so the compiler only ever sees type-checked input.
-- **`cli-native` is gitignored and must match the grammar.** After any grammar or TS change, rebuild it with
-  `python build.py` (also the Poetry build script, which is how CI builds it), or quickly with
-  `cd dsl && npm run build:native && cp dist/cli-native ../process_bigraph_lang/bin/`.
-- **`ast_model.py` mirrors the grammar by hand.** Change it with any grammar change.
-  - A struct field is `Field_`, to avoid shadowing `pydantic.Field`.
-  - JSON writes `1.0` as `1`, and `FloatLiteral.value: float` coerces it back.
-  - `StringLiteral.value` has its quotes already stripped.
-- **`bind_ast.py` resolves each reference by the Langium document path** in `ref` (e.g. `#/elements@1/fields@0`),
-  not by name.
-
-### Compiler: `compile_ast` → `PBModel` → `assemble_pb`
-
-`compiler/generator.py` (`compile_ast`):
-
-- **Stores:**
-  - Every `store` and every `let` with a non-remote type becomes a store, so constants used only as config
-    become stores too.
-  - A struct-typed store is split into one store per field, nested under the struct's name. Field defaults
-    become `_default` in `schema`.
-- **Edges:**
-  - A value of remote type becomes a step or process at its path. Edges nested in a struct form groups.
-  - Each `connect` binding becomes a wire, relative to the edge's container (`compute_relative_path`).
-  - The compiler errors on a port bound twice or a binding to a non-store.
-- **Constant values:**
-  - References in values are inlined.
-  - Ints widen to floats for float types.
-  - Tuple values follow the declared element order.
-- **Types:**
-  - `int` becomes `integer` and `bool` becomes `boolean`. Other builtin names pass through, and aliases are
-    replaced by their target.
-  - `array<T>` becomes `list[T]`, `map<string, V>` becomes `map[V]` (other key types are an error), and tuples become
-    `tuple[...]`. The dict form is used when an inner type is a struct.
-  - A dict-form tuple uses `_values`: 1.x silently turns `_0`/`_1` into an empty tuple.
-- **Template sites:**
-  - `?` becomes `{"_type": "site", "_sort": <type>, "_default"?: v}`.
-  - An interface instance's `address` becomes a site sorted by its face (`link` with `_inputs`/`_outputs`).
-  - The result is a template. Fill it before running, with
-    `template_document(core, core.access(doc["state"]), bindings)` from `process_bigraph.templates`.
-
-`compiler/converter.py` (`assemble_pb`) emits the 1.x format:
-
-- `schema` holds store types only.
-- Each edge is a node in `state` with `_type`, a plain `address`, `config` (values), `_inputs`/`_outputs`, wires and
-  `interval`. A bare Python path becomes `local:!path`; an address with a protocol is kept.
-- **Open stores get no `schema` entry.** 1.x realizes a store that has a schema entry from that entry and silently
-  ignores its unfilled site (process-bigraph#213).
-
-### process-bigraph 1.x traps (each fails silently)
+## process-bigraph 1.x traps (each fails silently)
 
 - The document keys are `schema` and `state`. A `composition` key is ignored.
 - An edge's `address` must be a plain value in its **state** node. An address given only in `schema` (or wrapped in
   `quote`) leaves the edge as a no-op base `Edge`.
-- There is no `_config`: config is a value, and its types come from the class's `config_schema`.
+- There is no `_config`: config is a value, and its types come from the class's `config_schema`. A missing config
+  key is filled from the type's default (the checker reports `T121`).
 - Unknown type names such as `int` or `any` are accepted as raw strings. Use `integer`, `boolean`, `node`, ….
 - Steps don't run on construction unless `run_steps_on_init` is set.
+- Open stores get no `schema` entry: 1.x realizes a store that has a schema entry from that entry and silently
+  ignores its unfilled site (process-bigraph#213). Fill templates with `template_document`.
 - Address and model sites can only be filled with names registered via `core.register_link`: the face check can't
-  see `local:!` classes (bigraph-schema#188). A `Composite` given an open address crashes rather than reporting it
-  (process-bigraph#213), so fill with `template_document`.
-
-## v2 (in progress): `process_bigraph_lang/v2/`
-
-The language is being redesigned; `docs/v2/` holds the research notes, the language design, the registry/authoring
-design and the plan. **Everything the language does is TypeScript** in `dsl/src/language/v2/`: the checker
-(`check.ts`), the model (`model.ts`: ints are `bigint`, floats `number`, dicts `Map`s; numpy arrays, tuples,
-params, sidecar refs and sites are tagged objects), `json.ts` (the lossless document codec), `reader.ts`
-(document/CompositeSpec → model), `writer.ts` (model → document/CompositeSpec), `printer.ts` (model → `.pbl`
-text + sidecar assets, byte-identical to the Python printer it replaced: `format.ts` reproduces Python's float
-and `json.dumps` spellings), `bind.ts` (Langium AST → model), `graph.ts`, `modelheader.ts`, `yaml.ts`. The CLI
-(`src/cli/main.ts`) exposes `check`, `compile [--to document|spec] [--strict] [--force]`, `decompile`, `headers`,
-`model-header`, `graph`. **The Python package has no model of a composite**: `api.py` (`compile_text` /
-`compile_file` / `decompile`) wraps the CLI (documents cross as `json_codec` JSON with `__tuple__` tags);
-`interfaces.py` (`describe_module` → manifest JSON; `render_interfaces` via the CLI), `sbml.py` (`describe_sbml` →
-JSON; the CLI renders the header), `check.py`, `normalize.py` (+ `types.py`, its type parser) and `langium.py`
-(`run_cli`). Never add a Python path to a runnable document that skips the checker. `tests/fixtures/data/v2/`:
-`corpus/` (incl. `v1/*.json` dumped by `corpus/make_v1_fixtures.py`), `snapshots/`, `interfaces/` (headers
-generated from viva-pde-particle in its own env). `dsl/test/v2/roundtrip.test.ts` checks every snapshot byte for
-byte; `tests/v2/` runs the same through the CLI (`PBLANG_UPDATE_SNAPSHOTS=1` regenerates).
-There is **one grammar and one checker**, both TypeScript: `dsl/src/language/pblang-v2.langium` and
-`dsl/src/language/v2/check.ts` (registered as a Langium validation; `cli-native check --json` is its CLI). Python
-parses v2 text and checks documents by calling `cli-native` (`process_bigraph_lang/v2/langium.py`, `check.py`);
-the Lark parser and the Python checker are gone. Units in the checker use mathjs. Compliance suite:
-`dsl/test/v2/check.test.ts`; the Python tests under `tests/v2/` run the same expectations through the CLI and
-skip when no CLI is built. Hover and completion (`dsl/src/language/v2/{hover,completion}.ts`) share the checker's
-resolution (`resolve.ts`: which header an edge is declared by, how a path walks the tree); `V2Registry` answers an
-import from manifests (CLI `--interfaces`) or from header `.pbl` files open in the workspace (`module a.b;` +
-`X` is `local:!a.b.X`). Tests: `dsl/test/v2/hover-completion.test.ts`.
-`dsl/` holds **two Langium languages**: v1 (`.pblang`, `process-bigraph-language.langium`, unchanged) and v2
-(`.pbl`, `pblang-v2.langium`, rule names prefixed `V2` because both share one generated `ast.ts`). The same
-language server and `cli-native` serve both; the CLI picks the language by extension. `process_bigraph_lang/v2/langium.py`
-binds the v2 JSON AST to the same model as the Lark parser, and `tests/v2/test_langium.py` requires both front ends
-to agree on every snapshot (it skips when no CLI is built). Rebuild `cli-native` after any grammar change
-(`cd dsl && npm run build:native && cp dist/cli-native ../process_bigraph_lang/bin/`). v2 fixtures and snapshots
-use the `.pbl` extension.
-
-- `tests/v2/` covers it; `tests/fixtures/data/v2/corpus/` is the corpus (see its README for provenance) and
-  `tests/fixtures/data/v2/snapshots/` the printed text, regenerated with `PBLANG_UPDATE_SNAPSHOTS=1 pytest tests/v2`.
-  Both directories are excluded from prettier.
-- The hybrid fixture is generated in viva-pde-particle's pixi env (`corpus/make_hybrid_fixture.py`).
-- Keep `process_bigraph` out of the shipped package (tests only); `bigraph_schema` and `numpy` are main deps.
-- v1 (`compiler/`, the v1 grammar and its services in `dsl/`) is untouched and must stay green.
-
-## Tests
-
-- `tests/compiler/generator/`:
-  - Most files pair a hand-written expected 1.x document (run with `pg.Composite`) with a `PBModel` built by hand
-    and checked through `assemble_pb`.
-  - `test_dsl_compiler.py` goes from DSL source to a compiled document or template, and runs it on process-bigraph.
-- Test processes live in `tests/fixtures/test_registry/`:
-  - Cores come from `pg.allocate_core()`. `local:!` addresses import classes directly, so no registration is needed.
-  - Emitters use `local:RAMEmitter` with `node` types.
-  - The spatio-flux custom types (`positive_float`, `positive_array`) are 1.x dataclass schema types with an
-    `apply` dispatch.
-- `test_spatio_flux_V.py` is skipped: its per-particle process template is a 0.0.x idiom that 1.x replaces with
-  template sites.
-- The toy add-floats tests write `output.txt` into the working directory.
+  see `local:!` classes (bigraph-schema#188).
+- A wire to `..` from a root edge is clamped at the root (`W110`, a warning).

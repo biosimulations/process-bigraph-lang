@@ -6,7 +6,7 @@ returns a `ModelHeader`: the model's time unit, compartments, species (as concen
 only substance units) and parameters, each with its value and its units composed from the model's unit
 definitions in a pint-readable spelling, plus the counts a solver cares about (reactions, events, rules) and the
 SBML level, version and packages. `to_dict` is the JSON form (`pblang-model/0`), which the CLI renders as the
-`.pbl` model header (`print_model_header`).
+`.pblang` model header (`print_model_header`).
 """
 
 from __future__ import annotations
@@ -167,7 +167,7 @@ def describe_sbml(path: str | Path) -> ModelHeader:
 
 
 def print_model_header(header: ModelHeader) -> str:
-    """The `.pbl` model header: a generated declaration to `import`, not a composite (rendered by the CLI)."""
+    """The `.pblang` model header: a generated declaration to `import`, not a composite (rendered by the CLI)."""
     from process_bigraph_lang.v2.langium import run_cli
 
     with tempfile.TemporaryDirectory() as tmp:
