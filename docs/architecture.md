@@ -169,8 +169,10 @@ round-trip prototype that validates the design on real documents without a parse
 - `model.py` is the v2 object model (stores, nodes, edges, sites, params, emitters), the pivot of the round trip.
 - `reader.py` reads a `{"schema", "state"}` document (authoring or saved form) or a CompositeSpec mapping into it;
   `writer.py` writes it back, exactly for every v1 expected document.
-- `printer.py` prints canonical `.pblang` v2 text (large arrays and texts go to sidecar assets); `parser.py`
-  (a Lark grammar for that subset) reads it back, so the round trip can start from text.
+- `printer.py` prints canonical v2 text (large arrays and texts go to sidecar assets); `parser.py` (a Lark
+  grammar) and `langium.py` (the Langium grammar `dsl/src/language/pblang-v2.langium`, served by the same
+  language server and CLI as v1 for `.pbl` files) read it back into the same model, so the round trip can start
+  from text and the editor sees v2 syntax.
 - `interfaces.py` generates interface declarations from a module's step/process classes (`describe_module`) and
   holds the registry (with a JSON manifest) the printer resolves addresses in, printing `import`s instead of inline
   declarations.

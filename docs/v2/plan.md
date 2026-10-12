@@ -252,6 +252,13 @@ checker admits a header against a sort (`G301`, units bound across the header) a
 reference a `param` against the header's config units; the writer expands a filled model site into the model's
 typed blocks. The Caravagna header parses back and prints the same declaration.
 
+The Langium v2 grammar exists (`dsl/src/language/pblang-v2.langium`, language id `pblang-v2`, files `.pbl`),
+coexisting with v1 in the same language server, VS Code extension and CLI. It parses every snapshot with no
+parse or linking errors (`dsl/test/v2/`), and `process_bigraph_lang/v2/langium.py` binds its JSON AST to the same
+model the Lark grammar builds; `tests/v2/test_langium.py` requires identical prints from both. Not yet in the
+Langium side: validators beyond parsing and name resolution (the Python checker does those), hover and completion,
+and the cutover of `.pblang` to v2.
+
 ## Verification
 
 1. `make check` (ruff, prettier, mypy strict, deptry, `poetry check --lock`) green after `git add` of new files.

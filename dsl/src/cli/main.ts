@@ -1,7 +1,10 @@
 import type { Model } from "../language/generated/ast.js";
 import chalk from "chalk";
 import { Command } from "commander";
-import { ProcessBigraphLanguageLanguageMetaData } from "../language/generated/module.js";
+import {
+  PblangV2LanguageMetaData,
+  ProcessBigraphLanguageLanguageMetaData,
+} from "../language/generated/module.js";
 import { createProcessBigraphLanguageServices } from "../language/process-bigraph-language-module.js";
 import { extractAstNode, extractDocument } from "./cli-util.js";
 import { generateJson } from "./generator.js";
@@ -15,12 +18,17 @@ const __dirname = url.fileURLToPath(new URL(".", import.meta.url));
 const packagePath = path.resolve(__dirname, "..", "..", "package.json");
 const packageContent = await fs.readFile(packagePath, "utf-8");
 
+/** The language services for a file: v2 for `.pbl`, v1 for `.pblang`. */
+const servicesFor = (fileName: string) => {
+  const all = createProcessBigraphLanguageServices(NodeFileSystem);
+  return fileName.endsWith(".pbl") ? all.PblangV2 : all.ProcessBigraphLanguage;
+};
+
 export const generateAction = async (
   fileName: string,
   opts: GenerateOptions,
 ): Promise<void> => {
-  const services =
-    createProcessBigraphLanguageServices(NodeFileSystem).ProcessBigraphLanguage;
+  const services = servicesFor(fileName);
   const model = await extractAstNode<Model>(fileName, services);
   const generatedFilePath = generateJson(model, fileName, opts.destination);
   console.log(
@@ -36,9 +44,8 @@ export const generateAction = async (
  * @param fileName Program to validate
  */
 export const parseAndValidate = async (fileName: string): Promise<void> => {
-  // retrieve the services for our language
-  const services =
-    createProcessBigraphLanguageServices(NodeFileSystem).ProcessBigraphLanguage;
+  // retrieve the services for the file's language
+  const services = servicesFor(fileName);
   // extract a document for our program
   const document = await extractDocument(fileName, services);
   // extract the parse result details
@@ -63,8 +70,10 @@ export default function (): void {
 
   program.version(JSON.parse(packageContent).version);
 
-  const fileExtensions =
-    ProcessBigraphLanguageLanguageMetaData.fileExtensions.join(", ");
+  const fileExtensions = [
+    ...ProcessBigraphLanguageLanguageMetaData.fileExtensions,
+    ...PblangV2LanguageMetaData.fileExtensions,
+  ].join(", ");
   program
     .command("generate")
     .argument(

@@ -2,7 +2,11 @@ import {
   MonacoEditorLanguageClientWrapper,
   UserConfig,
 } from "monaco-editor-wrapper";
-import { configureWorker, defineUserServices } from "./setupCommon.js";
+import {
+  configureWorker,
+  defineUserServices,
+  SAMPLE_PBLANG,
+} from "./setupCommon.js";
 
 export const setupConfigExtended = (): UserConfig => {
   const extensionFilesOrContents = new Map();
@@ -24,7 +28,7 @@ export const setupConfigExtended = (): UserConfig => {
       editorAppConfig: {
         $type: "extended",
         languageId: "process-bigraph-language",
-        code: `// Process Bigraph Language is running in the web!`,
+        code: SAMPLE_PBLANG,
         useDiffEditor: false,
         extensions: [
           {

@@ -2,7 +2,11 @@ import {
   MonacoEditorLanguageClientWrapper,
   UserConfig,
 } from "monaco-editor-wrapper";
-import { configureWorker, defineUserServices } from "./setupCommon.js";
+import {
+  configureWorker,
+  defineUserServices,
+  SAMPLE_PBLANG,
+} from "./setupCommon.js";
 import monarchSyntax from "./syntaxes/process-bigraph-language.monarch.js";
 
 export const setupConfigClassic = (): UserConfig => {
@@ -12,7 +16,7 @@ export const setupConfigClassic = (): UserConfig => {
       editorAppConfig: {
         $type: "classic",
         languageId: "process-bigraph-language",
-        code: `// Process Bigraph Language is running in the web!`,
+        code: SAMPLE_PBLANG,
         useDiffEditor: false,
         languageExtensionConfig: { id: "langium" },
         languageDef: monarchSyntax,

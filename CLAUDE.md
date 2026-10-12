@@ -169,14 +169,20 @@ manifest; resolved addresses print as `import`s), `check.py` (static checks of a
 and `normalize.py` (`equivalent` of two documents; with a registry, `local:Name` and `local:!mod.Name` and
 `_inputs`/`_outputs` that repeat the declared face are not differences). `tests/fixtures/data/v2/interfaces/` holds
 headers generated from viva-pde-particle in its own env.
-The Langium grammar in `dsl/` is still v1; the v2 Langium grammar comes later and binds to the same model.
+`dsl/` now holds **two Langium languages**: v1 (`.pblang`, `process-bigraph-language.langium`, unchanged) and v2
+(`.pbl`, `pblang-v2.langium`, rule names prefixed `V2` because both share one generated `ast.ts`). The same
+language server and `cli-native` serve both; the CLI picks the language by extension. `process_bigraph_lang/v2/langium.py`
+binds the v2 JSON AST to the same model as the Lark parser, and `tests/v2/test_langium.py` requires both front ends
+to agree on every snapshot (it skips when no CLI is built). Rebuild `cli-native` after any grammar change
+(`cd dsl && npm run build:native && cp dist/cli-native ../process_bigraph_lang/bin/`). v2 fixtures and snapshots
+use the `.pbl` extension.
 
 - `tests/v2/` covers it; `tests/fixtures/data/v2/corpus/` is the corpus (see its README for provenance) and
   `tests/fixtures/data/v2/snapshots/` the printed text, regenerated with `PBLANG_UPDATE_SNAPSHOTS=1 pytest tests/v2`.
   Both directories are excluded from prettier.
 - The hybrid fixture is generated in viva-pde-particle's pixi env (`corpus/make_hybrid_fixture.py`).
 - Keep `process_bigraph` out of the shipped package (tests only); `bigraph_schema` and `numpy` are main deps.
-- v1 (`compiler/`, `dsl/`) is untouched and must stay green.
+- v1 (`compiler/`, the v1 grammar and its services in `dsl/`) is untouched and must stay green.
 
 ## Tests
 

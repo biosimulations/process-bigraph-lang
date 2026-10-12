@@ -89,7 +89,7 @@ def _describe(args: argparse.Namespace) -> int:
         out_dir = Path(args.out)
         out_dir.mkdir(parents=True, exist_ok=True)
         for module, text in files.items():
-            (out_dir / f"{module}.pblang").write_text(text, encoding="utf-8")
+            (out_dir / f"{module}.pbl").write_text(text, encoding="utf-8")
         print(f"wrote {len(files)} interface file(s) to {out_dir}", file=sys.stderr)
     elif args.out:
         Path(args.out).write_text(next(iter(files.values())), encoding="utf-8")

@@ -42,7 +42,7 @@ def load_corpus_json(name: str) -> dict[str, Any]:
 
 def assert_snapshot(name: str, printed: Printed) -> None:
     """Compare printed text and assets with the committed snapshot; `PBLANG_UPDATE_SNAPSHOTS=1` rewrites it."""
-    expected_text = SNAPSHOTS / f"{name}.pblang"
+    expected_text = SNAPSHOTS / f"{name}.pbl"
     if UPDATE:
         SNAPSHOTS.mkdir(parents=True, exist_ok=True)
         expected_text.write_text(printed.text, encoding="utf-8")
