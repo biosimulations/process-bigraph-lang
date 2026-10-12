@@ -20,7 +20,23 @@ from dataclasses import dataclass
 from typing import Any
 
 from process_bigraph_lang.v2.interfaces import InterfaceRegistry
-from process_bigraph_lang.v2.model import Address, Composite, Document, Edge, Emitter, InterfaceDecl, Node, Site, Store
+from process_bigraph_lang.v2.model import (
+    MODEL_BLOCKS,
+    Address,
+    Composite,
+    ConfigField,
+    Document,
+    Edge,
+    Emitter,
+    InterfaceDecl,
+    ModelDecl,
+    ModelRef,
+    Node,
+    Param,
+    ParamRef,
+    Site,
+    Store,
+)
 from process_bigraph_lang.v2.normalize import _canon_type
 from process_bigraph_lang.v2.paths import Path, Wire
 from process_bigraph_lang.v2.types import Group, Named, Struct, TypeExpr, to_bigraph
@@ -40,7 +56,9 @@ class Diagnostic:
 
 
 def check_document(doc: Document, registry: InterfaceRegistry | None = None) -> list[Diagnostic]:
-    checker = _Checker(registry)
+    checker = _Checker(
+        registry, {m.name: m for m in doc.models}, {p.name: p for p in doc.params}, {d.name: d for d in doc.interfaces}
+    )
     checker.scope(doc.root, ())
     checker.emitters(doc.emitters)
     order = {"error": 0, "warning": 1, "info": 2}
@@ -111,8 +129,17 @@ class _Writer:
 
 
 class _Checker:
-    def __init__(self, registry: InterfaceRegistry | None) -> None:
+    def __init__(
+        self,
+        registry: InterfaceRegistry | None,
+        models: dict[str, ModelDecl] | None = None,
+        params: dict[str, Param] | None = None,
+        interfaces: dict[str, InterfaceDecl] | None = None,
+    ) -> None:
         self.registry = registry
+        self.models = models or {}
+        self.params = params or {}
+        self.interfaces = interfaces or {}  # declared inline in the text
         self.diagnostics: list[Diagnostic] = []
         self.index: dict[tuple[str | int, ...], Store | Node | Edge] = {}
         self.writers: dict[tuple[str | int, ...], list[_Writer]] = {}
@@ -133,6 +160,8 @@ class _Checker:
         for path, element in list(self.index.items()):
             if isinstance(element, Edge):
                 self.edge(element, path)
+            elif isinstance(element, Store):
+                self.model_site(element, path)
         self.writer_analysis()
         if not base:
             self.root_index, self.root_writers = self.index, dict(self.writers)
@@ -181,6 +210,18 @@ class _Checker:
                     writer=edge.kind if label == "outputs" else None,
                     units=_units_of(port_type),
                 )
+        if decl is not None:
+            for key, value in edge.config.items():
+                field = decl.config.get(key)
+                if field is None or not isinstance(value, ParamRef) or value.template is not None:
+                    continue
+                param = self.params.get(value.name)
+                field_units = _units_of(field.type)
+                param_units = _units_of(param.type) if param is not None else None
+                if field_units and param_units:
+                    self.unit_obligations.append(
+                        _UnitObligation((*path, "config", key), field_units, param_units, f"param {value.name}")
+                    )
         self.units(path)
 
     def declaration(self, edge: Edge, path: tuple[str | int, ...]) -> InterfaceDecl | None:
@@ -193,6 +234,17 @@ class _Checker:
                 "the address is an open site; ports are checked against its sort later",
             )
             return None
+        if edge.iface_name and edge.iface_name in self.interfaces:
+            declared = self.interfaces[edge.iface_name]
+            if declared.dynamic_ports:
+                self.report(
+                    "I210",
+                    "dynamic-ports",
+                    "info",
+                    path,
+                    f"{declared.name}: ports depend on an instance; only the declared ones are checked",
+                )
+            return declared
         if self.registry is None or not isinstance(edge.address, Address):
             return None
         if edge.address.is_composite:
@@ -290,6 +342,99 @@ class _Checker:
                 "warning",
                 port_path,
                 f"port type '{_text(port_type)}' but store '{'/'.join(map(str, absolute))}' is declared '{_text(store_type)}'",
+            )
+
+    # --- model sites -------------------------------------------------------------------------------------------
+
+    def model_site(self, store: Store, path: tuple[str | int, ...]) -> None:
+        """`store m : Sort = Header;` admits the header against the sort; `store m : Sort = ?;` is an open site."""
+        sort = self.models.get(store.type.name) if isinstance(store.type, Named) else None
+        if sort is None or not sort.is_sort:
+            return
+        if store.site is not None:
+            self.report(
+                "I301",
+                "open-model-site",
+                "info",
+                path,
+                f"open model site sorted by {sort.name}; a model header fills it",
+            )
+            return
+        if not isinstance(store.value, ModelRef):
+            return
+        header = self.models.get(store.value.name)
+        if header is None or header.is_sort:
+            self.report("G300", "model-missing", "error", path, f"no model header named '{store.value.name}'")
+            return
+        self.admit_model(sort, header, path)
+
+    def admit_model(self, sort: ModelDecl, header: ModelDecl, path: tuple[str | int, ...]) -> None:
+        """Every member and requirement of the sort must be provided by the header; units bind across the header."""
+        self.unit_obligations = []
+        who = f"{header.name} (for sort {sort.name})"
+        if sort.time_units:
+            if header.time_units:
+                self.unit_obligations.append(
+                    _UnitObligation((*path, "time"), sort.time_units, header.time_units, f"{header.name}.time")
+                )
+            else:
+                self.report(
+                    "G301",
+                    "model-not-admitted",
+                    "error",
+                    (*path, "time"),
+                    f"{who}: the sort requires a time unit; the header declares none",
+                )
+        for block in MODEL_BLOCKS:
+            required, provided = sort.block(block), header.block(block)
+            wildcard = required.get("_")
+            for name, field in required.items():
+                if name == "_":
+                    continue
+                if name not in provided:
+                    self.report(
+                        "G301",
+                        "model-not-admitted",
+                        "error",
+                        (*path, block, name),
+                        f"{who}: the sort requires {block[:-1]} '{name}', which the header lacks",
+                    )
+                    continue
+                self.obligation((*path, block, name), field, provided[name], f"{header.name}.{block}.{name}")
+            if wildcard is not None:
+                for name, field in provided.items():
+                    self.obligation((*path, block, name), wildcard, field, f"{header.name}.{block}.{name}")
+            extra = sorted(set(provided) - set(required))
+            if required and wildcard is None and block not in sort.open_blocks and extra:
+                self.report(
+                    "G301",
+                    "model-not-admitted",
+                    "error",
+                    (*path, block),
+                    f"{who}: the sort admits exactly {sorted(k for k in required)}; the header also has {extra}",
+                )
+        for key, wanted in sort.meta.items():
+            if header.meta.get(key) != wanted:
+                self.report(
+                    "G301",
+                    "model-not-admitted",
+                    "error",
+                    (*path, "meta", key),
+                    f"{who}: the sort requires {key} = {wanted!r}; the header has {header.meta.get(key)!r}",
+                )
+        self.units(path)
+
+    def obligation(self, at: tuple[str | int, ...], required: ConfigField, provided: ConfigField, label: str) -> None:
+        required_units, provided_units = _units_of(required.type), _units_of(provided.type)
+        if required_units and provided_units:
+            self.unit_obligations.append(_UnitObligation(at, required_units, provided_units, label))
+        elif required_units and not provided_units:
+            self.report(
+                "I232",
+                "units-undeclared",
+                "info",
+                at,
+                f"{label} declares no units; '{required_units}' cannot be checked",
             )
 
     # --- units -------------------------------------------------------------------------------------------------
@@ -551,7 +696,17 @@ def _contains_array(expr: TypeExpr | None) -> bool:
 
 
 def _canon(expr: TypeExpr) -> Any:
-    return _canon_type(to_bigraph(expr), None)
+    """The type for comparison, without units: units are checked separately, with their own semantics."""
+    return _strip_units(_canon_type(to_bigraph(expr), None))
+
+
+def _strip_units(canon: Any) -> Any:
+    if isinstance(canon, dict):
+        stripped = {k: _strip_units(v) for k, v in canon.items() if k != "_units"}
+        return stripped["_type"] if set(stripped) == {"_type"} and isinstance(stripped["_type"], str) else stripped
+    if isinstance(canon, list):
+        return [_strip_units(v) for v in canon]
+    return canon
 
 
 def _text(expr: TypeExpr) -> str:

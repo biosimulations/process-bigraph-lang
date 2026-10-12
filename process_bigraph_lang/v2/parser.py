@@ -28,6 +28,8 @@ from process_bigraph_lang.v2.model import (
     ExternalRef,
     Face,
     InterfaceDecl,
+    ModelDecl,
+    ModelRef,
     Node,
     Param,
     ParamRef,
@@ -43,7 +45,15 @@ from process_bigraph_lang.v2.values import MISSING
 GRAMMAR = r"""
 start: header? statement*
 header: "module" qualified ";"
-statement: import_names | import_module | param | meta | options | interface | composite_root | emit
+statement: import_names | import_module | param | meta | options | interface | model_decl | composite_root | emit
+
+model_decl: [doc] "model" NAME ["from" STRING] "{" model_item* "}"
+model_item: "time" "@" STRING ";"            -> model_time
+          | "compartments" model_block       -> model_compartments
+          | "species" model_block            -> model_species
+          | "parameters" model_block         -> model_parameters
+          | "meta" kvblock                   -> model_meta
+model_block: "{" field* [ELLIPSIS] "}"
 
 import_names: "import" MODULE_BRACE NAME ("," NAME)* "}" ";"
 import_module: "import" qualified ";"
@@ -59,7 +69,7 @@ iface_item: "config" "{" field* "}"     -> iface_config
           | "inputs" face_body          -> iface_inputs
           | "outputs" face_body         -> iface_outputs
 face_body: "{" field* "}"               -> face_fields
-         | "{" "..." "}"                -> face_open
+         | "{" ELLIPSIS "}"             -> face_open
 field: [doc] key ":" type ["=" value] ";"
 
 composite_root: [doc] "composite" [key] "{" node_decl* "}"
@@ -102,6 +112,7 @@ key: NAME | STRING
 
 ?value: NUMBER            -> number
       | STRING            -> string
+      | NAME              -> ref
       | "true"            -> true
       | "false"           -> false
       | "null"            -> null
@@ -131,6 +142,7 @@ dim: NUMBER | "_" | NAME
 doc: DOC+
 
 DOC: /\/\/\/[^\n]*/
+ELLIPSIS: "..."
 MODULE_BRACE.2: /[A-Za-z_][A-Za-z0-9_]*(\.[A-Za-z_][A-Za-z0-9_]*)*\.\{/
 COMMENT: /\/\/(?!\/)[^\n]*/
 NAME: /[A-Za-z_][A-Za-z0-9_]*/
@@ -257,6 +269,7 @@ class _Builder(Transformer):
             else:
                 decl.outputs, decl.dynamic_ports = payload if payload is not None else (None, True)
         self.interfaces[decl.name] = decl
+        self.document.interfaces.append(decl)
 
     def iface_config(self, *fields: tuple[str, ConfigField]) -> tuple[str, dict[str, ConfigField]]:
         return "config", dict(fields)
@@ -270,8 +283,46 @@ class _Builder(Transformer):
     def face_fields(self, *fields: tuple[str, ConfigField]) -> tuple[dict[str, TypeExpr], bool]:
         return {k: f.type for k, f in fields if f.type is not None}, False
 
-    def face_open(self) -> None:
+    def face_open(self, _ellipsis: Any) -> None:
         return None
+
+    # --- models --------------------------------------------------------------------------------------------------
+
+    def model_decl(self, doc: _Doc | None, name: Any, source: Any, *items: tuple[str, Any]) -> None:
+        decl = ModelDecl(_tok(name), _string(source) if source is not None else None, doc=str(doc) if doc else None)
+        for label, payload in items:
+            if label == "time":
+                decl.time_units = payload
+            elif label == "meta":
+                decl.meta = dict(payload)
+            else:
+                fields, open_block = payload
+                decl.block(label).update(fields)
+                if open_block:
+                    decl.open_blocks.add(label)
+        self.document.models.append(decl)
+
+    def model_time(self, units: Any) -> tuple[str, str]:
+        return "time", _string(units)
+
+    def model_compartments(self, block: Any) -> tuple[str, Any]:
+        return "compartments", block
+
+    def model_species(self, block: Any) -> tuple[str, Any]:
+        return "species", block
+
+    def model_parameters(self, block: Any) -> tuple[str, Any]:
+        return "parameters", block
+
+    def model_meta(self, entries: dict[str, Any]) -> tuple[str, Any]:
+        return "meta", entries
+
+    def model_block(self, *items: Any) -> tuple[dict[str, ConfigField], bool]:
+        fields = {k: f for k, f in (i for i in items if isinstance(i, tuple))}
+        return fields, any(isinstance(i, Token) and i.type == "ELLIPSIS" for i in items)
+
+    def ref(self, token: Any) -> ModelRef:
+        return ModelRef(_tok(token))
 
     def field(self, doc: _Doc | None, key: str, type_: TypeExpr, default: Any) -> tuple[str, ConfigField]:
         return key, ConfigField(type_, MISSING if default is None else default, str(doc) if doc else None)
@@ -300,6 +351,9 @@ class _Builder(Transformer):
 
     def store(self, doc: _Doc | None, key: str, type_: TypeExpr | None, value: Any) -> Store:
         store = Store(key, type=type_, doc=str(doc) if doc else None)
+        if isinstance(value, Site) and value.default is MISSING and type_ is not None and _is_unsorted(value.sort):
+            store.site = Site(type_, MISSING)  # `store m : ODEModel = ?;` is a model site sorted by its type
+            return store
         if isinstance(value, Site):
             sort = value.sort if not _is_unsorted(value.sort) else (type_ or Named("node"))
             store.site = Site(sort, value.default)
@@ -340,6 +394,7 @@ class _Builder(Transformer):
             edge.kind = "shared_process_ref"
             edge.extras["process_id"] = name
             return
+        edge.iface_name = name
         decl = self.interfaces.get(name) if name is not None else None
         if name is not None and decl is None and name in self.imports:
             imported = Address("local", f"!{self.imports[name]}.{name}")

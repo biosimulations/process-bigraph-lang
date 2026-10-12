@@ -28,6 +28,9 @@ from process_bigraph_lang.v2.model import (
     ExternalRef,
     Face,
     InterfaceDecl,
+    MODEL_BLOCKS,
+    ModelDecl,
+    ModelRef,
     Node,
     Param,
     ParamRef,
@@ -76,6 +79,13 @@ def print_document(
     return Printed(printer.document(doc), printer.assets)
 
 
+def print_model(decl: ModelDecl, *, width: int = 100) -> str:
+    """Print one model declaration (a header or a sort)."""
+    printer = _Printer(decl.name, width, 100, 1000, None)
+    printer.model(decl)
+    return "\n".join(printer.lines) + "\n"
+
+
 def print_interfaces(decls: list[InterfaceDecl], module_name: str, *, width: int = 100) -> str:
     """Print an interface file (`module …;` plus one declaration per step/process)."""
     printer = _Printer(module_name, width, 100, 1000, None)
@@ -105,6 +115,7 @@ class _Printer:
         self.lines: list[str] = []
         self.path: list[str] = []
         self.saved = False
+        self.declared: dict[str, InterfaceDecl] = {}
         self.externalized: dict[int, ExternalRef] = {}
         self.keep_alive: list[Any] = []
 
@@ -112,6 +123,7 @@ class _Printer:
 
     def document(self, doc: Document) -> str:
         self.saved = doc.source == "saved"
+        self.declared = {d.name: d for d in doc.interfaces}
         self.lines = [f"// pblang v2 — printed from {self.name}"]
         self.collect_interfaces(doc.root)
         if self.imports:
@@ -123,6 +135,9 @@ class _Printer:
             self.lines.append("")
             for param in doc.params:
                 self.param(param)
+        for model in doc.models:
+            self.lines.append("")
+            self.model(model)
         if doc.tags or doc.requires or doc.extras:
             self.lines.append("")
             self.block("meta", {"tags": doc.tags, "requires": doc.requires, **doc.extras}, 0, drop_empty=True)
@@ -183,8 +198,8 @@ class _Printer:
                     self.collect_interfaces(element.inner)
 
     def resolve_interface(self, edge: Edge) -> None:
-        decl = None
-        if self.registry is not None and isinstance(edge.address, Address):
+        decl = self.declared.get(edge.iface_name) if edge.iface_name else None
+        if decl is None and self.registry is not None and isinstance(edge.address, Address):
             decl = self.registry.lookup(edge.address)
         if decl is not None:
             self.interface_of[id(edge)] = decl
@@ -237,6 +252,34 @@ class _Printer:
                 continue
             entries = [f"{_key(port)}: {to_surface(port_type)};" for port, port_type in ports.items()]
             self.declaration_block(label, entries)
+        self.lines.append("}")
+
+    def model(self, decl: ModelDecl) -> None:
+        if decl.doc:
+            self.doc_comment(decl.doc, 0)
+        head = f"model {_key(decl.name)}"
+        if decl.source is not None:
+            head += f" from {json.dumps(decl.source)}"
+        self.lines.append(head + " {")
+        for note in decl.notes:
+            self.lines.append(f"{INDENT}// note: {note}")
+        if decl.time_units:
+            self.lines.append(f"{INDENT}time @ {json.dumps(decl.time_units)};")
+        kind = decl.meta.get("kind")
+        for label in MODEL_BLOCKS:
+            fields = decl.block(label)
+            if not fields and label not in decl.open_blocks:
+                continue
+            if label == "species" and kind == "concentration":
+                self.lines.append(f"{INDENT}// concentrations (amount per compartment size)")
+            elif label == "species" and kind == "amount":
+                self.lines.append(f"{INDENT}// amounts (species with only substance units)")
+            entries = [self.config_field(k, f) for k, f in fields.items()]
+            if label in decl.open_blocks:
+                entries.append("...")
+            self.declaration_block(label, entries)
+        if decl.meta:
+            self.block("meta", decl.meta, 1)
         self.lines.append("}")
 
     def config_field(self, name: str, config_field: ConfigField) -> str:
@@ -453,6 +496,8 @@ class _Printer:
             return _external_text(value)
         if isinstance(value, ParamRef):
             return json.dumps(value.template) if value.template is not None else "${" + value.name + "}"
+        if isinstance(value, ModelRef):
+            return _key(value.name)
         if isinstance(value, Site):
             return self.site_text(value.sort, value.default, depth)
         if is_site(value):

@@ -2,7 +2,7 @@
 model Caravagna2010 from "Caravagna2010.xml" {
   time @ "day";
   compartments { compartment: float @ "mL" = 1.0; }
-  /// concentrations (amount per compartment size)
+  // concentrations (amount per compartment size)
   species {
     T: float @ "mmol / mL" = 1.0;
     E: float @ "mmol / mL" = 1.0;
@@ -24,5 +24,13 @@ model Caravagna2010 from "Caravagna2010.xml" {
     s1: float = 0.0;
     s2: float = 0.0;
   }
-  meta { sbml = "L2V4", sbml_id = "Caravagna2010___Tumour_suppression_by_immune_system", reactions = 6, events = 0, rules = 0, function_definitions = 6 }
+  meta {
+    sbml = "L2V4",
+    sbml_id = "Caravagna2010___Tumour_suppression_by_immune_system",
+    kind = "concentration",
+    reactions = 6,
+    events = 0,
+    rules = 0,
+    function_definitions = 6,
+  }
 }

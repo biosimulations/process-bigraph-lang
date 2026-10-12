@@ -247,6 +247,11 @@ from the model's unit definitions, plus reaction/event/rule counts and the SBML 
 Caravagna header is snapshotted; see the design's section 5.6 for how per-document composites and per-class
 templates use it.
 
+The grammar has `model` declarations (headers and sorts), `store m : Sort = Header | ?;` model sites, and the
+checker admits a header against a sort (`G301`, units bound across the header) and checks config values that
+reference a `param` against the header's config units; the writer expands a filled model site into the model's
+typed blocks. The Caravagna header parses back and prints the same declaration.
+
 ## Verification
 
 1. `make check` (ruff, prettier, mypy strict, deptry, `poetry check --lock`) green after `git add` of new files.

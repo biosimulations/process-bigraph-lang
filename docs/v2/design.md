@@ -803,9 +803,25 @@ parameters, SBML level, version and packages (`spatial`, `comp`, `fbc`). Those b
 site's sort, and solvers declare what they accept in their headers (`accepts: sbml-l3v2, no spatial`), so
 choosing a solver for a model is the same face matching the registry design uses for adapters.
 
-Still to do: the `model` declaration and `Name.species`-style member types in the grammar, admitting a model header
-against a model site's sort in the checker, and a data-level lint comparing a model file's unit definitions with
-the stores it is wired to.
+**Syntax (implemented in the prototype grammar).** A header is `model Name from "file" { time @ "…"; compartments
+{…} species {…} parameters {…} meta {…} }`; a sort is the same without `from`. In a sort, a member named `_`
+stands for every member of its block (`species { _: float @ "?U"; ... }` says "all species, in one unit `?U`"),
+a block ending in `...` admits members the sort does not name, and `meta` entries are requirements (`events = 0`,
+`kind = "concentration"`). A model site is a store typed by a sort: `store model : ODEModel = ?;` is open and
+`store model : ODEModel = Caravagna2010;` fills it with a header. The checker admits the header against the sort
+(`G301 model-not-admitted` for a missing member, an extra member of an exact block or a failed meta requirement;
+units bind across the whole header, so species in `?U` and time in `?T` are checked with the same machinery as
+ports; `I232` when the model declares no units for a required member, because an undeclared unit is unknown, not
+dimensionless). In the document, a filled site becomes the model's blocks as typed stores with the model's values,
+and an open site becomes a site whose sort is the schema the sort admits.
+
+**Units on values that are not stores.** Units belong to the type, wherever the value sits: a header's config field
+can declare `dt: float @ "?T"` and a `param step: float @ "min"` referenced as `config { dt = ${step} }` is then
+checked against the composite's time unit. Parameter units from a model file are captured when the file declares
+them and otherwise left undeclared; nothing is ever assumed dimensionless.
+
+Still to do: `Name.species`-style member types so a composite can type a store by a header's block, and a
+data-level lint comparing a model file's unit definitions with the stores it is wired to.
 
 ## 6. Open questions
 

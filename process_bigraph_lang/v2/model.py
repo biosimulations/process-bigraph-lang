@@ -122,6 +122,44 @@ class InterfaceDecl:
 
 
 @dataclass
+class ModelRef:
+    """A reference to a model header by name: the filler of a model site (`store m: ODEModel = Caravagna2010;`)."""
+
+    name: str
+
+
+@dataclass
+class ModelDecl:
+    """
+    A model declaration: a **header** generated from a model file (`model Name from "file" { … }`), or a
+    **sort** (`model Name { … }`, no `from`) stating what any model filling a site must provide. Members are
+    typed values with units; in a sort, a member named `_` stands for every member of that block, and a block
+    ending in `...` admits members the sort does not name.
+    """
+
+    name: str
+    source: str | None = None
+    time_units: str | None = None
+    compartments: dict[str, ConfigField] = field(default_factory=dict)
+    species: dict[str, ConfigField] = field(default_factory=dict)
+    parameters: dict[str, ConfigField] = field(default_factory=dict)
+    open_blocks: set[str] = field(default_factory=set)
+    meta: dict[str, Any] = field(default_factory=dict)
+    notes: list[str] = field(default_factory=list)
+    doc: str | None = None
+
+    @property
+    def is_sort(self) -> bool:
+        return self.source is None
+
+    def block(self, name: str) -> dict[str, ConfigField]:
+        return {"compartments": self.compartments, "species": self.species, "parameters": self.parameters}[name]
+
+
+MODEL_BLOCKS = ("compartments", "species", "parameters")
+
+
+@dataclass
 class Store:
     """A leaf of the tree: a typed value, or an open site. `value is MISSING` means declared only."""
 
@@ -149,6 +187,7 @@ class Edge:
     name: str
     kind: str  # process | step | shared_process | shared_process_ref
     address: Address | Site | ParamRef | None = None
+    iface_name: str | None = None  # the interface the text named (`process p : Name …`), if any
     config: dict[str, Any] = field(default_factory=dict)
     inputs: dict[str, Wire] = field(default_factory=dict)
     outputs: dict[str, Wire] = field(default_factory=dict)
@@ -208,6 +247,8 @@ class Document:
     tags: list[str] = field(default_factory=list)
     requires: dict[str, Any] = field(default_factory=dict)
     params: list[Param] = field(default_factory=list)
+    interfaces: list[InterfaceDecl] = field(default_factory=list)  # declared inline in the text
+    models: list[ModelDecl] = field(default_factory=list)
     emitters: list[Emitter] = field(default_factory=list)
     options: dict[str, Any] = field(default_factory=dict)
     source: Literal["authoring", "saved", "composite_spec"] = "authoring"
