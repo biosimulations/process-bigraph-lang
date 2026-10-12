@@ -7,7 +7,7 @@ import {
   defineUserServices,
   SAMPLE_PBLANG,
 } from "./setupCommon.js";
-import monarchSyntax from "./syntaxes/process-bigraph-language.monarch.js";
+import monarchSyntax from "./syntaxes/pblang-v2.monarch.js";
 
 export const setupConfigClassic = (): UserConfig => {
   return {
@@ -15,7 +15,7 @@ export const setupConfigClassic = (): UserConfig => {
       serviceConfig: defineUserServices(),
       editorAppConfig: {
         $type: "classic",
-        languageId: "process-bigraph-language",
+        languageId: "pblang-v2",
         code: SAMPLE_PBLANG,
         useDiffEditor: false,
         languageExtensionConfig: { id: "langium" },

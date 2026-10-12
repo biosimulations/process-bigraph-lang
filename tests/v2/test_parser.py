@@ -3,7 +3,6 @@ Text-level round trip: every committed snapshot compiles to a document equivalen
 the language's constructs (params, sites, interfaces, ports, paths) compile to the document forms they denote.
 """
 
-from copy import deepcopy
 from typing import Any
 
 import pytest
@@ -12,8 +11,6 @@ from process_bigraph.processes.growth_division import grow_divide_agent  # type:
 
 from process_bigraph_lang.v2 import compile_file, compile_text, deep_equal, diff_documents, equivalent
 from process_bigraph_lang.v2.langium import langium_cli
-from tests.compiler.generator.spatio_flux.test_spatio_flux_II import step_config_template as spatio_two
-from tests.compiler.generator.spatio_flux.test_spatio_flux_III import step_config_template as spatio_three
 from tests.v2.helpers import CORPUS, REGISTRY, SNAPSHOTS, load_corpus_json
 
 pytestmark = pytest.mark.skipif(langium_cli() is None, reason="no Langium CLI (build dsl/ or install cli-native)")
@@ -33,16 +30,14 @@ def _original(name: str) -> dict[str, Any]:
         return load_corpus_json("hybrid_two_way_exchange.json")
     if name == "growth_division":
         return {"schema": {}, "state": {"agent": grow_divide_agent(path=["agent"]), "environment": {}}}
-    if name == "spatio_flux_II":
-        return deepcopy(spatio_two)
-    if name == "spatio_flux_III":
-        return deepcopy(spatio_three)
+    if name in ("spatio_flux_II", "spatio_flux_III"):
+        return load_corpus_json(f"v1/{name}.json")
     return load_corpus_json("template_sites.json")
 
 
 @pytest.mark.parametrize("name", DOCUMENT_SNAPSHOTS)
 def test_snapshot_text_compiles_to_the_original(name: str, spatio_core: Any) -> None:
-    written = compile_file(SNAPSHOTS / f"{name}.pbl", registry=REGISTRY, force=True).document
+    written = compile_file(SNAPSHOTS / f"{name}.pblang", registry=REGISTRY, force=True).document
     original = _original(name)
     # `_inputs`/`_outputs` that repeat an imported interface's face are not a difference
     assert equivalent(original, written, spatio_core, REGISTRY), diff_documents(
@@ -52,14 +47,14 @@ def test_snapshot_text_compiles_to_the_original(name: str, spatio_core: Any) -> 
 
 def test_composite_spec_text_compiles_to_the_original(core: Any) -> None:
     spec = yaml.safe_load((CORPUS / "reversible-dimerization.composite.yaml").read_text(encoding="utf-8"))
-    back = compile_file(SNAPSHOTS / "reversible-dimerization.pbl", to="spec").document
+    back = compile_file(SNAPSHOTS / "reversible-dimerization.pblang", to="spec").document
     for key in ("name", "description", "tags", "requires", "emitters"):
         assert deep_equal(back[key], spec[key])
     assert equivalent({"state": spec["state"]}, {"state": back["state"]}, core)
 
 
 def test_saved_toy_text_compiles_without_a_face_of_its_own() -> None:
-    document = compile_file(SNAPSHOTS / "saved_toy_add_floats.pbl", registry=REGISTRY).document
+    document = compile_file(SNAPSHOTS / "saved_toy_add_floats.pblang", registry=REGISTRY).document
     add = document["state"]["add_nums"]
     # an imported interface is authoritative at runtime: the edge carries no `_inputs`/`_outputs` of its own
     assert "_inputs" not in add and "_outputs" not in add

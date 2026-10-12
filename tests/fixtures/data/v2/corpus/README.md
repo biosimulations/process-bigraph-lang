@@ -19,6 +19,6 @@ tests (`dsl/test/v2/roundtrip.test.ts`); regenerate them with `poetry run python
 tests/fixtures/data/v2/corpus/make_v1_fixtures.py` when the templates change. Tuples are tagged as
 `{"__tuple__": true, "data": [...]}`.
 
-`../interfaces/` holds the headers and manifest that `python -m process_bigraph_lang.v2 describe` generated from
+`../models/` holds the SBML model `describe-model` is tested on. `../interfaces/` holds the headers and manifest that `python -m process_bigraph_lang.v2 describe` generated from
 viva-pde-particle (branch `static-interfaces`, where every component's ports are fixed by its class) in that
 package's own environment.

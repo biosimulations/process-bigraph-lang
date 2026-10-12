@@ -11,7 +11,7 @@ const snapshots = path.resolve(
   __dirname,
   "../../../tests/fixtures/data/v2/snapshots",
 );
-const files = fs.readdirSync(snapshots).filter((f) => f.endsWith(".pbl"));
+const files = fs.readdirSync(snapshots).filter((f) => f.endsWith(".pblang"));
 
 const services = createProcessBigraphLanguageServices(EmptyFileSystem);
 const parse = parseHelper<V2Module>(services.PblangV2);

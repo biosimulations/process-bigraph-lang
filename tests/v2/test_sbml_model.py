@@ -12,9 +12,7 @@ from tests.v2.helpers import assert_snapshot
 
 pytestmark = pytest.mark.skipif(langium_cli() is None, reason="no Langium CLI (build dsl/ or install cli-native)")
 
-CARAVAGNA = (
-    Path(__file__).resolve().parent.parent / "fixtures" / "data" / "compiler" / "Caravagna2010" / "Caravagna2010.xml"
-)
+CARAVAGNA = Path(__file__).resolve().parent.parent / "fixtures" / "data" / "v2" / "models" / "Caravagna2010.xml"
 
 
 def test_caravagna_header() -> None:

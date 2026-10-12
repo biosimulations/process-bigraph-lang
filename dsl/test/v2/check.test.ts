@@ -103,7 +103,7 @@ composite {
 
   test("the viva-pde-particle hybrid against its generated headers", async () => {
     const text = fs.readFileSync(
-      path.join(fixtures, "snapshots", "hybrid_two_way_exchange.pbl"),
+      path.join(fixtures, "snapshots", "hybrid_two_way_exchange.pblang"),
       "utf-8",
     );
     const found = codes(await check(text));
@@ -394,7 +394,7 @@ composite {
 
 describe("model sites", () => {
   const header = fs.readFileSync(
-    path.join(fixtures, "snapshots", "Caravagna2010.model.pbl"),
+    path.join(fixtures, "snapshots", "Caravagna2010.model.pblang"),
     "utf-8",
   );
   const sort = `

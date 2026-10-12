@@ -5,12 +5,12 @@ The v2 language is a tree-shaped, verifiable projection of a process-bigraph com
 (see `docs/v2/design.md`). The grammar, the checker, the compiler and the decompiler are TypeScript (`dsl/`),
 run here through `cli-native`; this package is the Python entry to them, plus what has to be Python:
 
-- `compile_text` / `compile_file`: `.pbl` text -> parsed, checked -> a `{"schema", "state"}` document or a
+- `compile_text` / `compile_file`: `.pblang` text -> parsed, checked -> a `{"schema", "state"}` document or a
   CompositeSpec mapping (`CompileError` when the checker finds errors)
-- `decompile`: a document or a CompositeSpec mapping -> canonical `.pbl` text plus sidecar assets
+- `decompile`: a document or a CompositeSpec mapping -> canonical `.pblang` text plus sidecar assets
 - `check_file` / `check_text`: the checker's findings (`Diagnostic`s)
 - `describe_module` / `InterfaceRegistry`: interface declarations ("headers") from a package's classes, as the
-  JSON manifest the CLI reads; `render_interfaces` has the CLI print the `.pbl` header file
+  JSON manifest the CLI reads; `render_interfaces` has the CLI print the `.pblang` header file
 - `normalize_document` / `equivalent` / `diff_documents`: equivalence of two documents modulo representation
 
 There is no Python model of a composite: a Python tool that builds composites targets the DSL text.

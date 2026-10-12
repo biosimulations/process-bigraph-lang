@@ -2,7 +2,7 @@
 Static checks of a composite, run by the DSL CLI's `check` command (the checker lives in TypeScript,
 `dsl/src/language/v2/check.ts`, so the editor, the browser and the CLI share one implementation).
 
-`check_file` runs `cli-native check --json` on a `.pbl` file with header manifests; `check_text` does the same
+`check_file` runs `cli-native check --json` on a `.pblang` file with header manifests; `check_text` does the same
 for text. Both return the findings of the `pblang-diagnostics/1` envelope as `Diagnostic`s.
 """
 
@@ -37,13 +37,13 @@ def check_text(
 ) -> list[Diagnostic]:
     """Check v2 text against header manifests and/or a registry (written as a manifest)."""
     with tempfile.TemporaryDirectory() as tmp:
-        source = Path(tmp) / "document.pbl"
+        source = Path(tmp) / "document.pblang"
         source.write_text(text, encoding="utf-8")
         return check_file(source, [*(manifests or []), *registry_manifests(registry, Path(tmp))])
 
 
 def check_file(path: str | os.PathLike[str], manifests: list[Path] | None = None) -> list[Diagnostic]:
-    """Check a `.pbl` file against header manifests through the CLI."""
+    """Check a `.pblang` file against header manifests through the CLI."""
     args = ["check", str(Path(path).resolve()), "--json"]
     if manifests:
         args += ["--interfaces", *[str(Path(m).resolve()) for m in manifests]]

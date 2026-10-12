@@ -282,7 +282,10 @@ graph`, and the Python package keeps only the wrappers (`api.py`), `describe` (i
 and `graph.py` are gone; `types.py` stays as the normalizer's and `describe`'s type parser. The snapshot and
 round-trip tests under `tests/v2/` run through the CLI; `dsl/test/v2/{roundtrip,model}.test.ts` check the
 same snapshots byte for byte on the TypeScript side (every corpus document prints to its snapshot; every
-snapshot is a fixpoint; the v1 expected documents write back exactly). Still open: the cutover of `.pblang`
+snapshot is a fixpoint; the v1 expected documents write back exactly). The cutover followed: `.pblang` is the v2 language (`.pbl` is still accepted), and v1 is gone, the grammar,
+its validators, the SBML stub command, the Python compiler and parser bridge, the ANTLR grammar and its
+generated parsers, and their tests. The v1 expected documents live on as `tests/fixtures/data/v2/corpus/v1/`.
+The language id `pblang-v2` and the `V2` rule prefix remain for now (a rename is mechanical and can follow).pblang`
 to v2.
 
 ## Verification

@@ -290,7 +290,7 @@ process Doubler at "local:!demo.headers.Doubler" {
   outputs { mass: float; }
 }
 `,
-      { documentUri: "file:///workspace/demo/headers.pbl" },
+      { documentUri: "file:///workspace/demo/headers.pblang" },
     );
     const text = `
 import demo.headers.{Doubler};
@@ -300,7 +300,7 @@ composite {
 }
 `;
     const document = await parse(text.replace(/<\|>/g, ""), {
-      documentUri: "file:///workspace/demo/main.pbl",
+      documentUri: "file:///workspace/demo/main.pblang",
       validation: true,
     });
     const codes = (document.diagnostics ?? []).map((d) => d.code);
@@ -311,7 +311,7 @@ composite {
       index: 0,
       hover:
         /process Doubler at "local:!demo\.headers\.Doubler"[\s\S]*from `demo\.headers`[\s\S]*doubles a mass/,
-      parseOptions: { documentUri: "file:///workspace/demo/hover.pbl" },
+      parseOptions: { documentUri: "file:///workspace/demo/hover.pblang" },
     });
     await completion({
       text: `
@@ -320,7 +320,7 @@ composite {
   process d : <|>
 }`,
       index: 0,
-      parseOptions: { documentUri: "file:///workspace/demo/completion.pbl" },
+      parseOptions: { documentUri: "file:///workspace/demo/completion.pblang" },
       assert: (list) => {
         const item = list.items.find((i) => i.label === "Doubler");
         expect(item?.detail).toBe("process from demo.headers");

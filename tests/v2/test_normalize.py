@@ -6,7 +6,7 @@ import process_bigraph as pg  # type: ignore[import-untyped]
 import pytest
 
 from process_bigraph_lang.v2 import deep_equal, diff_documents, equivalent, normalize_document
-from tests.compiler.generator.test_toy_add_floats import add_floats_process_expected_config_template
+from tests.v2.helpers import load_corpus_json
 
 # pairs that spell the same thing differently and must collide after normalization
 PAIRS: list[tuple[dict[str, Any], dict[str, Any]]] = [
@@ -63,7 +63,7 @@ def test_unknown_dict_form_type_falls_back_to_canonical_dict(core: Any) -> None:
 
 
 def test_saved_document_equals_authoring_document(core: Any) -> None:
-    authoring: dict[str, Any] = deepcopy(add_floats_process_expected_config_template)
+    authoring: dict[str, Any] = load_corpus_json("v1/toy_process.json")
     del authoring["state"]["print_result"]  # the file-writing step is not needed here
     composite = pg.Composite(deepcopy(authoring), core=core)
     saved = {"state": composite.serialize_state(), "schema": composite.serialize_schema()}

@@ -22,20 +22,20 @@ DOCUMENT_SNAPSHOTS = [
 
 @pytest.mark.parametrize("name", DOCUMENT_SNAPSHOTS)
 def test_snapshot_is_a_fixpoint_through_the_document(name: str) -> None:
-    path = SNAPSHOTS / f"{name}.pbl"
+    path = SNAPSHOTS / f"{name}.pblang"
     document = compile_file(path, registry=REGISTRY, force=True).document
     printed = decompile(document, name=name, registry=REGISTRY)
     assert printed.text == path.read_text(encoding="utf-8")
 
 
 def test_spec_snapshot_is_a_fixpoint_through_the_composite_spec() -> None:
-    path = SNAPSHOTS / "reversible-dimerization.pbl"
+    path = SNAPSHOTS / "reversible-dimerization.pblang"
     spec = compile_file(path, to="spec").document
     assert decompile(spec, name="reversible-dimerization").text == path.read_text(encoding="utf-8")
 
 
 def test_a_filled_model_site_compiles(tmp_path: Path) -> None:
-    source = tmp_path / "demo.pbl"
+    source = tmp_path / "demo.pblang"
     source.write_text(
         """
 import pkg.mod.{Grow};

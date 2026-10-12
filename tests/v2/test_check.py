@@ -1,12 +1,10 @@
 """Static checks against interface declarations, with no process code imported."""
 
-from copy import deepcopy
 from typing import Any
 
 from process_bigraph_lang.v2 import InterfaceRegistry, check_text, decompile
 from process_bigraph_lang.v2.check import Diagnostic
 from process_bigraph_lang.v2.langium import langium_cli
-from tests.compiler.generator.test_toy_add_floats import add_floats_process_expected_config_template
 from tests.v2.helpers import REGISTRY, load_corpus_json
 import pytest
 
@@ -27,7 +25,7 @@ def _codes(doc: dict[str, Any]) -> dict[str, list[str]]:
 
 
 def test_clean_document_has_no_findings() -> None:
-    assert check_document(deepcopy(add_floats_process_expected_config_template), REGISTRY) == []
+    assert check_document(load_corpus_json("v1/toy_process.json"), REGISTRY) == []
 
 
 def test_mistakes_are_found_without_importing_processes() -> None:

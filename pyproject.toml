@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "process_bigraph_lang"
 version = "0.0.1"
-description = "This is a LSP, CLI and Python package for a domain specific language for process bigraphs."
+description = "A language server, CLI and Python package for a domain specific language that describes process bigraphs."
 authors = ["Jim Schaff <schaff@uchc.edu>"]
 repository = "https://github.com/biosimulations/process-bigraph-lang"
 documentation = "https://biosimulations.github.io/process-bigraph-lang/"
@@ -16,8 +16,6 @@ include = [
 
 [tool.poetry.dependencies]
 python = ">=3.11,<4.0"
-pydantic = "^2.11.3"
-antlr4-python3-runtime = "^4.13.2"
 bigraph-schema = "^1.6.0"
 numpy = ">=1.26"
 
@@ -31,10 +29,7 @@ deptry = "^0.16.2"
 mypy = "^1.5.1"
 pre-commit = "^3.4.0"
 tox = "^4.11.1"
-types-antlr4-python3-runtime = "^4.13.0.20240519"
-tellurium = "^2.2.10"
 process-bigraph = "^1.8.4"
-optlang = "^1.8.3"
 pyyaml = "^6.0"
 types-pyyaml = "^6.0"
 
@@ -66,15 +61,10 @@ warn_unused_ignores = "True"
 show_error_codes = "True"
 disable_error_code = ["no-any-unimported"]
 
-[[tool.mypy.overrides]]
-module = "process_bigraph_lang.antlr.*"
-ignore_errors = true
-
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 
 [tool.ruff]
-per-file-ignores = {"process_bigraph_lang/antlr/*.py" = ["F403", "F405"] }
 target-version = "py39"
 line-length = 120
 fix = true

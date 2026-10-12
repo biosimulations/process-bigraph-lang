@@ -6,7 +6,7 @@ step/process class it exposes into an `InterfaceDecl`: the address in portable `
 `config_schema`, and the ports obtained by calling `inputs()`/`outputs()` with the class standing in for `self`
 (ports that depend on an instance are marked `dynamic_ports`). Types stay in bigraph-schema's own form. The
 `InterfaceRegistry` holds declarations and reads and writes the JSON manifest (`pblang-manifest/0`), which the
-TypeScript checker, printer and binder consume; `render_interfaces` has the CLI print the `.pbl` header file.
+TypeScript checker, printer and binder consume; `render_interfaces` has the CLI print the `.pblang` header file.
 """
 
 from __future__ import annotations
@@ -120,7 +120,7 @@ class InterfaceRegistry:
 
 
 def render_interfaces(decls: list[InterfaceDecl], module_name: str) -> str:
-    """The `.pbl` header file of a module's declarations, as the CLI prints it."""
+    """The `.pblang` header file of a module's declarations, as the CLI prints it."""
     from process_bigraph_lang.v2.langium import run_cli
 
     with tempfile.TemporaryDirectory() as tmp:
