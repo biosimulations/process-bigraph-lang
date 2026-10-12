@@ -13,6 +13,7 @@ Sidecar assets of `decompile` are written next to the output when `--out` is giv
 from __future__ import annotations
 
 import argparse
+import json
 import sys
 from pathlib import Path
 from typing import Any
@@ -103,8 +104,13 @@ def _diff(args: argparse.Namespace) -> int:
 
 def _describe(args: argparse.Namespace) -> int:
     registry = InterfaceRegistry.from_modules(*args.modules)
+    if args.manifest_only and not args.manifest:
+        sys.stdout.write(json.dumps(registry.to_manifest(), indent=2, default=str) + "\n")
+        return 0
     if args.manifest:
         registry.write_manifest(Path(args.manifest))
+    if args.manifest_only:
+        return 0
     files = {
         module: render_interfaces([d for d in registry.decls if d.module == module], module) for module in args.modules
     }
@@ -176,6 +182,11 @@ def main(argv: list[str] | None = None) -> int:
     describe_cmd = commands.add_parser("describe", help="generate interface declarations from Python modules")
     describe_cmd.add_argument("modules", nargs="+", help="importable module names (run in the package's env)")
     describe_cmd.add_argument("--manifest", help="write the JSON manifest here")
+    describe_cmd.add_argument(
+        "--manifest-only",
+        action="store_true",
+        help="only the manifest (to --manifest, else stdout): no interface files, so no Langium CLI is needed",
+    )
     describe_cmd.add_argument(
         "--out", help="the .pblang interface file (one module) or a directory (one file per module)"
     )

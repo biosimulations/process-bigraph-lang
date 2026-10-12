@@ -69,6 +69,9 @@ const ARRAY_KEYS = ["_shape", "_data", "_units"];
 // --- from the AST ---------------------------------------------------------------------------------------------
 
 export function fromAst(expr: ast.TypeExpr): TypeExpr {
+  // a half-typed declaration (`param x:`) can reach here with no type: nothing to check it against yet
+  if (expr?.options === undefined || expr.options.length === 0)
+    return { kind: "raw", attrs: {} };
   const options = expr.options.map(fromPrimary);
   return options.length === 1 ? options[0] : { kind: "union", options };
 }

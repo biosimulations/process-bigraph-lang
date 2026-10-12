@@ -5,8 +5,9 @@ Interface declarations as data: a minimal stage-A `describe` and the registry th
 step/process class it exposes into an `InterfaceDecl`: the address in portable `local:!module.Class` form, the
 `config_schema`, and the ports obtained by calling `inputs()`/`outputs()` with the class standing in for `self`
 (ports that depend on an instance are marked `dynamic_ports`). Types stay in bigraph-schema's own form. The
-`InterfaceRegistry` holds declarations and reads and writes the JSON manifest (`pblang-manifest/0`), which the
-TypeScript checker, printer and binder consume; `render_interfaces` has the CLI print the `.pblang` header file.
+`InterfaceRegistry` holds declarations and reads and writes the JSON interface manifest (`pbg-interfaces/1`, a
+format shared with other tools; the earlier `pblang-manifest/0` is still read), which the TypeScript checker, printer
+and binder consume; `render_interfaces` has the CLI print the `.pblang` header file.
 """
 
 from __future__ import annotations
@@ -19,9 +20,18 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
+from process_bigraph_lang.v2.describe_env import (
+    MANIFEST_VERSION,
+    SCHEMA_URL,
+    doc_of,
+    is_edge_class,
+    json_type,
+    kind_of,
+    ports_of,
+)
 from process_bigraph_lang.v2.types import MISSING, Named, parse_type
 
-MANIFEST_VERSION = "pblang-manifest/0"
+LEGACY_MANIFEST_VERSION = "pblang-manifest/0"  # `config: {key: {type, default}}` and `doc`; read, never written
 
 
 @dataclass
@@ -59,7 +69,7 @@ def describe_module(module_name: str) -> list[InterfaceDecl]:
     is_package = hasattr(module, "__path__")
     decls: list[InterfaceDecl] = []
     for name, cls in inspect.getmembers(module, inspect.isclass):
-        if name.startswith("_") or not _is_edge_class(cls) or not _belongs_to(cls, module_name, is_package):
+        if name.startswith("_") or not is_edge_class(cls) or not _belongs_to(cls, module_name, is_package):
             continue
         decls.append(describe_class(cls, module_name, name))
     return decls
@@ -69,16 +79,16 @@ def describe_class(cls: type, module_name: str | None = None, name: str | None =
     """The declaration of one step/process class."""
     module_name = module_name or cls.__module__
     name = name or cls.__name__
-    inputs, outputs, dynamic = _ports(cls)
+    inputs, outputs, dynamic = ports_of(cls)
     return InterfaceDecl(
         name=name,
-        kind=_kind(cls),
+        kind=kind_of(cls),
         address=f"local:!{module_name}.{name}",
         module=module_name,
         config=_config_fields(getattr(cls, "config_schema", None) or {}),
         inputs=inputs,
         outputs=outputs,
-        doc=_doc(cls),
+        doc=doc_of(cls),
         dynamic_ports=dynamic,
     )
 
@@ -98,10 +108,19 @@ class InterfaceRegistry:
 
     @classmethod
     def from_manifest(cls, manifest: dict[str, Any]) -> InterfaceRegistry:
+        version = manifest.get("schema_version")
+        if version not in (None, MANIFEST_VERSION, LEGACY_MANIFEST_VERSION):
+            raise ValueError(
+                f"unsupported manifest schema_version {version!r}: this reader understands {MANIFEST_VERSION}"
+            )
         return cls([_decl_from_manifest(entry) for entry in manifest.get("components", [])])
 
     def to_manifest(self) -> dict[str, Any]:
-        return {"schema_version": MANIFEST_VERSION, "components": [_decl_to_manifest(d) for d in self.decls]}
+        return {
+            "$schema": SCHEMA_URL,
+            "schema_version": MANIFEST_VERSION,
+            "components": [_decl_to_manifest(d) for d in self.decls],
+        }
 
     def lookup(self, address: str) -> InterfaceDecl | None:
         """By exact address; else by unique short name (`local:Name`, or a class re-exported from another module)."""
@@ -135,38 +154,9 @@ def render_interfaces(decls: list[InterfaceDecl], module_name: str) -> str:
 # --- describe ----------------------------------------------------------------------------------------------------
 
 
-def _is_edge_class(cls: type) -> bool:
-    return any(base.__name__ == "Edge" for base in cls.__mro__)
-
-
 def _belongs_to(cls: type, module_name: str, is_package: bool) -> bool:
     """Defined in the module itself, or (for a package) re-exported from one of its submodules."""
     return cls.__module__ == module_name or (is_package and cls.__module__.startswith(module_name + "."))
-
-
-def _kind(cls: type) -> str:
-    names = [base.__name__ for base in cls.__mro__]
-    if "Process" in names:
-        return "process"
-    return "step"
-
-
-def _ports(cls: type) -> tuple[dict[str, Any] | None, dict[str, Any] | None, bool]:
-    faces: list[dict[str, Any] | None] = []
-    dynamic = False
-    for method_name in ("inputs", "outputs"):
-        method = getattr(cls, method_name, None)
-        if method is None:
-            faces.append(None)
-            continue
-        try:
-            ports = method(cls)  # the class stands in for `self`: works for literal port dicts
-        except Exception:  # noqa: BLE001 - ports depend on an instance (self.config, children, ...)
-            faces.append(None)
-            dynamic = True
-            continue
-        faces.append({str(k): v for k, v in ports.items()} if isinstance(ports, dict) else None)
-    return faces[0], faces[1], dynamic
 
 
 def _config_fields(schema: Any) -> dict[str, ConfigField]:
@@ -181,16 +171,8 @@ def _config_fields(schema: Any) -> dict[str, ConfigField]:
                 default = expr.default
         except (TypeError, ValueError):
             pass
-        fields[str(key)] = ConfigField(spec if isinstance(spec, (str, dict)) else None, default)
+        fields[str(key)] = ConfigField(json_type(spec), default)
     return fields
-
-
-def _doc(cls: type) -> str | None:
-    text = cls.__dict__.get("__doc__")
-    if not text:
-        return None
-    first = inspect.cleandoc(text).split("\n\n", 1)[0].strip()
-    return first or None
 
 
 # --- manifest ----------------------------------------------------------------------------------------------------
@@ -202,21 +184,23 @@ def _decl_to_manifest(decl: InterfaceDecl) -> dict[str, Any]:
         "kind": decl.kind,
         "address": decl.address,
         "module": decl.module,
-        "config": {
-            k: {"type": f.type, **({"default": f.default} if f.default is not MISSING else {})}
-            for k, f in decl.config.items()
-        },
+        "config_schema": {k: f.type for k, f in decl.config.items()},
         "inputs": dict(decl.inputs) if decl.inputs is not None else None,
         "outputs": dict(decl.outputs) if decl.outputs is not None else None,
         "dynamic_ports": decl.dynamic_ports,
     }
     if decl.doc:
-        entry["doc"] = decl.doc
+        entry["description"] = decl.doc
     return entry
 
 
 def _decl_from_manifest(entry: dict[str, Any]) -> InterfaceDecl:
-    config = {k: ConfigField(f.get("type"), f.get("default", MISSING)) for k, f in (entry.get("config") or {}).items()}
+    if "config_schema" in entry:  # the shared format: the class's own config_schema; defaults live in the types
+        config = _config_fields(entry.get("config_schema") or {})
+    else:  # pblang-manifest/0
+        config = {
+            k: ConfigField(f.get("type"), f.get("default", MISSING)) for k, f in (entry.get("config") or {}).items()
+        }
     return InterfaceDecl(
         name=entry["name"],
         kind=entry.get("kind", "process"),
@@ -225,7 +209,7 @@ def _decl_from_manifest(entry: dict[str, Any]) -> InterfaceDecl:
         config=config,
         inputs=_ports_from_manifest(entry.get("inputs")),
         outputs=_ports_from_manifest(entry.get("outputs")),
-        doc=entry.get("doc"),
+        doc=entry.get("description", entry.get("doc")),
         dynamic_ports=bool(entry.get("dynamic_ports", False)),
     )
 

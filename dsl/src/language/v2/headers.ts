@@ -61,14 +61,57 @@ export function isCompositeAddress(address: string): boolean {
   return address.startsWith("local:") && shortName(address) === "Composite";
 }
 
+/**
+ * The interface manifest format (`describe`, `describe_env.py`): a format shared with other tools, with types in
+ * bigraph-schema's own forms. Its JSON Schema is published at `MANIFEST_SCHEMA_URL`.
+ */
+export const MANIFEST_VERSION = "pbg-interfaces/1";
+export const MANIFEST_SCHEMA_URL =
+  "https://biosimulations.github.io/process-bigraph-lang/schemas/pbg-interfaces-1.schema.json";
+/** The earlier, pblang-only form (`config: {key: {type, default}}`, `doc`), still read. */
+const LEGACY_MANIFEST_VERSION = "pblang-manifest/0";
+
 export class Registry {
   readonly decls: InterfaceDecl[] = [];
 
+  /**
+   * Add a manifest's components. A component whose address is already known replaces the earlier one, so adding
+   * the same manifest twice changes nothing. A manifest of another `schema_version` is rejected.
+   */
   addManifest(manifest: unknown): void {
+    const version = (manifest as { schema_version?: unknown })?.schema_version;
+    if (
+      version !== undefined &&
+      version !== MANIFEST_VERSION &&
+      version !== LEGACY_MANIFEST_VERSION
+    )
+      throw new Error(
+        `unsupported manifest schema_version ${JSON.stringify(
+          version,
+        )}: this reader understands ${MANIFEST_VERSION}`,
+      );
     const components =
       (manifest as { components?: unknown[] })?.components ?? [];
-    for (const entry of components)
-      this.decls.push(fromManifestEntry(entry as Record<string, unknown>));
+    for (const entry of components) {
+      const decl = fromManifestEntry(entry as Record<string, unknown>);
+      const known =
+        decl.address === undefined
+          ? -1
+          : this.decls.findIndex((d) => d.address === decl.address);
+      if (known >= 0) this.decls[known] = decl;
+      else this.decls.push(decl);
+    }
+  }
+
+  /** Replace every manifest-declared interface with these manifests' (an editor switching environments). */
+  setManifests(manifests: unknown[]): void {
+    const decls = this.decls.splice(0);
+    try {
+      for (const manifest of manifests) this.addManifest(manifest);
+    } catch (error) {
+      this.decls.splice(0, this.decls.length, ...decls);
+      throw error;
+    }
   }
 
   /** By exact address; else by unique short name (`local:Name`, or a class re-exported from another module). */
@@ -84,9 +127,29 @@ export class Registry {
 
 function fromManifestEntry(entry: Record<string, unknown>): InterfaceDecl {
   const config: Record<string, ConfigField> = {};
+  if (entry.config_schema != null && typeof entry.config_schema === "object") {
+    // the shared format: the class's own config_schema; a default lives in the type (`T{v}`, `{_type, _default}`)
+    for (const [key, spec] of Object.entries(
+      entry.config_schema as Record<string, unknown>,
+    )) {
+      let type: TypeExpr | undefined;
+      try {
+        type = spec != null ? parseType(spec) : undefined;
+      } catch {
+        type = undefined;
+      }
+      config[key] = {
+        type,
+        hasDefault: type?.kind === "named" && Boolean(type.hasDefault),
+      };
+      if (type?.kind === "named" && type.hasDefault)
+        config[key].default = type.default;
+    }
+  }
   for (const [key, field] of Object.entries(
     (entry.config as Record<string, Record<string, unknown>>) ?? {},
   )) {
+    // pblang-manifest/0
     config[key] = {
       type: field.type != null ? parseType(field.type) : undefined,
       hasDefault: "default" in field,
@@ -104,7 +167,8 @@ function fromManifestEntry(entry: Record<string, unknown>): InterfaceDecl {
     outputs: portsFromManifest(entry.outputs),
     dynamicPorts: Boolean(entry.dynamic_ports),
   };
-  if (typeof entry.doc === "string") decl.doc = entry.doc;
+  const description = entry.description ?? entry.doc;
+  if (typeof description === "string") decl.doc = description;
   return decl;
 }
 

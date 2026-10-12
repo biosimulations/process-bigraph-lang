@@ -50,14 +50,14 @@ where the webapp gets them. Decided 2026-10-12:
 1. **A standalone describe script.**
    - New file `process_bigraph_lang/v2/describe_env.py`, standard library only and runnable as a plain file: `python describe_env.py <module_root>... [--env-name N --image REF] > manifest.json`.
    - It walks submodules (`pkgutil.walk_packages`) and keeps Edge subclasses (MRO name check, as `_is_edge_class` does) defined under the given roots. Import errors per submodule are recorded, never fatal.
-   - Output is `pblang-manifest/0` plus `environment {name, image, python, process_bigraph, bigraph_schema, generated_by}` and `errors[]`.
+   - Output is the shared interface manifest (`pbg-interfaces/1`, see the registry design, section 1.7) plus `environment {name, image, python, process_bigraph, bigraph_schema, generated_by}` and `errors[]`.
    - Config defaults are taken only from dict specs with `_default`; types stay raw, and the TypeScript side parses them.
    - `describe_module` delegates its per-class work to the same functions, so there is one implementation. `describe` gains `--manifest-only`, which skips header rendering and needs no CLI.
    - Tests: the script's output on `tests/fixtures/test_registry` matches `describe_module`'s manifest for the same classes, run in a subprocess with `-I`.
 2. **Replaceable registry.** In `Registry` (`headers.ts`):
    - `setManifests(manifests[])` clears and refills.
    - Declarations are keyed by address, so a duplicate replaces rather than appends.
-   - A `schema_version` other than `pblang-manifest/0` is rejected with a clear error.
+   - A `schema_version` other than `pbg-interfaces/1` (or the earlier `pblang-manifest/0`) is rejected with a clear error.
    - `Pblang.setManifests` mirrors it in `dsl/src/api.ts`.
    - Tests go in `api.test.ts`.
 3. **Worker channel.**
@@ -155,6 +155,6 @@ where the webapp gets them. Decided 2026-10-12:
 
 - Server-side port checking at submission, and validation of prebuilt submissions.
 - Manifests for catalog entries at level `listed`, which have no built environment.
-- `pblang-manifest/1` (contracts, port semantics, adapters).
+- Later versions of the manifest (contracts, port semantics, adapters).
 - The per-composite resolver (phase C).
 - Retiring `/core/processes|steps/list`.
