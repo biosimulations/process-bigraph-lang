@@ -80,6 +80,12 @@ export interface CompileOptions {
   force?: boolean;
   /** the sidecar files `file("…")` references name, by path, as text */
   assets?: Record<string, string>;
+  /**
+   * How imported classes are addressed. `import` (the default) writes `local:!module.Class`, which process-bigraph
+   * resolves by importing the module. `registered` writes `local:module.Class`, the name process-bigraph's discovery
+   * registers each class under: what a service that refuses the import form (compose-api) runs.
+   */
+  addresses?: "import" | "registered";
 }
 
 export interface Compiled {
@@ -258,14 +264,18 @@ export class Pblang {
         if (content === undefined) throw new Error(`missing asset: ${p}`);
         return content;
       });
+      const finish = (written: Dict): Dict =>
+        options.addresses === "registered"
+          ? (registeredAddresses(written) as Dict)
+          : written;
       if (options.to === "spec")
         return {
-          text: dumpYaml(writeCompositeSpec(model, loader)),
+          text: dumpYaml(finish(writeCompositeSpec(model, loader))),
           format: "yaml",
           diagnostics,
         };
       return {
-        text: stringifyJson(writeDocument(model, loader), 2) + "\n",
+        text: stringifyJson(finish(writeDocument(model, loader)), 2) + "\n",
         format: "json",
         diagnostics,
       };
@@ -328,4 +338,21 @@ export class Pblang {
       [document.uri],
     );
   }
+}
+
+/** Every `address: "local:!module.Class"` in a written document (nested composites and child edges too) as `local:module.Class`. */
+function registeredAddresses(value: unknown): unknown {
+  if (value instanceof Map) {
+    const out = new Map<unknown, unknown>();
+    for (const [k, v] of value)
+      out.set(
+        k,
+        k === "address" && typeof v === "string" && v.startsWith("local:!")
+          ? `local:${v.slice("local:!".length)}`
+          : registeredAddresses(v),
+      );
+    return out;
+  }
+  if (Array.isArray(value)) return value.map(registeredAddresses);
+  return value;
 }

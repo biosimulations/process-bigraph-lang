@@ -114,6 +114,48 @@ describe("registry", () => {
   });
 });
 
+describe("compile addresses", () => {
+  test("registered writes local:module.Class, everywhere a class is addressed", async () => {
+    const pblang = new Pblang().setManifests([manifest]);
+    const nested = `import tests.fixtures.test_registry.toy_library.{AddFloatsProcess};
+composite demo {
+  store a: float = 1.0;
+  store b: float = 2.0;
+  store sum: float = 0.0;
+  process add : AddFloatsProcess {
+    inputs { left_hand_addend -> a, right_hand_addend -> b }
+    outputs { result -> sum }
+  }
+  composite cell every 1.0 {
+    composite {
+      store x: float = 1.0;
+      store y: float = 0.0;
+      process inner : AddFloatsProcess {
+        inputs { left_hand_addend -> x, right_hand_addend -> x }
+        outputs { result -> y }
+      }
+    }
+  }
+}
+`;
+    const qualified =
+      "tests.fixtures.test_registry.toy_library.AddFloatsProcess";
+    const imported = JSON.parse((await pblang.compile(nested)).text);
+    expect(imported.state.add.address).toBe(`local:!${qualified}`);
+    expect(imported.state.cell.config.state.inner.address).toBe(
+      `local:!${qualified}`,
+    );
+    const registered = JSON.parse(
+      (await pblang.compile(nested, { addresses: "registered" })).text,
+    );
+    expect(registered.state.add.address).toBe(`local:${qualified}`);
+    expect(registered.state.cell.config.state.inner.address).toBe(
+      `local:${qualified}`,
+    );
+    expect(registered.state.cell.address).toBe("local:Composite");
+  });
+});
+
 describe("pblang/setManifests", () => {
   async function server() {
     const { shared, Pblang: services } =
