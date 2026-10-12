@@ -240,6 +240,13 @@ than through bigraph-schema's renderer (the renderer drops custom type names suc
 unknown dict-form types, so the two spellings of one type no longer collided), and `///` doc comments are joined with
 spaces when parsed because the printer wraps them.
 
+`describe-model` (`process_bigraph_lang/v2/sbml.py`, `python -m process_bigraph_lang.v2 describe-model x.xml`)
+is the model-side twin of `describe`: it reads an SBML file with the standard library and writes a model header
+(time unit, compartments, species as concentrations or amounts, parameters, each with pint-readable units composed
+from the model's unit definitions, plus reaction/event/rule counts and the SBML level, version and packages). The
+Caravagna header is snapshotted; see the design's section 5.6 for how per-document composites and per-class
+templates use it.
+
 ## Verification
 
 1. `make check` (ruff, prettier, mypy strict, deptry, `poetry check --lock`) green after `git add` of new files.

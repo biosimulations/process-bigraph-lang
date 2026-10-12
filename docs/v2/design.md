@@ -756,6 +756,57 @@ the same step. A data-level lint that compares a model file's unit definitions w
 a separate, later check. Pinning a variable explicitly at an instance (`units { U = "uM" }`) is possible syntax
 for the case where no store declares units; it is not needed when the stores do.
 
+## 5.6 Model headers and model sites (SBML and other model files)
+
+The v1 SBML stub generator read a model file and wrote a _composite_ specialized to it: stores named after that
+model's species and parameters, values baked in. That conflates two things that v2 keeps apart.
+
+**A model file has an interface, like a process does.** Its species, parameters and compartments with their
+units, its time unit, and which species are amounts rather than concentrations are the model's face. The
+model-side twin of `describe` is `describe-model`: it reads the file once and writes a **model header**, a
+generated, read-only declaration next to the file (`Caravagna2010.model.pblang`), not a composite:
+
+```text
+model Caravagna2010 from "Caravagna2010.xml" {
+  time @ "s";
+  compartments { compartment: float @ "mL" = 1.0; }
+  species { T: float @ "umol/mL" = 1.0; E: float @ "umol/mL" = 1.0; I: float @ "umol/mL" = 1.0; }
+  parameters { r2: float = 0.18; b: float = 1.0e-09; … }
+  meta { sbml = "L2V4", reactions = 3, events = 0, rules = 0 }
+}
+```
+
+Everything in it is data and regenerable; units come from the model's unit definitions, which is where the
+stores' units in section 5.5 come from. `process_bigraph_lang/v2/sbml.py` prototypes this on the Caravagna
+fixture with the standard library's XML parser (no libsbml).
+
+**Two kinds of workflow, both first-class.**
+
+- A **per-document composite** imports the model header and uses it: `store species: Caravagna2010.species =
+Caravagna2010.initial;`, a solver wired `species -> species`, adapters naming real species
+  (`substrates { T -> species.T }`), emit paths naming real species. The checker verifies all of that statically
+  against the header: a wire to a species the model lacks, a unit mismatch through `?U`, an emit path for a
+  species that does not exist.
+- A **per-class workflow** is a template. The model is a site and the class is the site's sort, what any filler
+  must provide: `node model : SBMLModel = ?` with a sort that says concentration species in some `?U`, a time
+  unit `?T`, and the members the workflow touches (`parameters.k1` to sweep, `species.A` for an adapter). The
+  solver's header is polymorphic (`?U/?T`), the species store is an open map, the model file is a `param`.
+  Whether a given document fits is a static `admits` check of its model header against the sort, before
+  anything runs.
+
+Instantiation relates the two: a per-class template plus a model header, with the site filled, is a per-document
+composite. That is process-bigraph's site-and-fill machinery applied to a data input instead of a process.
+
+**What the class can say that v1 could not.** The things that decide whether a solver handles a document: amounts
+versus concentrations (the v1 stub converted by compartment size, silently), events and rules, local
+parameters, SBML level, version and packages (`spatial`, `comp`, `fbc`). Those become predicates of the model
+site's sort, and solvers declare what they accept in their headers (`accepts: sbml-l3v2, no spatial`), so
+choosing a solver for a model is the same face matching the registry design uses for adapters.
+
+Still to do: the `model` declaration and `Name.species`-style member types in the grammar, admitting a model header
+against a model site's sort in the checker, and a data-level lint comparing a model file's unit definitions with
+the stores it is wired to.
+
 ## 6. Open questions
 
 1. **Params referenced at several positions in template mode.** Substitute at compile time by default (`--set`);

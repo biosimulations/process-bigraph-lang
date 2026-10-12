@@ -117,6 +117,22 @@ def _check(args: argparse.Namespace) -> int:
     return 1 if errors else 0
 
 
+def _describe_model(args: argparse.Namespace) -> int:
+    import json
+
+    from process_bigraph_lang.v2.sbml import describe_sbml, print_model_header
+
+    header = describe_sbml(args.model)
+    if args.manifest:
+        Path(args.manifest).write_text(json.dumps(header.to_dict(), indent=2) + "\n")
+    text = print_model_header(header)
+    if args.out:
+        Path(args.out).write_text(text)
+    else:
+        sys.stdout.write(text)
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="python -m process_bigraph_lang.v2")
     commands = parser.add_subparsers(dest="command", required=True)
@@ -132,6 +148,11 @@ def main(argv: list[str] | None = None) -> int:
         "--out", help="the .pblang interface file (one module) or a directory (one file per module)"
     )
     describe_cmd.set_defaults(run=_describe)
+    model_cmd = commands.add_parser("describe-model", help="generate a model header from an SBML file")
+    model_cmd.add_argument("model", help="an SBML file")
+    model_cmd.add_argument("--manifest", help="write the JSON form here")
+    model_cmd.add_argument("--out", help="write the .pblang model header here")
+    model_cmd.set_defaults(run=_describe_model)
     check_cmd = commands.add_parser("check", help="statically check a document against interface manifests")
     check_cmd.add_argument("document")
     check_cmd.add_argument("--interfaces", action="append", help="a manifest.json (repeatable)")
