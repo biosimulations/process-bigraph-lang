@@ -18,6 +18,7 @@ from process_bigraph.processes.growth_division import grow_divide_agent  # type:
 from process_bigraph.templates import open_sites, template_document  # type: ignore[import-untyped]
 
 from process_bigraph_lang.v2 import (
+    InterfaceRegistry,
     deep_equal,
     diff_documents,
     equivalent,
@@ -35,9 +36,14 @@ from tests.fixtures.test_registry.toy_library import AddFloatsProcess
 from tests.v2.helpers import CORPUS, asset_loader, assert_snapshot, load_corpus_json, realized_equivalent
 
 
+REGISTRY = InterfaceRegistry.from_modules(
+    "tests.fixtures.test_registry.toy_library", "tests.fixtures.test_registry.spatio_flux.processes"
+)
+
+
 def _round_trip(name: str, original: dict[str, Any], core: Any) -> dict[str, Any]:
     model = read_document(deepcopy(original))
-    printed = print_document(model, name=name)
+    printed = print_document(model, name=name, registry=REGISTRY)
     assert_snapshot(name, printed)
     written = write_document(model, assets=asset_loader(printed))
     assert equivalent(original, written, core), diff_documents(original, written, core)

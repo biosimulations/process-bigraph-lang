@@ -14,17 +14,21 @@ There is no v2 text parser yet: the model is the round-trip pivot, and the print
 human review and for seeding the Langium v2 grammar.
 """
 
+from process_bigraph_lang.v2.interfaces import InterfaceRegistry, describe_module
 from process_bigraph_lang.v2.normalize import deep_equal, diff_documents, equivalent, normalize_document
-from process_bigraph_lang.v2.printer import print_document
+from process_bigraph_lang.v2.printer import print_document, print_interfaces
 from process_bigraph_lang.v2.reader import read_composite_spec, read_document
 from process_bigraph_lang.v2.writer import write_composite_spec, write_document
 
 __all__ = [
+    "InterfaceRegistry",
     "deep_equal",
+    "describe_module",
     "diff_documents",
     "equivalent",
     "normalize_document",
     "print_document",
+    "print_interfaces",
     "read_composite_spec",
     "read_document",
     "write_composite_spec",

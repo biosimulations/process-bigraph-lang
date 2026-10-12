@@ -13,7 +13,15 @@ import sys
 from pathlib import Path
 from typing import Any
 
-from process_bigraph_lang.v2 import diff_documents, equivalent, print_document, read_composite_spec, read_document
+from process_bigraph_lang.v2 import (
+    InterfaceRegistry,
+    diff_documents,
+    equivalent,
+    print_document,
+    print_interfaces,
+    read_composite_spec,
+    read_document,
+)
 
 
 def _load(path: Path) -> tuple[dict[str, Any], bool]:
@@ -33,7 +41,12 @@ def _print(args: argparse.Namespace) -> int:
     path = Path(args.document)
     loaded, is_spec = _load(path)
     model = read_composite_spec(loaded) if is_spec else read_document(loaded)
-    printed = print_document(model, name=path.stem.replace(".composite", ""))
+    registry = None
+    if args.interfaces:
+        import json
+
+        registry = InterfaceRegistry.from_manifest(json.loads(Path(args.interfaces).read_text()))
+    printed = print_document(model, name=path.stem.replace(".composite", ""), registry=registry)
     if args.out:
         out = Path(args.out)
         out.write_text(printed.text)
@@ -61,13 +74,35 @@ def _diff(args: argparse.Namespace) -> int:
     return 1
 
 
+def _describe(args: argparse.Namespace) -> int:
+    import json
+
+    registry = InterfaceRegistry.from_modules(*args.modules)
+    if args.manifest:
+        Path(args.manifest).write_text(json.dumps(registry.to_manifest(), indent=2, default=str) + "\n")
+    text = "".join(
+        print_interfaces([d for d in registry.decls if d.module == module], module) for module in args.modules
+    )
+    if args.out:
+        Path(args.out).write_text(text)
+    else:
+        sys.stdout.write(text)
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="python -m process_bigraph_lang.v2")
     commands = parser.add_subparsers(dest="command", required=True)
     print_cmd = commands.add_parser("print", help="print a document or CompositeSpec as .pblang v2 text")
     print_cmd.add_argument("document")
     print_cmd.add_argument("--out", help="write the text here (assets go next to it)")
+    print_cmd.add_argument("--interfaces", help="a manifest.json; matching addresses print as imports")
     print_cmd.set_defaults(run=_print)
+    describe_cmd = commands.add_parser("describe", help="generate interface declarations from Python modules")
+    describe_cmd.add_argument("modules", nargs="+", help="importable module names (run in the package's env)")
+    describe_cmd.add_argument("--manifest", help="write the JSON manifest here")
+    describe_cmd.add_argument("--out", help="write the .pblang interface file here")
+    describe_cmd.set_defaults(run=_describe)
     diff_cmd = commands.add_parser("diff", help="compare two documents after normalization (exit 1 if they differ)")
     diff_cmd.add_argument("a")
     diff_cmd.add_argument("b")

@@ -191,7 +191,13 @@ printing the corpus that feed back into the design:
   `W-STORE-UNTYPED` case; types will come from interface files (stretch step 10).
 - The saved form of a nested composite reads back with an empty inner composite; the printer flags it.
 
-Not done: stretch steps 10 (minimal `describe` and `import` resolution) and 11 (Lark parser).
+Stretch step 10 is also done in a minimal form: `process_bigraph_lang/v2/interfaces.py` has `describe_module`
+(stage A over a Python module: portable address, `config_schema`, ports obtained with the class standing in for
+`self`, `dynamic_ports` when that fails, the docstring), an `InterfaceRegistry` with a JSON manifest
+(`pblang-manifest/0`), and `python -m process_bigraph_lang.v2 describe <module> --manifest m.json --out m.pblang`.
+The printer resolves edge addresses against a registry and prints `import module.{Name};` instead of an inline
+declaration; the spatio-flux and saved-toy snapshots show it, and `toy_library.interfaces.pblang` is the first
+generated interface file. Not done: step 11 (Lark parser) and hand-written override files for dynamic ports.
 
 ## Verification
 

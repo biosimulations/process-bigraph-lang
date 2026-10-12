@@ -91,6 +91,37 @@ class Face:
 
 
 @dataclass
+class ConfigField:
+    """One entry of an interface's `config { name: type = default; }`."""
+
+    type: TypeExpr | None = None
+    default: Any = MISSING
+    doc: str | None = None
+
+
+@dataclass
+class InterfaceDecl:
+    """
+    A process/step interface (`process Name at "…" { config {…} inputs {…} outputs {…} }`), as found in a
+    generated interface file, a manifest, or derived from an edge's `_inputs`/`_outputs`.
+    """
+
+    name: str
+    kind: str  # process | step | adapter
+    address: Address | None = None
+    module: str | None = None  # the module an `import` line names; None for an inline declaration
+    config: dict[str, ConfigField] = field(default_factory=dict)
+    inputs: dict[str, TypeExpr] | None = None
+    outputs: dict[str, TypeExpr] | None = None
+    doc: str | None = None
+    dynamic_ports: bool = False  # inputs()/outputs() could not be evaluated without an instance
+
+    @property
+    def face(self) -> Face:
+        return Face(self.inputs, self.outputs)
+
+
+@dataclass
 class Store:
     """A leaf of the tree: a typed value, or an open site. `value is MISSING` means declared only."""
 

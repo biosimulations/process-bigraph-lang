@@ -1,9 +1,6 @@
 // pblang v2 — printed from spatio_flux_III
 
-process DiffusionAdvection at "local:!tests.fixtures.test_registry.spatio_flux.processes.DiffusionAdvection" {
-  inputs { fields: map<string, positive_array<float>[10, 10]>; }
-  outputs { fields: map<string, positive_array<float>[10, 10]>; }
-}
+import tests.fixtures.test_registry.spatio_flux.processes.{DiffusionAdvection};
 
 composite {
   node fields {
@@ -55,6 +52,10 @@ composite {
     }
     inputs { fields -> fields }
     outputs { fields -> fields }
+    ports {
+      inputs { fields: map<string, positive_array<float>[10, 10]>; }
+      outputs { fields: map<string, positive_array<float>[10, 10]>; }
+    }
   }
   step emitter at "local:RAMEmitter" {
     config { emit = { fields = "node", global_time = "node" } }

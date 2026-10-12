@@ -1,9 +1,6 @@
 // pblang v2 — printed from spatio_flux_II
 
-process DynamicFBA at "local:!tests.fixtures.test_registry.spatio_flux.processes.DynamicFBA" {
-  inputs { substrates: map<string, positive_float>; }
-  outputs { substrates: map<string, positive_float>; }
-}
+import tests.fixtures.test_registry.spatio_flux.processes.{DynamicFBA};
 
 composite {
   node fields {
