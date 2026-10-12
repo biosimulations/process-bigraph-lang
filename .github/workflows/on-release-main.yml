@@ -42,8 +42,10 @@ jobs:
       - name: Set up the environment
         uses: ./.github/actions/setup-poetry-env
 
-      - name: Set the version from the release tag
-        run: poetry version "${GITHUB_REF_NAME#v}"
+      - name: Set the version from the release tag (the wheel's, and dsl/'s so cli-native reports it)
+        run: |
+          poetry version "${GITHUB_REF_NAME#v}"
+          (cd dsl && npm version --no-git-tag-version "${GITHUB_REF_NAME#v}")
 
       - name: Build the wheel (build.py builds cli-native for this platform)
         run: |
