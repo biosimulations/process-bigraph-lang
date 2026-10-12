@@ -221,7 +221,9 @@ nothing declares and the three components whose ports only an instance can tell.
 The checker also does the writer analysis of the registry design: per store, who writes it and with which apply
 semantics (from the port type, or the store's own `overwrite<T>`); `W220` (info) lists additive writers whose
 contributions superpose, `W221` warns when an overwriting writer sits next to any other writer (order-dependent),
-and `W223` warns when a step publishes an array-typed value with accumulate semantics.
+and `W223` warns when a step publishes an array-typed value with accumulate semantics. `emit` declarations are
+checked too: `W240` when a path names no declared store (the emitter would record an empty value) and `W241`
+(info) when an emitted store is written by nothing.
 
 Making the headers static was a change to the wrapped package, not to the tooling: on viva-pde-particle's
 `static-interfaces` branch, `SmoldynHybrid` always declares `particle_positions` (the `emit_positions` flag only

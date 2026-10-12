@@ -171,3 +171,62 @@ def test_step_publishing_an_array_additively_is_suspicious() -> None:
 def test_hybrid_writers_are_clean() -> None:
     diagnostics = check_document(read_document(load_corpus_json("hybrid_two_way_exchange.json")), REGISTRY)
     assert not [d for d in diagnostics if d.code in ("W221", "W223")]
+
+
+# --- emit declarations ------------------------------------------------------------------------------------------
+
+
+def _spec_codes(spec: dict[str, Any]) -> dict[str, list[str]]:
+    from process_bigraph_lang.v2 import read_composite_spec
+
+    out: dict[str, list[str]] = {}
+    for d in check_document(read_composite_spec(spec), REGISTRY):
+        out.setdefault(d.code, []).append(d.path)
+    return out
+
+
+def test_emit_paths_are_checked_against_stores_and_writers() -> None:
+    spec: dict[str, Any] = {
+        "name": "demo",
+        "emitters": [{"address": "local:RAMEmitter", "paths": ["A", "C", "label", "nope", "global_time", "pt/x"]}],
+        "schema": {"A": "float", "C": "float", "label": "string", "pt": {"x": "float", "y": "float"}},
+        "state": {
+            "A": 1.0,
+            "label": "run",
+            "pt": {"x": 0.0, "y": 0.0},
+            "add": {
+                "_type": "process",
+                "address": f"local:!{TOY}.AddFloatsProcess",
+                "inputs": {"left_hand_addend": ["A"], "right_hand_addend": ["A"]},
+                "outputs": {"result": ["C"]},
+            },
+        },
+    }
+    codes = _spec_codes(spec)
+    assert codes.get("W240") == ["emit/0/nope"]  # names nothing: the emitter would record an empty value
+    assert codes.get("W241") == ["emit/0/label", "emit/0/pt/x"]  # declared, but no edge writes them: constants
+    # `A` is read only but `global_time` is the scheduler's; neither is reported as unknown, and `C` is written
+    assert "emit/0/global_time" not in codes.get("W241", []) and "emit/0/C" not in codes.get("W241", [])
+    assert "emit/0/A" in codes["W241"]
+
+
+def test_reversible_dimerization_emits_are_clean() -> None:
+    import yaml
+
+    from tests.v2.helpers import CORPUS
+
+    spec = yaml.safe_load((CORPUS / "reversible-dimerization.composite.yaml").read_text())
+    codes = _spec_codes(spec)
+    assert not {"W240", "W241"} & set(codes)
+
+
+def test_emit_of_a_store_written_below_or_above_counts_as_written() -> None:
+    spec: dict[str, Any] = {
+        "emitters": [{"address": "local:RAMEmitter", "paths": ["fields", "fields/glucose"]}],
+        "schema": {"fields": {"glucose": "float", "acetate": "float"}},
+        "state": {
+            "fields": {"glucose": 1.0, "acetate": 1.0},
+            "p": {"_type": "process", "address": "local:P", "outputs": {"out": ["fields", "glucose"]}},
+        },
+    }
+    assert not {"W240", "W241"} & set(_spec_codes(spec))

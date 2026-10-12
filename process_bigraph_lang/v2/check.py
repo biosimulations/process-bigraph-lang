@@ -7,7 +7,8 @@ store (process-bigraph would create one silently), wires whose target's declared
 paths that escape the root, an `interval` on a step, components the registry does not know (their ports and
 config go unchecked) and interfaces whose ports depend on an instance (declared by hand later). It also analyses
 the writers of each store: additive writers that superpose (for review), an overwriting writer next to another
-writer (order-dependent), and a step publishing an array additively (usually meant `overwrite`). This is the
+writer (order-dependent), and a step publishing an array additively (usually meant `overwrite`); and it checks
+`emit` declarations: a path naming no declared store, or an observable that nothing writes. This is the
 S2–S4 slice of the diagnostics model in `docs/v2/design.md`; codes follow `docs/v2/registry-and-authoring.md`.
 """
 
@@ -17,7 +18,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from process_bigraph_lang.v2.interfaces import InterfaceRegistry
-from process_bigraph_lang.v2.model import Address, Composite, Document, Edge, InterfaceDecl, Node, Site, Store
+from process_bigraph_lang.v2.model import Address, Composite, Document, Edge, Emitter, InterfaceDecl, Node, Site, Store
 from process_bigraph_lang.v2.normalize import _canon_type
 from process_bigraph_lang.v2.paths import Path, Wire
 from process_bigraph_lang.v2.types import Group, Named, Struct, TypeExpr, to_bigraph
@@ -39,6 +40,7 @@ class Diagnostic:
 def check_document(doc: Document, registry: InterfaceRegistry | None = None) -> list[Diagnostic]:
     checker = _Checker(registry)
     checker.scope(doc.root, ())
+    checker.emitters(doc.emitters)
     order = {"error": 0, "warning": 1, "info": 2}
     return sorted(checker.diagnostics, key=lambda d: (order[d.severity], d.path, d.code))
 
@@ -60,6 +62,8 @@ class _Checker:
         self.diagnostics: list[Diagnostic] = []
         self.index: dict[tuple[str | int, ...], Store | Node | Edge] = {}
         self.writers: dict[tuple[str | int, ...], list[_Writer]] = {}
+        self.root_index: dict[tuple[str | int, ...], Store | Node | Edge] = {}
+        self.root_writers: dict[tuple[str | int, ...], list[_Writer]] = {}
 
     def report(self, code: str, slug: str, severity: str, path: tuple[str | int, ...], message: str) -> None:
         self.diagnostics.append(Diagnostic(code, slug, severity, "/".join(str(p) for p in path), message))
@@ -75,6 +79,8 @@ class _Checker:
             if isinstance(element, Edge):
                 self.edge(element, path)
         self.writer_analysis()
+        if not base:
+            self.root_index, self.root_writers = self.index, dict(self.writers)
         for path, element in list(self.index.items()):
             if isinstance(element, Edge) and element.inner is not None:
                 self.scope(element.inner, (*base, *path))
@@ -217,6 +223,52 @@ class _Checker:
                 port_path,
                 f"port type '{_text(port_type)}' but store '{'/'.join(map(str, absolute))}' is declared '{_text(store_type)}'",
             )
+
+    # --- emit declarations -------------------------------------------------------------------------------------
+
+    def emitters(self, emitters: list[Emitter]) -> None:
+        """
+        `emit … { paths }` declarations name observables by path from the root. A path that names nothing is the
+        silent-empty-dict trap (process-bigraph's emitter materializes it); a declared store that nothing writes is
+        a constant, worth knowing before a long run records it.
+        """
+        self.index = self.root_index
+        try:
+            for index, emitter in enumerate(emitters):
+                for path in emitter.paths:
+                    at = ("emit", index, path.to_slash())
+                    target = self.resolve(path, (), at)
+                    if target is None:
+                        continue
+                    absolute, _, declared = target
+                    if absolute == ("global_time",):
+                        continue  # injected and advanced by the scheduler, never declared
+                    if not declared:
+                        self.report(
+                            "W240",
+                            "emit-path-unknown",
+                            "warning",
+                            at,
+                            f"emit path '{path.to_slash()}' names no declared store; the emitter would record an empty value",
+                        )
+                    elif not self.written(absolute):
+                        self.report(
+                            "W241",
+                            "observable-never-written",
+                            "info",
+                            at,
+                            f"'{path.to_slash()}' is emitted but no edge writes it: it is a constant",
+                        )
+        finally:
+            self.index = {}
+
+    def written(self, path: tuple[str | int, ...]) -> bool:
+        """A path is written when a writer targets it, something below it, or something above it."""
+        for target in self.root_writers:
+            shorter, longer = (path, target) if len(path) <= len(target) else (target, path)
+            if tuple(longer[: len(shorter)]) == tuple(shorter):
+                return True
+        return False
 
     # --- writers -----------------------------------------------------------------------------------------------
 
