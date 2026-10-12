@@ -218,6 +218,14 @@ types (`W200`), paths escaping the root (`E110`), an interval on a step (`T130`)
 dynamic ports (`I210`) and untyped stores (`I220`). On the hybrid it finds the `particle_positions` store that
 nothing declares and the three components whose ports only an instance can tell.
 
+Making the headers static was a change to the wrapped package, not to the tooling: on viva-pde-particle's
+`static-interfaces` branch, `SmoldynHybrid` always declares `particle_positions` (the `emit_positions` flag only
+decides whether the value is produced) and `SpatialRecorder` became `GridRecorder` and `MeshRecorder` with one
+fixed face each. The regenerated headers have no `...` except on `Stepper` and `SplittingCoordinator`, the
+scheduling wrappers whose face is their child's. `process_bigraph_lang/v2/graph.py` then produces a viewer's
+wiring graph (nodes with typed ports, stores, edges, nested children) from a document and the headers alone,
+which is what a loom-style viewer needs to run without a Python environment that has the processes installed.
+
 Two decisions made while building the parser: the normalizer canonicalizes types from the parsed type tree rather
 than through bigraph-schema's renderer (the renderer drops custom type names such as `positive_float` and fails on
 unknown dict-form types, so the two spellings of one type no longer collided), and `///` doc comments are joined with

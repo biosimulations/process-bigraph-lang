@@ -13,7 +13,10 @@ process SmoldynHybrid at "local:!viva_pde_particle.processes.smoldyn_hybrid.Smol
     quiet: bool = true;
     emit_positions: bool = false;
   }
-  // TODO: dynamic ports: inputs()/outputs() need an instance; declare them by hand
   inputs { fields: map<string, array<float>>; }
-  outputs { ... }
+  outputs {
+    particle_counts: map<string, overwrite<array<float>>>;
+    particle_totals: map<string, overwrite<float>>;
+    particle_positions: map<string, overwrite<array<float>>>;
+  }
 }

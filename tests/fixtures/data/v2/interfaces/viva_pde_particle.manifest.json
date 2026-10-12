@@ -92,8 +92,12 @@
       "inputs": {
         "fields": "map[array[float]]"
       },
-      "outputs": null,
-      "dynamic_ports": true,
+      "outputs": {
+        "particle_counts": "map[overwrite[array[float]]]",
+        "particle_totals": "map[overwrite[float]]",
+        "particle_positions": "map[overwrite[array[float]]]"
+      },
+      "dynamic_ports": false,
       "doc": "Particle half of a hybrid model."
     },
     {
@@ -169,9 +173,9 @@
       "dynamic_ports": true
     },
     {
-      "name": "SpatialRecorder",
+      "name": "GridRecorder",
       "kind": "process",
-      "address": "local:!viva_pde_particle.processes.recorder.SpatialRecorder",
+      "address": "local:!viva_pde_particle.processes.recorder.GridRecorder",
       "module": "viva_pde_particle.processes.recorder",
       "config": {
         "out_dir": {
@@ -218,9 +222,71 @@
           "default": ""
         }
       },
-      "inputs": null,
+      "inputs": {
+        "fields": "map[array[float]]",
+        "particle_positions": "map[array[float]]"
+      },
       "outputs": {},
-      "dynamic_ports": true
+      "dynamic_ports": false,
+      "doc": "Records ``fields`` on a Cartesian grid (``layout.kind == \"grid\"``)."
+    },
+    {
+      "name": "MeshRecorder",
+      "kind": "process",
+      "address": "local:!viva_pde_particle.processes.recorder.MeshRecorder",
+      "module": "viva_pde_particle.processes.recorder",
+      "config": {
+        "out_dir": {
+          "type": "string"
+        },
+        "base_dt": {
+          "type": "float"
+        },
+        "every": {
+          "type": "integer"
+        },
+        "layout": {
+          "type": "map"
+        },
+        "species": {
+          "type": "list[string]"
+        },
+        "particle_species": {
+          "type": {
+            "_type": "list[string]",
+            "_default": []
+          },
+          "default": []
+        },
+        "membranes": {
+          "type": {
+            "_type": "map",
+            "_default": {}
+          },
+          "default": {}
+        },
+        "region": {
+          "type": {
+            "_type": "string",
+            "_default": "cell"
+          },
+          "default": "cell"
+        },
+        "source": {
+          "type": {
+            "_type": "string",
+            "_default": ""
+          },
+          "default": ""
+        }
+      },
+      "inputs": {
+        "field_dofs": "map[array[float]]",
+        "particle_positions": "map[array[float]]"
+      },
+      "outputs": {},
+      "dynamic_ports": false,
+      "doc": "Records ``field_dofs`` on a P1 mesh (``layout.kind == \"mesh\"``)."
     },
     {
       "name": "ExtendGridField",

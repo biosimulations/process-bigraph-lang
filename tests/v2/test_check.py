@@ -68,8 +68,8 @@ def test_hybrid_against_generated_headers() -> None:
     # the recorder reads particle positions that no store declares: process-bigraph creates it silently
     assert "recorder/inputs/particle_positions" in by_code["W211"]
     assert "particles/outputs/particle_positions" in by_code["W211"]
-    # the headers say which components have ports that only an instance can tell
-    assert set(by_code["I210"]) == {"particles", "recorder"}
+    # the headers say which components have ports that only an instance can tell: now only the Stepper wrapper
+    assert set(by_code["I210"]) == {"particles"}
     # the hybrid's stores are untyped dicts, so port types cannot be checked yet
     assert "pde/inputs/fields" in by_code["I220"]
 

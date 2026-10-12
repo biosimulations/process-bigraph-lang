@@ -1,7 +1,7 @@
 // pblang v2 — printed from hybrid_two_way_exchange
 
 import viva_pde_particle.processes.fv_reaction_diffusion.{FVReactionDiffusion};
-import viva_pde_particle.processes.recorder.{SpatialRecorder};
+import viva_pde_particle.processes.recorder.{GridRecorder};
 import viva_pde_particle.processes.stepper.{Stepper};
 import viva_pde_particle.steps.transfer.{GridCountsToConcentration};
 
@@ -66,7 +66,7 @@ composite {
       particle_positions -> particle_positions,
     }
   }
-  process recorder : SpatialRecorder every 0.01 {
+  process recorder : GridRecorder every 0.01 {
     config {
       out_dir = "out/hybrid_two_way_exchange",
       base_dt = 0.01,
