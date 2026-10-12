@@ -47,6 +47,8 @@ npx vitest run test/v2/check.test.ts           # single test file
 npx tsc --noEmit -p tsconfig.json              # type-check src/ AND test/ (vitest does not type-check)
 npm run build:native         # also builds dist/cli-native with `deno compile` (Deno required, ~10 s)
 npm run pack                 # the npm tarball (prepack regenerates and builds) into dist/, for other apps to install
+# A GitHub release publishes the wheel to PyPI (on-release-main.yml) and dsl/ to npm as process-bigraph-lang
+# (publish-npm.yml, trusted publishing: no npm token; the tag is the version)
 ./bin/cli.js check <file.pblang> [-i manifest.json...] [--json]
 ./bin/cli.js compile <file.pblang> [-i ...] [--to document|spec] [--strict] [--force] [-o out]
 ./bin/cli.js decompile <doc.json | x.composite.yaml> [-i ...] [--name n] [-o out.pblang]

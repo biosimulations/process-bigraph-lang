@@ -1,0 +1,67 @@
+# Publishes dsl/ to npm as `process-bigraph-lang` when a GitHub release is published, at the release's version (the
+# same event and version as the Python package in on-release-main.yml).
+#
+# Trusted publishing (OIDC): no npm token anywhere. On npmjs.com the package's Trusted Publisher is GitHub Actions,
+# organization `biosimulations`, repository `process-bigraph-lang`, workflow filename `publish-npm.yml`, no
+# environment. `id-token: write` lets the job mint the OIDC token npm checks against that entry; provenance is
+# attached automatically (public repository, public package). The package's Publishing access on npmjs.com should
+# be "Require two-factor authentication and disallow tokens" once this workflow has published once.
+name: publish-npm
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Build and pack, but do not publish"
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: dsl
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: dsl/package-lock.json
+
+      - name: Use an npm that supports trusted publishing (11.5.1 or later)
+        run: |
+          npm install -g npm@latest
+          npm --version
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate, build and test
+        run: |
+          npm run langium:generate
+          npm run build
+          npm run lint
+          npm test
+
+      - name: Set the version from the release tag
+        if: github.event_name == 'release'
+        run: npm version --no-git-tag-version "${GITHUB_REF_NAME#v}"
+
+      - name: Pack (dry run)
+        if: github.event_name == 'workflow_dispatch' && inputs.dry_run
+        run: npm publish --dry-run
+
+      - name: Publish
+        if: github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && !inputs.dry_run)
+        run: npm publish
