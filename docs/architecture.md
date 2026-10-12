@@ -160,6 +160,24 @@ The wheel includes the binary, so installed users do not need Node or Deno.
 
 **Any change to the grammar or TypeScript code only reaches Python after `python build.py` is run again.**
 
+## v2 prototype: `process_bigraph_lang/v2/`
+
+The language is being redesigned (see [the v2 design](v2/design.md), its [background](v2/research.md), the
+[registry and authoring design](v2/registry-and-authoring.md) and the [plan](v2/plan.md)). The first deliverable is a
+round-trip prototype that validates the design on real documents without a parser:
+
+- `model.py` is the v2 object model (stores, nodes, edges, sites, params, emitters), the pivot of the round trip.
+- `reader.py` reads a `{"schema", "state"}` document (authoring or saved form) or a CompositeSpec mapping into it;
+  `writer.py` writes it back, exactly for every v1 expected document.
+- `printer.py` prints canonical `.pblang` v2 text (large arrays and texts go to sidecar assets).
+- `normalize.py` defines document equivalence through bigraph-schema (`equivalent`, `diff_documents`).
+- `python -m process_bigraph_lang.v2 print <doc.json | x.composite.yaml>` and `… diff a.json b.json`.
+
+`tests/v2/test_roundtrip_corpus.py` runs the corpus in `tests/fixtures/data/v2/corpus/` (a viva-smoldyn
+CompositeSpec, a viva-pde-particle hybrid, a nested growth-division composite, the spatio-flux grids, template
+sites and a saved composite); the printed text is committed under `tests/fixtures/data/v2/snapshots/` for review.
+The shipped package imports `bigraph_schema` for this; `process_bigraph` stays a test-only dependency.
+
 ## ANTLR grammar (legacy)
 
 `antlr/pblang.g4` is an older ANTLR version of the language, in the old syntax. `make -C antlr` generates Python parsers into

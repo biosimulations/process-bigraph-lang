@@ -177,6 +177,22 @@ tests/fixtures/data/v2/
 | 10 (stretch) | minimal stage A `describe` over `tests/fixtures/test_registry` → `interfaces.pblang` for toy_library and spatio_flux; the decompiler resolves `local:!…` against them | corpus 4/5/6 snapshots use `import`s instead of inline declarations                  |
 | 11 (stretch) | Lark text parser for the printed subset bound to `model.Document`; `read_text(print(model)) == model` on all snapshots                                                | true text-level round trip; the grammar file becomes the Langium v2 acceptance spec  |
 
+## Status (2026-10-11)
+
+Steps 0–9 are implemented on the `v2-design` branch: the package, the tests, the corpus (all six entries, the
+hybrid fixture generated in the viva-pde-particle environment), the snapshots and the `print`/`diff` entry point.
+The snapshots in `tests/fixtures/data/v2/snapshots/` are the material for the design review. Observations from
+printing the corpus that feed back into the design:
+
+- The hybrid repeats the same `grid` literal in four places; the `let` hoisting in the design (section 2.3) is
+  worth doing early, and the Stepper child prints as a plain `{ address, config }` struct until edge literals exist.
+- Multi-line strings (the generated Smoldyn config) must be externalized at a much lower threshold than other text.
+- Reading from a CompositeSpec alone leaves stores untyped (`store molecule_counts = {};`), which is exactly the
+  `W-STORE-UNTYPED` case; types will come from interface files (stretch step 10).
+- The saved form of a nested composite reads back with an empty inner composite; the printer flags it.
+
+Not done: stretch steps 10 (minimal `describe` and `import` resolution) and 11 (Lark parser).
+
 ## Verification
 
 1. `make check` (ruff, prettier, mypy strict, deptry, `poetry check --lock`) green after `git add` of new files.

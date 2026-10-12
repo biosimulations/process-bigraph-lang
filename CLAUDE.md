@@ -158,6 +158,20 @@ stub. Entry points: `main.ts` (LSP), `main-browser.ts` (Monaco demo, `npm run de
   see `local:!` classes (bigraph-schema#188). A `Composite` given an open address crashes rather than reporting it
   (process-bigraph#213), so fill with `template_document`.
 
+## v2 (in progress): `process_bigraph_lang/v2/`
+
+The language is being redesigned; `docs/v2/` holds the research notes, the language design, the registry/authoring
+design and the plan. The code so far is a round-trip prototype with no parser: `reader.py` (document or
+CompositeSpec → `model.Document`), `writer.py` (→ document / CompositeSpec, exact for every v1 expected document),
+`printer.py` (→ canonical `.pblang` v2 text + sidecar assets) and `normalize.py` (`equivalent` via bigraph-schema).
+
+- `tests/v2/` covers it; `tests/fixtures/data/v2/corpus/` is the corpus (see its README for provenance) and
+  `tests/fixtures/data/v2/snapshots/` the printed text, regenerated with `PBLANG_UPDATE_SNAPSHOTS=1 pytest tests/v2`.
+  Both directories are excluded from prettier.
+- The hybrid fixture is generated in viva-pde-particle's pixi env (`corpus/make_hybrid_fixture.py`).
+- Keep `process_bigraph` out of the shipped package (tests only); `bigraph_schema` and `numpy` are main deps.
+- v1 (`compiler/`, `dsl/`) is untouched and must stay green.
+
 ## Tests
 
 - `tests/compiler/generator/`:

@@ -18,6 +18,8 @@ include = [
 python = ">=3.11,<4.0"
 pydantic = "^2.11.3"
 antlr4-python3-runtime = "^4.13.2"
+bigraph-schema = "^1.6.0"
+numpy = ">=1.26"
 
 [tool.poetry.build]
 script = "build.py"
@@ -31,9 +33,10 @@ pre-commit = "^3.4.0"
 tox = "^4.11.1"
 types-antlr4-python3-runtime = "^4.13.0.20240519"
 tellurium = "^2.2.10"
-bigraph-schema = "^1.6.0"
 process-bigraph = "^1.8.4"
 optlang = "^1.8.3"
+pyyaml = "^6.0"
+types-pyyaml = "^6.0"
 
 [tool.poetry.group.docs.dependencies]
 mkdocs = "^1.4.2"
@@ -47,6 +50,10 @@ cobra = "^0.29.1"
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.deptry.per_rule_ignores]
+# `python -m process_bigraph_lang.v2` imports these lazily; they are optional for the package itself
+DEP004 = ["yaml", "process_bigraph"]
 
 [tool.mypy]
 files = ["process_bigraph_lang", "tests"]

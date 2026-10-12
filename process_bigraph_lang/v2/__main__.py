@@ -1,0 +1,81 @@
+"""
+`python -m process_bigraph_lang.v2 print <doc.json | spec.composite.yaml>`: print a document as `.pblang` v2 text.
+`python -m process_bigraph_lang.v2 diff <a.json> <b.json>`: explain how two documents differ after normalization.
+
+Documents are JSON (`bigraph_schema.json_codec` encoding, so numpy arrays survive) or CompositeSpec yaml.
+Sidecar assets of `print` are written next to the output when `--out` is given, else listed on stderr.
+"""
+
+from __future__ import annotations
+
+import argparse
+import sys
+from pathlib import Path
+from typing import Any
+
+from process_bigraph_lang.v2 import diff_documents, equivalent, print_document, read_composite_spec, read_document
+
+
+def _load(path: Path) -> tuple[dict[str, Any], bool]:
+    text = path.read_text()
+    if path.suffix in (".yaml", ".yml"):
+        import yaml
+
+        loaded = yaml.safe_load(text)
+        return loaded, True
+    from bigraph_schema import json_codec  # type: ignore[import-untyped]
+
+    loaded = json_codec.loads(text)
+    return loaded, False
+
+
+def _print(args: argparse.Namespace) -> int:
+    path = Path(args.document)
+    loaded, is_spec = _load(path)
+    model = read_composite_spec(loaded) if is_spec else read_document(loaded)
+    printed = print_document(model, name=path.stem.replace(".composite", ""))
+    if args.out:
+        out = Path(args.out)
+        out.write_text(printed.text)
+        for asset_name, content in printed.assets.items():
+            target = out.parent / asset_name
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_bytes(content)
+        print(f"wrote {out} and {len(printed.assets)} asset(s)", file=sys.stderr)
+    else:
+        sys.stdout.write(printed.text)
+        for asset_name in printed.assets:
+            print(f"asset (not written): {asset_name}", file=sys.stderr)
+    return 0
+
+
+def _diff(args: argparse.Namespace) -> int:
+    import process_bigraph as pg  # type: ignore[import-untyped]
+
+    core = pg.allocate_core()
+    a, _ = _load(Path(args.a))
+    b, _ = _load(Path(args.b))
+    if equivalent(a, b, core):
+        return 0
+    print(diff_documents(a, b, core))
+    return 1
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(prog="python -m process_bigraph_lang.v2")
+    commands = parser.add_subparsers(dest="command", required=True)
+    print_cmd = commands.add_parser("print", help="print a document or CompositeSpec as .pblang v2 text")
+    print_cmd.add_argument("document")
+    print_cmd.add_argument("--out", help="write the text here (assets go next to it)")
+    print_cmd.set_defaults(run=_print)
+    diff_cmd = commands.add_parser("diff", help="compare two documents after normalization (exit 1 if they differ)")
+    diff_cmd.add_argument("a")
+    diff_cmd.add_argument("b")
+    diff_cmd.set_defaults(run=_diff)
+    args = parser.parse_args(argv)
+    result: int = args.run(args)
+    return result
+
+
+if __name__ == "__main__":
+    sys.exit(main())

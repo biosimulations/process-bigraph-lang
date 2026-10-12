@@ -1,0 +1,81 @@
+// pblang v2 — printed from hybrid_two_way_exchange
+
+composite {
+  store fields = {
+    B = array(file("hybrid_two_way_exchange.assets/fields_B.json"), dtype = "float64", shape = [3, 11, 11]),
+  };
+  store particle_counts = {
+    A = array(file("hybrid_two_way_exchange.assets/particle_counts_A.json"), dtype = "float64", shape = [3, 11, 11]),
+  };
+  store particle_conc = {
+    A = array(file("hybrid_two_way_exchange.assets/particle_conc_A.json"), dtype = "float64", shape = [3, 11, 11]),
+  };
+  store particle_totals = { A = 0.0 };
+
+  process pde at "local:FVReactionDiffusion" every 0.01 {
+    config {
+      grid = { origin = [0.0, 0.0, 0.0], size = [10.0, 10.0, 1.0], num = [11, 11, 3] },
+      pde = {
+        species = { B = { diffusion = 1.0 } },
+        particle_species = ["A"],
+        terms = [
+          { species = "B", coeff = 1, k = 1.0, reactants = { A = 1 }, reaction = "a_to_b" },
+          { species = "B", coeff = -1, k = 0.5, reactants = { B = 1 }, reaction = "b_to_a" },
+        ],
+      },
+      dt = 0.01,
+    }
+    inputs { fields -> fields, external_conc -> particle_conc }
+    outputs { fields -> fields }
+  }
+  step particle_to_field at "local:GridCountsToConcentration" {
+    config {
+      grid = { origin = [0.0, 0.0, 0.0], size = [10.0, 10.0, 1.0], num = [11, 11, 3] },
+      species = ["A"],
+    }
+    inputs { particle_counts -> particle_counts }
+    outputs { particle_conc -> particle_conc }
+  }
+  process particles at "local:Stepper" every 0.01 {
+    config {
+      process = {
+        address = "local:SmoldynHybrid",
+        config = {
+          grid = { origin = [0.0, 0.0, 0.0], size = [10.0, 10.0, 1.0], num = [11, 11, 3] },
+          config_text = file("hybrid_two_way_exchange.assets/particles_process_config_config_text.txt"),
+          particle_species = ["A"],
+          field_species = ["B"],
+          dt = 0.01,
+          step_multiplier = 1,
+          emit_positions = true,
+        },
+      },
+      dt = 0.01,
+      every = 1,
+      phase = 0,
+    }
+    inputs { fields -> fields }
+    outputs {
+      particle_counts -> particle_counts,
+      particle_totals -> particle_totals,
+      particle_positions -> particle_positions,
+    }
+  }
+  process recorder at "local:SpatialRecorder" every 0.01 {
+    config {
+      out_dir = "out/hybrid_two_way_exchange",
+      base_dt = 0.01,
+      every = 10,
+      layout = {
+        kind = "grid",
+        grid = { origin = [0.0, 0.0, 0.0], size = [10.0, 10.0, 1.0], num = [11, 11, 3] },
+      },
+      species = ["B"],
+      particle_species = ["A"],
+      membranes = {},
+      region = "cell",
+      source = "",
+    }
+    inputs { fields -> fields, particle_positions -> particle_positions }
+  }
+}

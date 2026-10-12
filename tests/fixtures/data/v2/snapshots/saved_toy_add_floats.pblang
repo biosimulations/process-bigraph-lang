@@ -1,0 +1,17 @@
+// pblang v2 — printed from saved_toy_add_floats
+
+process AddFloatsProcess at "local:!tests.fixtures.test_registry.toy_library.AddFloatsProcess" {
+  inputs { left_hand_addend: float; right_hand_addend: float; }
+  outputs { result: float; }
+}
+
+composite {
+  store A: float = 2.07;
+  store B: float = 3.5;
+  store C: float = 0.0;
+
+  process add_nums : AddFloatsProcess every 1.0 {
+    inputs { left_hand_addend -> A, right_hand_addend -> B }
+    outputs { result -> C }
+  }
+}

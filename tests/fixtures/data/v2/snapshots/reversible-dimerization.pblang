@@ -1,0 +1,37 @@
+// pblang v2 — printed from reversible-dimerization
+
+meta {
+  tags = ["particles", "reaction-diffusion", "3d", "simularium"],
+  requires = { processes = ["SmoldynProcess"] },
+}
+
+/// Smoldyn 3D reversible dimerization: fast red monomers A diffuse and bind pairwise into slower
+/// blue dimers B (A + A <-> B) in a reflecting cubic box. Emits per-species counts, per-molecule
+/// positions, and time each step — the positions drive a Simularium trajectory.
+composite "reversible-dimerization" {
+  store molecule_counts = {};
+  store molecule_positions = [];
+  store time = 0.0;
+
+  process smoldyn at "local:SmoldynProcess" every 0.5 {
+    config {
+      dimensions = 3,
+      bounds = [[0, 50], [0, 50], [0, 50]],
+      boundary_type = "r",
+      dt = 0.01,
+      seed = 12345,
+      species = {
+        A = { difc = 3.0, count = 250, color = "red", display_size = 1.2 },
+        B = { difc = 1.0, count = 0, color = "blue", display_size = 2.0 },
+      },
+      reactions = [{ name = "dimerize", subs = ["A", "A"], prds = ["B"], rate = 2.0, kb = 0.15 }],
+    }
+    outputs {
+      molecule_counts -> molecule_counts,
+      molecule_positions -> molecule_positions,
+      time -> time,
+    }
+  }
+}
+
+emit parquet { molecule_counts, molecule_positions, time };

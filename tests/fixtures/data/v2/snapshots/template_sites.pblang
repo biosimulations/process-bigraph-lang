@@ -1,0 +1,22 @@
+// pblang v2 — printed from template_sites
+
+process Interface_s {
+  inputs { x: float; }
+  outputs { y: float; }
+}
+
+composite {
+  store rate: float = ?(0.5);
+  store whole: { x: float; y: float; } = ?;
+
+  node p {
+    store x: float = ?;
+    store y: float = ?(3.0);
+  }
+
+  process s : Interface_s at ? {
+    config { rate = ? as float }
+    inputs { x -> p.x }
+    outputs { y -> p.y }
+  }
+}
