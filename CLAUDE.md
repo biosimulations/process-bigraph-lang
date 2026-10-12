@@ -161,17 +161,21 @@ stub. Entry points: `main.ts` (LSP), `main-browser.ts` (Monaco demo, `npm run de
 ## v2 (in progress): `process_bigraph_lang/v2/`
 
 The language is being redesigned; `docs/v2/` holds the research notes, the language design, the registry/authoring
-design and the plan. The **public Python API is `api.py`**: `compile_text` / `compile_file` (text → parse → check →
-document or CompositeSpec; `CompileError` on errors) and `decompile` (document or CompositeSpec → `.pbl` text +
-sidecar assets); `python -m process_bigraph_lang.v2 compile | decompile | check | diff | describe`. The dataclass
-model (`model.py`) with `reader.py`, `writer.py`, `printer.py` and `langium.py` is the **internal** pivot: never
-export it from `__init__`, and never add a public path to a runnable document that skips the checker (a Python
-tool targets the DSL text, not the model; the follow-up moves reader/writer/printer into `cli-native`). Also:
-`interfaces.py` (`describe_module` + `InterfaceRegistry` with a JSON manifest; resolved addresses print as
-`import`s), `check.py` (`check_file` over `cli-native check --json`) and `normalize.py` (`equivalent` of two
-documents; with a registry, `local:Name` and `local:!mod.Name` and `_inputs`/`_outputs` that repeat the declared
-face are not differences). `tests/fixtures/data/v2/interfaces/` holds headers generated from viva-pde-particle in
-its own env.
+design and the plan. **Everything the language does is TypeScript** in `dsl/src/language/v2/`: the checker
+(`check.ts`), the model (`model.ts`: ints are `bigint`, floats `number`, dicts `Map`s; numpy arrays, tuples,
+params, sidecar refs and sites are tagged objects), `json.ts` (the lossless document codec), `reader.ts`
+(document/CompositeSpec → model), `writer.ts` (model → document/CompositeSpec), `printer.ts` (model → `.pbl`
+text + sidecar assets, byte-identical to the Python printer it replaced: `format.ts` reproduces Python's float
+and `json.dumps` spellings), `bind.ts` (Langium AST → model), `graph.ts`, `modelheader.ts`, `yaml.ts`. The CLI
+(`src/cli/main.ts`) exposes `check`, `compile [--to document|spec] [--strict] [--force]`, `decompile`, `headers`,
+`model-header`, `graph`. **The Python package has no model of a composite**: `api.py` (`compile_text` /
+`compile_file` / `decompile`) wraps the CLI (documents cross as `json_codec` JSON with `__tuple__` tags);
+`interfaces.py` (`describe_module` → manifest JSON; `render_interfaces` via the CLI), `sbml.py` (`describe_sbml` →
+JSON; the CLI renders the header), `check.py`, `normalize.py` (+ `types.py`, its type parser) and `langium.py`
+(`run_cli`). Never add a Python path to a runnable document that skips the checker. `tests/fixtures/data/v2/`:
+`corpus/` (incl. `v1/*.json` dumped by `corpus/make_v1_fixtures.py`), `snapshots/`, `interfaces/` (headers
+generated from viva-pde-particle in its own env). `dsl/test/v2/roundtrip.test.ts` checks every snapshot byte for
+byte; `tests/v2/` runs the same through the CLI (`PBLANG_UPDATE_SNAPSHOTS=1` regenerates).
 There is **one grammar and one checker**, both TypeScript: `dsl/src/language/pblang-v2.langium` and
 `dsl/src/language/v2/check.ts` (registered as a Langium validation; `cli-native check --json` is its CLI). Python
 parses v2 text and checks documents by calling `cli-native` (`process_bigraph_lang/v2/langium.py`, `check.py`);

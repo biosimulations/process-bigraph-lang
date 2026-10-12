@@ -1,25 +1,56 @@
 """
-Interface declarations as data: a minimal stage-A `describe` and the registry the printer resolves addresses in.
+Interface declarations as data: a minimal stage-A `describe` and the registry the normalizer resolves addresses in.
 
 `describe_module` imports a Python module once (the publish-time step; authoring never imports) and turns every
 step/process class it exposes into an `InterfaceDecl`: the address in portable `local:!module.Class` form, the
 `config_schema`, and the ports obtained by calling `inputs()`/`outputs()` with the class standing in for `self`
-(ports that depend on an instance are marked `dynamic_ports`). `InterfaceRegistry` holds declarations, reads and
-writes the JSON manifest, and resolves an edge's address to a declaration.
+(ports that depend on an instance are marked `dynamic_ports`). Types stay in bigraph-schema's own form. The
+`InterfaceRegistry` holds declarations and reads and writes the JSON manifest (`pblang-manifest/0`), which the
+TypeScript checker, printer and binder consume; `render_interfaces` has the CLI print the `.pbl` header file.
 """
 
 from __future__ import annotations
 
 import importlib
 import inspect
+import json
+import tempfile
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Any
 
-from process_bigraph_lang.v2.model import Address, ConfigField, InterfaceDecl
-from process_bigraph_lang.v2.types import Named, TypeExpr, parse_type, to_bigraph
-from process_bigraph_lang.v2.values import MISSING
+from process_bigraph_lang.v2.types import MISSING, Named, parse_type
 
 MANIFEST_VERSION = "pblang-manifest/0"
+
+
+@dataclass
+class ConfigField:
+    """One entry of a `config_schema`: the type in bigraph-schema form and its default, when it has one."""
+
+    type: Any = None
+    default: Any = MISSING
+
+
+@dataclass
+class InterfaceDecl:
+    """A process/step interface as a manifest entry: address, config fields, ports (bigraph-schema forms)."""
+
+    name: str
+    kind: str  # process | step | adapter
+    address: str | None = None
+    module: str | None = None
+    config: dict[str, ConfigField] = field(default_factory=dict)
+    inputs: dict[str, Any] | None = None
+    outputs: dict[str, Any] | None = None
+    doc: str | None = None
+    dynamic_ports: bool = False  # inputs()/outputs() could not be evaluated without an instance
+
+
+def short_name(address: str) -> str:
+    """`Name` of `local:!pkg.mod.Name`, `local:Name` or `Name`."""
+    data = address.split(":", 1)[1] if ":" in address else address
+    return data.lstrip("!").rsplit(".", 1)[-1]
 
 
 def describe_module(module_name: str) -> list[InterfaceDecl]:
@@ -42,7 +73,7 @@ def describe_class(cls: type, module_name: str | None = None, name: str | None =
     return InterfaceDecl(
         name=name,
         kind=_kind(cls),
-        address=Address("local", f"!{module_name}.{name}"),
+        address=f"local:!{module_name}.{name}",
         module=module_name,
         config=_config_fields(getattr(cls, "config_schema", None) or {}),
         inputs=inputs,
@@ -54,7 +85,7 @@ def describe_class(cls: type, module_name: str | None = None, name: str | None =
 
 @dataclass
 class InterfaceRegistry:
-    """Declarations the printer resolves edge addresses in (an `import` is printed instead of an inline declaration)."""
+    """Declarations by address: the manifest the CLI reads, and what the normalizer resolves edges in."""
 
     decls: list[InterfaceDecl] = field(default_factory=list)
 
@@ -72,16 +103,33 @@ class InterfaceRegistry:
     def to_manifest(self) -> dict[str, Any]:
         return {"schema_version": MANIFEST_VERSION, "components": [_decl_to_manifest(d) for d in self.decls]}
 
-    def lookup(self, address: Address) -> InterfaceDecl | None:
+    def lookup(self, address: str) -> InterfaceDecl | None:
         """By exact address; else by unique short name (`local:Name`, or a class re-exported from another module)."""
-        if address.protocol != "local":
+        wanted = address if ":" in address else f"local:{address}"
+        if not wanted.startswith("local:"):
             return None
-        wanted = str(address)
-        exact = [d for d in self.decls if d.address is not None and str(d.address) == wanted]
+        exact = [d for d in self.decls if d.address == wanted]
         if exact:
             return exact[0]
-        by_name = [d for d in self.decls if d.name == address.short_name]
+        by_name = [d for d in self.decls if d.name == short_name(wanted)]
         return by_name[0] if len(by_name) == 1 else None
+
+    def write_manifest(self, path: Path) -> Path:
+        path.write_text(json.dumps(self.to_manifest(), indent=2, default=str) + "\n", encoding="utf-8")
+        return path
+
+
+def render_interfaces(decls: list[InterfaceDecl], module_name: str) -> str:
+    """The `.pbl` header file of a module's declarations, as the CLI prints it."""
+    from process_bigraph_lang.v2.langium import run_cli
+
+    with tempfile.TemporaryDirectory() as tmp:
+        manifest = Path(tmp) / "manifest.json"
+        entries = [_decl_to_manifest(d) for d in decls]
+        for entry in entries:
+            entry["module"] = module_name
+        manifest.write_text(json.dumps({"schema_version": MANIFEST_VERSION, "components": entries}, default=str))
+        return run_cli("headers", str(manifest)).stdout
 
 
 # --- describe ----------------------------------------------------------------------------------------------------
@@ -103,8 +151,8 @@ def _kind(cls: type) -> str:
     return "step"
 
 
-def _ports(cls: type) -> tuple[dict[str, TypeExpr] | None, dict[str, TypeExpr] | None, bool]:
-    faces: list[dict[str, TypeExpr] | None] = []
+def _ports(cls: type) -> tuple[dict[str, Any] | None, dict[str, Any] | None, bool]:
+    faces: list[dict[str, Any] | None] = []
     dynamic = False
     for method_name in ("inputs", "outputs"):
         method = getattr(cls, method_name, None)
@@ -117,7 +165,7 @@ def _ports(cls: type) -> tuple[dict[str, TypeExpr] | None, dict[str, TypeExpr] |
             faces.append(None)
             dynamic = True
             continue
-        faces.append({str(k): parse_type(v) for k, v in ports.items()} if isinstance(ports, dict) else None)
+        faces.append({str(k): v for k, v in ports.items()} if isinstance(ports, dict) else None)
     return faces[0], faces[1], dynamic
 
 
@@ -126,12 +174,14 @@ def _config_fields(schema: Any) -> dict[str, ConfigField]:
         return {}
     fields: dict[str, ConfigField] = {}
     for key, spec in schema.items():
+        default: Any = MISSING
         try:
-            expr: TypeExpr | None = parse_type(spec)
-        except TypeError:
-            expr = None
-        default = expr.default if isinstance(expr, Named) else MISSING
-        fields[str(key)] = ConfigField(expr, default)
+            expr = parse_type(spec)
+            if isinstance(expr, Named):
+                default = expr.default
+        except (TypeError, ValueError):
+            pass
+        fields[str(key)] = ConfigField(spec if isinstance(spec, (str, dict)) else None, default)
     return fields
 
 
@@ -150,17 +200,14 @@ def _decl_to_manifest(decl: InterfaceDecl) -> dict[str, Any]:
     entry: dict[str, Any] = {
         "name": decl.name,
         "kind": decl.kind,
-        "address": str(decl.address) if decl.address is not None else None,
+        "address": decl.address,
         "module": decl.module,
         "config": {
-            k: {
-                "type": to_bigraph(f.type) if f.type is not None else None,
-                **({"default": f.default} if f.default is not MISSING else {}),
-            }
+            k: {"type": f.type, **({"default": f.default} if f.default is not MISSING else {})}
             for k, f in decl.config.items()
         },
-        "inputs": {k: to_bigraph(v) for k, v in decl.inputs.items()} if decl.inputs is not None else None,
-        "outputs": {k: to_bigraph(v) for k, v in decl.outputs.items()} if decl.outputs is not None else None,
+        "inputs": dict(decl.inputs) if decl.inputs is not None else None,
+        "outputs": dict(decl.outputs) if decl.outputs is not None else None,
         "dynamic_ports": decl.dynamic_ports,
     }
     if decl.doc:
@@ -169,14 +216,11 @@ def _decl_to_manifest(decl: InterfaceDecl) -> dict[str, Any]:
 
 
 def _decl_from_manifest(entry: dict[str, Any]) -> InterfaceDecl:
-    config = {
-        k: ConfigField(parse_type(f["type"]) if f.get("type") is not None else None, f.get("default", MISSING))
-        for k, f in (entry.get("config") or {}).items()
-    }
+    config = {k: ConfigField(f.get("type"), f.get("default", MISSING)) for k, f in (entry.get("config") or {}).items()}
     return InterfaceDecl(
         name=entry["name"],
         kind=entry.get("kind", "process"),
-        address=Address.from_any(entry["address"]) if entry.get("address") else None,
+        address=entry["address"] if entry.get("address") else None,
         module=entry.get("module"),
         config=config,
         inputs=_ports_from_manifest(entry.get("inputs")),
@@ -186,7 +230,7 @@ def _decl_from_manifest(entry: dict[str, Any]) -> InterfaceDecl:
     )
 
 
-def _ports_from_manifest(ports: Any) -> dict[str, TypeExpr] | None:
+def _ports_from_manifest(ports: Any) -> dict[str, Any] | None:
     if ports is None:
         return None
-    return {str(k): parse_type(v) for k, v in ports.items()}
+    return {str(k): v for k, v in ports.items()}

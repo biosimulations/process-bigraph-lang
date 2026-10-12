@@ -22,7 +22,13 @@ import {
   isV2StringLiteral,
   isV2TupleLiteral,
 } from "../generated/ast.js";
-import { fromAst, parseType, surface, type TypeExpr } from "./types.js";
+import {
+  fromAst,
+  parseType,
+  stableJsonText,
+  surface,
+  type TypeExpr,
+} from "./types.js";
 
 export interface ConfigField {
   type?: TypeExpr;
@@ -54,6 +60,8 @@ export interface ModelDecl {
   blocks: Record<ModelBlock, Record<string, ConfigField>>;
   openBlocks: Set<string>;
   meta: Record<string, unknown>;
+  notes: string[];
+  doc?: string;
   isSort: boolean;
 }
 
@@ -166,8 +174,13 @@ export function modelFromAst(node: V2ModelDecl): ModelDecl {
     blocks: { compartments: {}, species: {}, parameters: {} },
     openBlocks: new Set(),
     meta: {},
+    notes: [],
     isSort: node.source === undefined,
   };
+  const doc = docText(
+    isV2Statement(node.$container) ? node.$container.docs : [],
+  );
+  if (doc !== undefined) decl.doc = doc;
   for (const item of node.items) {
     if (isV2ModelTime(item)) decl.timeUnits = item.units;
     else if (isV2ModelMeta(item)) decl.meta = dictValue(item.block);
@@ -203,7 +216,7 @@ export function fieldsOf(fields: V2Field[]): Record<string, ConfigField> {
 /** The text of `///` doc comments, without the markers. */
 export function docText(docs: string[]): string | undefined {
   if (docs.length === 0) return undefined;
-  return docs.map((d) => d.replace(/^\/\/\/ ?/, "").trimEnd()).join("\n");
+  return docs.map((d) => d.replace(/^\/\/\/ ?/, "").trim()).join(" ");
 }
 
 function portTypes(fields: V2Field[]): Record<string, TypeExpr> {
@@ -214,12 +227,9 @@ function portTypes(fields: V2Field[]): Record<string, TypeExpr> {
 
 /** A literal value from the AST (dict/list/tuple/scalars); non-literal values come back as `undefined`. */
 export function literalValue(value: V2Value): unknown {
-  if (
-    isV2IntLiteral(value) ||
-    isV2FloatLiteral(value) ||
-    isV2StringLiteral(value)
-  )
-    return value.value;
+  if (isV2IntLiteral(value))
+    return BigInt(value.$cstNode?.text.trim() ?? String(value.value));
+  if (isV2FloatLiteral(value) || isV2StringLiteral(value)) return value.value;
   if (isV2BoolLiteral(value)) return value.value === "true";
   if (isV2NullLiteral(value)) return null;
   if (isV2ListLiteral(value) || isV2TupleLiteral(value))
@@ -269,7 +279,7 @@ export function renderInterface(decl: InterfaceDecl): string {
 export function renderField(name: string, field: ConfigField): string {
   let text = `${name}: ${field.type ? surface(field.type) : "any"}`;
   if (field.default !== undefined)
-    text += ` = ${JSON.stringify(field.default)}`;
+    text += ` = ${stableJsonText(field.default)}`;
   else if (field.hasDefault) text += " = ...";
   return `${text};`;
 }

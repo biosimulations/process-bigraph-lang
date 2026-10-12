@@ -2,12 +2,11 @@
 
 from pathlib import Path
 
-from process_bigraph_lang.v2.writer import write_document
-from process_bigraph_lang.v2.check import check_document
-from process_bigraph_lang.v2.langium import langium_cli, read_text
-from process_bigraph_lang.v2.printer import print_model
-from process_bigraph_lang.v2.sbml import describe_sbml, print_model_header
 import pytest
+
+from process_bigraph_lang.v2 import check_text, compile_text
+from process_bigraph_lang.v2.langium import langium_cli
+from process_bigraph_lang.v2.sbml import describe_sbml, print_model_header
 from tests.v2.helpers import SNAPSHOTS
 
 pytestmark = pytest.mark.skipif(langium_cli() is None, reason="no Langium CLI (build dsl/ or install cli-native)")
@@ -16,7 +15,7 @@ pytestmark = pytest.mark.skipif(langium_cli() is None, reason="no Langium CLI (b
 CARAVAGNA = (
     Path(__file__).resolve().parent.parent / "fixtures" / "data" / "compiler" / "Caravagna2010" / "Caravagna2010.xml"
 )
-HEADER = print_model_header(describe_sbml(CARAVAGNA))
+HEADER = print_model_header(describe_sbml(CARAVAGNA)) if langium_cli() else ""
 
 
 def _without_comments(text: str) -> str:
@@ -25,20 +24,18 @@ def _without_comments(text: str) -> str:
 
 def _codes(text: str) -> dict[str, list[str]]:
     out: dict[str, list[str]] = {}
-    for d in check_document(read_text(text)):
+    for d in check_text(text):
         out.setdefault(d.code, []).append(d.path)
     return out
 
 
-def test_generated_header_parses_and_prints_back() -> None:
-    doc = read_text((SNAPSHOTS / "Caravagna2010.model.pbl").read_text(encoding="utf-8"))
-    (header,) = doc.models
-    assert header.name == "Caravagna2010" and header.source == "Caravagna2010.xml" and not header.is_sort
-    assert header.time_units == "day" and set(header.species) == {"T", "E", "I"}
-    t = header.species["T"]
-    assert t.default == 1.0 and t.type is not None and t.type.units == "mmol / mL"  # type: ignore[union-attr]
-    assert header.parameters["r2"].default == 0.18 and header.meta["kind"] == "concentration"
-    assert _without_comments(print_model(header)) == _without_comments(HEADER)
+def test_generated_header_matches_the_snapshot_and_compiles() -> None:
+    snapshot = (SNAPSHOTS / "Caravagna2010.model.pbl").read_text(encoding="utf-8")
+    assert _without_comments(HEADER) == _without_comments(snapshot)
+    document = compile_text(snapshot + "composite { store model : Caravagna2010 = Caravagna2010; }\n").document
+    # a header used as its own sort fills the site with the model tree
+    assert document["state"]["model"]["species"] == {"T": 1.0, "E": 1.0, "I": 1.0}
+    assert document["schema"]["model"]["species"]["T"] == {"_type": "float", "_units": "mmol / mL"}
 
 
 SORT = """
@@ -84,10 +81,9 @@ def test_sort_units_bind_across_the_header() -> None:
 
 
 def test_open_model_site_and_its_document_form() -> None:
-    doc = read_text(SORT + "composite { store model : ODEModel = ?; }\n")
-    codes = {d.code for d in check_document(doc)}
-    assert "I301" in codes
-    written = write_document(doc)
+    text = SORT + "composite { store model : ODEModel = ?; }\n"
+    assert "I301" in {d.code for d in check_text(text)}
+    written = compile_text(text).document
     site = written["state"]["model"]
     assert site["_type"] == "site" and site["_sort"]["species"] == {
         "_type": "map",
@@ -97,8 +93,7 @@ def test_open_model_site_and_its_document_form() -> None:
 
 
 def test_filled_model_site_expands_to_the_model_tree() -> None:
-    doc = read_text(HEADER + SORT + "composite { store model : ODEModel = Caravagna2010; }\n")
-    written = write_document(doc)
+    written = compile_text(HEADER + SORT + "composite { store model : ODEModel = Caravagna2010; }\n").document
     assert written["state"]["model"]["species"]["T"] == 1.0 and written["state"]["model"]["parameters"]["r2"] == 0.18
     assert written["schema"]["model"]["species"]["T"] == {"_type": "float", "_units": "mmol / mL"}
 
@@ -117,7 +112,7 @@ composite {
 
 
 def test_parse_errors_fail_loudly() -> None:
-    import pytest
+    from process_bigraph_lang.v2 import CompileError
 
-    with pytest.raises(RuntimeError, match="Langium CLI failed"):
-        read_text("model Broken from { }")
+    with pytest.raises(CompileError):
+        compile_text("model Broken from { }")

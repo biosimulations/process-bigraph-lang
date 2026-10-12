@@ -18,16 +18,30 @@ from typing import Any
 import numpy as np
 
 from process_bigraph_lang.v2.interfaces import InterfaceRegistry
-from process_bigraph_lang.v2.model import Address
-from process_bigraph_lang.v2.types import Group, Named, Struct, TypeExpr, UnionType, parse_type, to_bigraph
-from process_bigraph_lang.v2.values import (
-    COMPOSITE_OPTION_KEYS,
-    EDGE_KINDS,
-    MISSING,
-    RUNTIME_EDGE_KEYS,
-    is_edge_node,
-    is_site,
+from process_bigraph_lang.v2.types import MISSING, Group, Named, Struct, TypeExpr, UnionType, parse_type
+
+EDGE_KINDS = ("process", "step", "shared_process", "shared_process_ref")
+RUNTIME_EDGE_KEYS = ("instance", "_contract")
+COMPOSITE_OPTION_KEYS = (
+    "global_time_precision",
+    "run_steps_on_init",
+    "parallel_steps",
+    "parallel_processes",
+    "parallel_workers",
+    "skip_process_state",
+    "contract_strict",
 )
+
+
+def is_site(value: Any) -> bool:
+    """A template site: `{"_type": "site", "_sort": ..., "_default"?: ...}`."""
+    return isinstance(value, dict) and value.get("_type") == "site"
+
+
+def is_edge_node(value: Any) -> bool:
+    """A step/process node in the state half (its `_type` says so, or it carries an `address`)."""
+    return isinstance(value, dict) and (value.get("_type") in EDGE_KINDS or "address" in value)
+
 
 _EdgeTable = dict[tuple[str, ...], dict[str, Any]]
 
@@ -249,16 +263,16 @@ def _canon_edge(
         out["address"] = _canon_address(address, core)
     decl = None
     if registry is not None and address is not None and not is_site(address):
-        decl = registry.lookup(Address.from_any(_canon_address(address, core)))
+        decl = registry.lookup(_canon_address(address, core))
         if decl is not None and decl.address is not None:
-            out["address"] = str(decl.address)  # `local:Name` and `local:!module.Name` name the same component
+            out["address"] = decl.address  # `local:Name` and `local:!module.Name` name the same component
     for key, attr in (("_inputs", "inputs"), ("_outputs", "outputs")):
         ports = node.get(key, info.get(key))
         if ports is None:
             continue
         canon = _canon_ports(ports, core)
         declared = getattr(decl, attr) if decl is not None else None
-        if declared is not None and canon == _canon_ports({k: to_bigraph(v) for k, v in declared.items()}, core):
+        if declared is not None and canon == _canon_ports(declared, core):
             continue  # the node repeats the interface's face: no information
         out[key] = canon
     config = node.get("config")

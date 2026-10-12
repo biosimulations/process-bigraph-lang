@@ -3,8 +3,8 @@
 from copy import deepcopy
 from typing import Any
 
-from process_bigraph_lang.v2.reader import read_document
-from process_bigraph_lang.v2.check import check_document
+from process_bigraph_lang.v2 import InterfaceRegistry, check_text, decompile
+from process_bigraph_lang.v2.check import Diagnostic
 from process_bigraph_lang.v2.langium import langium_cli
 from tests.compiler.generator.test_toy_add_floats import add_floats_process_expected_config_template
 from tests.v2.helpers import REGISTRY, load_corpus_json
@@ -13,8 +13,13 @@ import pytest
 pytestmark = pytest.mark.skipif(langium_cli() is None, reason="no Langium CLI (build dsl/ or install cli-native)")
 
 
+def check_document(doc: dict[str, Any], registry: InterfaceRegistry | None = None) -> list[Diagnostic]:
+    """Decompile a document (or a CompositeSpec) and check the text, as the CLI's `check` does."""
+    return check_text(decompile(doc, registry=registry).text, registry=registry)
+
+
 def _codes(doc: dict[str, Any]) -> dict[str, list[str]]:
-    diagnostics = check_document(read_document(doc), REGISTRY)
+    diagnostics = check_document(doc, REGISTRY)
     out: dict[str, list[str]] = {}
     for d in diagnostics:
         out.setdefault(d.code, []).append(d.path)
@@ -22,7 +27,7 @@ def _codes(doc: dict[str, Any]) -> dict[str, list[str]]:
 
 
 def test_clean_document_has_no_findings() -> None:
-    assert check_document(read_document(deepcopy(add_floats_process_expected_config_template)), REGISTRY) == []
+    assert check_document(deepcopy(add_floats_process_expected_config_template), REGISTRY) == []
 
 
 def test_mistakes_are_found_without_importing_processes() -> None:
@@ -65,7 +70,7 @@ def test_mistakes_are_found_without_importing_processes() -> None:
 
 
 def test_hybrid_against_generated_headers() -> None:
-    doc = read_document(load_corpus_json("hybrid_two_way_exchange.json"))
+    doc = load_corpus_json("hybrid_two_way_exchange.json")
     diagnostics = check_document(doc, REGISTRY)
     assert not [d for d in diagnostics if d.severity == "error"]
     by_code = {d.code: [x.path for x in diagnostics if x.code == d.code] for d in diagnostics}
@@ -173,7 +178,7 @@ def test_step_publishing_an_array_additively_is_suspicious() -> None:
 
 
 def test_hybrid_writers_are_clean() -> None:
-    diagnostics = check_document(read_document(load_corpus_json("hybrid_two_way_exchange.json")), REGISTRY)
+    diagnostics = check_document(load_corpus_json("hybrid_two_way_exchange.json"), REGISTRY)
     assert not [d for d in diagnostics if d.code in ("W221", "W223")]
 
 
@@ -181,10 +186,8 @@ def test_hybrid_writers_are_clean() -> None:
 
 
 def _spec_codes(spec: dict[str, Any]) -> dict[str, list[str]]:
-    from process_bigraph_lang.v2.reader import read_composite_spec
-
     out: dict[str, list[str]] = {}
-    for d in check_document(read_composite_spec(spec), REGISTRY):
+    for d in check_document(spec, REGISTRY):
         out.setdefault(d.code, []).append(d.path)
     return out
 
@@ -267,7 +270,7 @@ def test_convertible_units_report_the_factor() -> None:
         {"conc": ("float", "uM"), "time": ("float", "s"), "flux": ("float", "mM/s")},
         {"conc": ("inputs", "float", "?U"), "time": ("inputs", "float", "?T"), "flux": ("outputs", "float", "?U/?T")},
     )
-    diagnostics = check_document(read_document(doc), REGISTRY)
+    diagnostics = check_document(doc, REGISTRY)
     w201 = [d for d in diagnostics if d.code == "W201"]
     assert [d.path for d in w201] == ["solver/outputs/flux"] and "factor 0.001" in w201[0].message
 
@@ -277,7 +280,7 @@ def test_incompatible_units_are_reported() -> None:
         {"conc": ("float", "kg"), "time": ("float", "s")},
         {"conc": ("inputs", "float", "uM"), "time": ("inputs", "float", "?T")},
     )
-    diagnostics = check_document(read_document(doc), REGISTRY)
+    diagnostics = check_document(doc, REGISTRY)
     assert [d.path for d in diagnostics if d.code == "W201"] == ["solver/inputs/conc"]
     assert "incompatible" in next(d.message for d in diagnostics if d.code == "W201")
 
@@ -294,7 +297,7 @@ def test_a_variable_is_solved_from_a_derived_port() -> None:
         {"conc": ("float", "uM"), "flux": ("float", "uM/min"), "clock": ("float", "s")},
         {"conc": ("inputs", "float", "?U"), "flux": ("outputs", "float", "?U/?T"), "clock": ("inputs", "float", "?T")},
     )
-    diagnostics = check_document(read_document(doc), REGISTRY)
+    diagnostics = check_document(doc, REGISTRY)
     w201 = [d for d in diagnostics if d.code == "W201"]
     assert [d.path for d in w201] == ["solver/outputs/flux"] and "factor 60" in w201[0].message
 
@@ -312,7 +315,7 @@ def test_units_on_a_map_apply_to_sub_port_wires() -> None:
             },
         },
     }
-    diagnostics = check_document(read_document(doc), REGISTRY)
+    diagnostics = check_document(doc, REGISTRY)
     assert [d.path for d in diagnostics if d.code == "W201"] == ["p/inputs/substrates/A"]
 
 

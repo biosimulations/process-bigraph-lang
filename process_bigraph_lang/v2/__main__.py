@@ -24,45 +24,31 @@ from process_bigraph_lang.v2 import (
     decompile,
     diff_documents,
     equivalent,
-    print_interfaces,
+    loads,
+    render_interfaces,
 )
 
 
-def _load(path: Path) -> tuple[dict[str, Any], bool]:
+def _load(path: Path) -> dict[str, Any]:
     text = path.read_text(encoding="utf-8")
     if path.suffix in (".yaml", ".yml"):
         import yaml
 
         loaded = yaml.safe_load(text)
-        return loaded, True
-    from bigraph_schema import json_codec  # type: ignore[import-untyped]
+    else:
+        loaded = loads(text)
+    if not isinstance(loaded, dict):
+        raise SystemExit(f"{path}: not a document")
+    return loaded
 
-    loaded = json_codec.loads(text)
-    return loaded, False
 
-
-def _registry(manifests: list[str] | None) -> InterfaceRegistry | None:
-    if not manifests:
-        return None
-    import json
-
-    registry = InterfaceRegistry(decls=[])
-    for manifest in manifests:
-        registry.decls.extend(
-            InterfaceRegistry.from_manifest(json.loads(Path(manifest).read_text(encoding="utf-8"))).decls
-        )
-    return registry
+def _manifests(args: argparse.Namespace) -> list[Path]:
+    return [Path(m) for m in getattr(args, "interfaces", None) or []]
 
 
 def _decompile(args: argparse.Namespace) -> int:
     path = Path(args.document)
-    loaded, is_spec = _load(path)
-    printed = decompile(
-        loaded,
-        name=path.stem.replace(".composite", ""),
-        registry=_registry(args.interfaces),
-        kind="spec" if is_spec else "document",
-    )
+    printed = decompile(_load(path), name=path.stem.replace(".composite", ""), manifests=_manifests(args))
     if args.out:
         out = Path(args.out)
         out.write_text(printed.text, encoding="utf-8")
@@ -79,9 +65,8 @@ def _decompile(args: argparse.Namespace) -> int:
 
 
 def _compile(args: argparse.Namespace) -> int:
-    manifests = [Path(m) for m in args.interfaces or []]
     try:
-        compiled = compile_file(args.document, manifests=manifests, to=args.to, strict=args.strict)
+        compiled = compile_file(args.document, manifests=_manifests(args), to=args.to, strict=args.strict)
     except CompileError as error:
         for diagnostic in error.diagnostics:
             print(diagnostic, file=sys.stderr)
@@ -94,9 +79,9 @@ def _compile(args: argparse.Namespace) -> int:
 
         text = yaml.safe_dump(compiled.document, sort_keys=False)
     else:
-        from bigraph_schema import json_codec
+        from process_bigraph_lang.v2 import dumps
 
-        text = json_codec.dumps(compiled.document, indent=2) + "\n"
+        text = dumps(compiled.document) + "\n"
     if args.out:
         Path(args.out).write_text(text, encoding="utf-8")
         print(f"wrote {args.out}", file=sys.stderr)
@@ -109,8 +94,7 @@ def _diff(args: argparse.Namespace) -> int:
     import process_bigraph as pg  # type: ignore[import-untyped]
 
     core = pg.allocate_core()
-    a, _ = _load(Path(args.a))
-    b, _ = _load(Path(args.b))
+    a, b = _load(Path(args.a)), _load(Path(args.b))
     if equivalent(a, b, core):
         return 0
     print(diff_documents(a, b, core))
@@ -118,15 +102,11 @@ def _diff(args: argparse.Namespace) -> int:
 
 
 def _describe(args: argparse.Namespace) -> int:
-    import json
-
     registry = InterfaceRegistry.from_modules(*args.modules)
     if args.manifest:
-        Path(args.manifest).write_text(
-            json.dumps(registry.to_manifest(), indent=2, default=str) + "\n", encoding="utf-8"
-        )
+        registry.write_manifest(Path(args.manifest))
     files = {
-        module: print_interfaces([d for d in registry.decls if d.module == module], module) for module in args.modules
+        module: render_interfaces([d for d in registry.decls if d.module == module], module) for module in args.modules
     }
     if args.out and (len(files) > 1 or Path(args.out).is_dir()):
         out_dir = Path(args.out)
@@ -142,19 +122,13 @@ def _describe(args: argparse.Namespace) -> int:
 
 
 def _check(args: argparse.Namespace) -> int:
-    from process_bigraph_lang.v2.check import check_file
+    from process_bigraph_lang.v2.check import check_file, check_text
 
     source = Path(args.document)
-    manifests = [Path(m) for m in args.interfaces or []]
+    manifests = _manifests(args)
     if source.suffix in (".json", ".yaml", ".yml"):  # a document: decompile it, then check the text
-        import tempfile
-
-        loaded, is_spec = _load(source)
-        printed = decompile(loaded, name=source.stem, kind="spec" if is_spec else "document")
-        with tempfile.TemporaryDirectory() as tmp:
-            text = Path(tmp) / f"{source.stem}.pbl"
-            text.write_text(printed.text, encoding="utf-8")
-            diagnostics = check_file(text, manifests)
+        printed = decompile(_load(source), name=source.stem, manifests=manifests)
+        diagnostics = check_text(printed.text, manifests)
     else:
         diagnostics = check_file(source, manifests)
     for diagnostic in diagnostics:
@@ -202,18 +176,16 @@ def main(argv: list[str] | None = None) -> int:
     describe_cmd = commands.add_parser("describe", help="generate interface declarations from Python modules")
     describe_cmd.add_argument("modules", nargs="+", help="importable module names (run in the package's env)")
     describe_cmd.add_argument("--manifest", help="write the JSON manifest here")
-    describe_cmd.add_argument(
-        "--out", help="the .pblang interface file (one module) or a directory (one file per module)"
-    )
+    describe_cmd.add_argument("--out", help="the .pbl interface file (one module) or a directory (one file per module)")
     describe_cmd.set_defaults(run=_describe)
     model_cmd = commands.add_parser("describe-model", help="generate a model header from an SBML file")
     model_cmd.add_argument("model", help="an SBML file")
     model_cmd.add_argument("--manifest", help="write the JSON form here")
-    model_cmd.add_argument("--out", help="write the .pblang model header here")
+    model_cmd.add_argument("--out", help="write the .pbl model header here")
     model_cmd.set_defaults(run=_describe_model)
     check_cmd = commands.add_parser("check", help="statically check a .pbl file or a document against manifests")
     check_cmd.add_argument(
-        "document", help="a .pbl file, or a document (.json) / CompositeSpec (.yaml) to print and check"
+        "document", help="a .pbl file, or a document (.json) / CompositeSpec (.yaml) to decompile and check"
     )
     check_cmd.add_argument("--interfaces", action="append", help="a manifest.json (repeatable)")
     check_cmd.set_defaults(run=_check)

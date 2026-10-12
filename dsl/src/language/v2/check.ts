@@ -65,6 +65,7 @@ import {
   mapValueType,
   sameType,
   semantics,
+  stableJsonText,
   surface,
   type TypeExpr,
   unitsOf,
@@ -661,15 +662,15 @@ class Checker {
       }
     }
     for (const [key, wanted] of Object.entries(sort.meta)) {
-      if (JSON.stringify(header.meta[key]) !== JSON.stringify(wanted)) {
+      if (stableJsonText(header.meta[key]) !== stableJsonText(wanted)) {
         this.report(
           "G301",
           "model-not-admitted",
           "error",
           [...path, "meta", key],
-          `${who}: the sort requires ${key} = ${JSON.stringify(
+          `${who}: the sort requires ${key} = ${stableJsonText(
             wanted,
-          )}; the header has ${JSON.stringify(header.meta[key])}`,
+          )}; the header has ${stableJsonText(header.meta[key])}`,
           node,
         );
       }

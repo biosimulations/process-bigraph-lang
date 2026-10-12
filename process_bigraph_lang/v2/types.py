@@ -1,10 +1,8 @@
 """
-Type expressions: the bridge between bigraph-schema's type language and the DSL's spelling.
-
-`parse_type` accepts both bigraph-schema forms, the string grammar (`list[float]`, `a:float|b:integer`,
-`A~B`, `array[(3|4),float]`, `float{3.5}`) and the dict form (`{"_type": "map", "_value": ...}`), and keeps
-the original (`source`) so that `to_bigraph` is lossless. `to_surface` renders the DSL spelling
-(`list<float>`, `{ a: float; b: int }`, `A | B`, `array<float>[3, 4]`).
+Type expressions as data, for the normalizer and for `describe`: `parse_type` accepts both bigraph-schema
+forms, the string grammar (`list[float]`, `a:float|b:integer`, `A~B`, `array[(3|4),float]`, `float{3.5}`) and
+the dict form (`{"_type": "map", "_value": ...}`), and keeps the original (`source`) so that `to_bigraph` is
+lossless. The DSL spelling of a type lives in TypeScript (`dsl/src/language/v2/types.ts`).
 """
 
 from __future__ import annotations
@@ -12,11 +10,29 @@ from __future__ import annotations
 import json
 import re
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, Final
 
 from bigraph_schema.parse import parse_expression  # type: ignore[import-untyped]
 
-from process_bigraph_lang.v2.values import MISSING
+
+class _Missing:
+    """The absence of a default (distinct from `None`)."""
+
+    _instance: _Missing | None = None
+
+    def __new__(cls) -> _Missing:
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+        return cls._instance
+
+    def __repr__(self) -> str:
+        return "MISSING"
+
+    def __bool__(self) -> bool:
+        return False
+
+
+MISSING: Final = _Missing()
 
 
 @dataclass
@@ -77,7 +93,6 @@ _PARAM_KEYS: dict[str, tuple[str, ...]] = {
     "quote": ("_value",),
 }
 _ARRAY_KEYS = ("_shape", "_data", "_units")
-_SURFACE_NAMES = {"integer": "int", "boolean": "bool"}
 _BIGRAPH_NAMES = {"int": "integer", "bool": "boolean"}
 _TRAILING_DEFAULT = re.compile(r"^([^{}]*)\{(.*)\}$")
 
@@ -227,52 +242,3 @@ def _named_to_bigraph(expr: Named) -> Any:
             return {**rendered, "_default": expr.default}
         return {"_type": rendered, "_default": expr.default}
     return rendered
-
-
-def to_surface(expr: TypeExpr) -> str:
-    """Render a `TypeExpr` in the DSL's spelling."""
-    if isinstance(expr, Named):
-        return _named_to_surface(expr)
-    if isinstance(expr, Struct):
-        return "{ " + " ".join(f"{k}: {to_surface(v)};" for k, v in expr.fields.items()) + " }"
-    if isinstance(expr, UnionType):
-        return " | ".join(to_surface(o) for o in expr.options)
-    if isinstance(expr, Group):
-        return "[" + ", ".join(str(i) for i in expr.items) + "]"
-    return _raw_to_surface(expr)
-
-
-def _named_to_surface(expr: Named) -> str:
-    base = _SURFACE_NAMES.get(expr.name, expr.name)
-    shape = next((a for a in expr.args if isinstance(a, Group)), None)
-    others = [to_surface(a) for a in expr.args if not isinstance(a, Group)]
-    if shape is not None:
-        text = f"{base}<{others[0] if others else 'float'}>{to_surface(shape)}"
-    elif expr.name == "map" and len(others) == 1:
-        text = f"map<string, {others[0]}>"
-    elif others:
-        text = f"{base}<{', '.join(others)}>"
-    else:
-        text = base
-    if expr.units is not None:
-        text += f' @ "{expr.units}"'
-    if expr.default is not MISSING:
-        text += "{" + json.dumps(expr.default) + "}"
-    return text
-
-
-def _raw_to_surface(expr: Raw) -> str:
-    kind = expr.attrs.get("_type")
-    if kind == "link":
-        inputs = expr.attrs.get("_inputs") or {}
-        outputs = expr.attrs.get("_outputs") or {}
-        return f"link<{_face_fields(inputs)}, {_face_fields(outputs)}>"
-    if kind in ("process", "step"):
-        return str(kind)
-    return json.dumps(json.dumps(expr.attrs, default=str))
-
-
-def _face_fields(ports: Any) -> str:
-    if not isinstance(ports, dict):
-        return json.dumps(str(ports))
-    return "{ " + " ".join(f"{k}: {to_surface(parse_type(v))};" for k, v in ports.items()) + " }"

@@ -625,15 +625,26 @@ workspace, with the `import` they need added as an additional edit. The keywords
 answer `import a.b.{X}` directly (a document with `module a.b;` declaring `X` is `local:!a.b.X`), so a composite
 next to its generated headers is checked without a manifest; the CLI takes manifests with `--interfaces`.
 
-**The Python API.** `process_bigraph_lang.v2` exposes `compile_text` / `compile_file` (text -> parse -> check ->
-document or CompositeSpec; `CompileError` on errors, `strict=True` makes warnings fatal) and `decompile`
-(document or CompositeSpec -> text plus sidecar assets). The dataclass model behind them, with its reader,
-writer and printer, is internal. This is deliberate: a Python tool that builds composites targets the DSL
-text, where the result is checked, reviewed and documented, rather than a Python object model that would be a
-second authoring surface. A builder in viva-pde-particle, for example, emits `.pbl` text (or a document it then
-decompiles) and compiles that; it does not construct `Document` objects. The follow-up is to move reader,
-writer and printer into `cli-native` as `compile` and `decompile`, so that Python keeps only `describe`
-(introspection must run where the classes import) and thin wrappers, and no Python model exists at all.
+**Compile and decompile.** The reader (document or CompositeSpec -> model), the writer (model -> document or
+CompositeSpec), the printer (model -> text) and the binder (Langium AST -> model) are TypeScript too
+(`dsl/src/language/v2/{reader,writer,printer,bind}.ts` over the model in `model.ts`), so `cli-native compile`
+and `cli-native decompile` are the only implementations: the same code serves the CLI, the editor and the
+browser. Documents cross the CLI boundary as JSON in `bigraph_schema.json_codec`'s encoding (numpy arrays
+tagged; tuples tagged as `__tuple__` by the Python side), with ints and floats kept apart (`1` is not `1.0`),
+dicts in source order, and Python's float and string spellings reproduced so that printed text and sidecar
+assets are byte-identical on both sides. `compile` runs the checker first and stops on errors (`--strict`
+makes warnings fatal; `--force` compiles an existing document that relies on defaults the checker flags).
+`headers` renders a manifest as `.pbl` header files, `model-header` renders `describe-model`'s JSON, `graph`
+prints the wiring graph for viewers.
+
+**The Python API.** `process_bigraph_lang.v2` exposes `compile_text` / `compile_file` and `decompile`, thin
+wrappers over those commands, plus what has to be Python: `describe_module` (introspection runs where the
+classes import; it writes the manifest the CLI reads), `describe_sbml` (the model header as JSON), and the
+normalizer (`equivalent`, `diff_documents`; it needs bigraph-schema's `core.render`). There is no Python
+model of a composite. This is deliberate: a Python tool that builds composites targets the DSL text, where
+the result is checked, reviewed and documented, rather than a Python object model that would be a second
+authoring surface. A builder in viva-pde-particle, for example, emits `.pbl` text (or a document it then
+decompiles) and compiles that.
 
 ### 5.3 `pblang check`
 
