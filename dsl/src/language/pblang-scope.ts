@@ -8,10 +8,10 @@ import type { AstNodeDescription } from "langium";
 
 /**
  * Exports every named node of a v2 document, not only the root's direct children: interface and model
- * declarations sit under a `V2Statement` wrapper (which carries their doc comments), and imported names sit
- * under `V2Import`, and edges reference all of them by name.
+ * declarations sit under a `Statement` wrapper (which carries their doc comments), and imported names sit
+ * under `Import`, and edges reference all of them by name.
  */
-export class V2ScopeComputation extends DefaultScopeComputation {
+export class PblangScopeComputation extends DefaultScopeComputation {
   override async computeExports(
     document: LangiumDocument,
   ): Promise<AstNodeDescription[]> {

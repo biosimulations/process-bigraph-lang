@@ -9,7 +9,7 @@ import { parseHelper } from "langium/test";
 import * as fs from "node:fs";
 import * as path from "node:path";
 import { createProcessBigraphLanguageServices } from "../../src/language/process-bigraph-language-module.js";
-import type { V2Module } from "../../src/language/generated/ast.js";
+import * as ast from "../../src/language/generated/ast.js";
 import { assetLoader } from "../../src/language/v2/assets.js";
 import { bindModule } from "../../src/language/v2/bind.js";
 import { Registry } from "../../src/language/v2/headers.js";
@@ -50,7 +50,7 @@ for (const name of [
   );
 
 const services = createProcessBigraphLanguageServices(EmptyFileSystem);
-const parse = parseHelper<V2Module>(services.PblangV2);
+const parse = parseHelper<ast.Module>(services.Pblang);
 
 function loadDocument(file: string): Dict {
   return parseJson(fs.readFileSync(file, "utf-8")) as Dict;

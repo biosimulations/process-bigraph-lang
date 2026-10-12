@@ -16,7 +16,7 @@ export const setupConfigExtended = (): UserConfig => {
   );
   extensionFilesOrContents.set(
     "/pblang-grammar.json",
-    new URL("../syntaxes/pblang-v2.tmLanguage.json", import.meta.url),
+    new URL("../syntaxes/pblang.tmLanguage.json", import.meta.url),
   );
 
   return {
@@ -24,7 +24,7 @@ export const setupConfigExtended = (): UserConfig => {
       serviceConfig: defineUserServices(),
       editorAppConfig: {
         $type: "extended",
-        languageId: "pblang-v2",
+        languageId: "pblang",
         code: SAMPLE_PBLANG,
         useDiffEditor: false,
         extensions: [
@@ -39,15 +39,15 @@ export const setupConfigExtended = (): UserConfig => {
               contributes: {
                 languages: [
                   {
-                    id: "pblang-v2",
+                    id: "pblang",
                     extensions: [".pblang", ".pbl"],
                     configuration: "./language-configuration.json",
                   },
                 ],
                 grammars: [
                   {
-                    language: "pblang-v2",
-                    scopeName: "source.pblang-v2",
+                    language: "pblang",
+                    scopeName: "source.pblang",
                     path: "./pblang-grammar.json",
                   },
                 ],

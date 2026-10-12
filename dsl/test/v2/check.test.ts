@@ -8,7 +8,7 @@ import { parseHelper } from "langium/test";
 import * as fs from "node:fs";
 import * as path from "node:path";
 import { createProcessBigraphLanguageServices } from "../../src/language/process-bigraph-language-module.js";
-import type { V2Module } from "../../src/language/generated/ast.js";
+import * as ast from "../../src/language/generated/ast.js";
 import { checkModule, type Diagnostic } from "../../src/language/v2/check.js";
 import { Registry } from "../../src/language/v2/headers.js";
 
@@ -16,12 +16,12 @@ const fixtures = path.resolve(__dirname, "../../../tests/fixtures/data/v2");
 const TOY = "tests.fixtures.test_registry.toy_library";
 const SPATIO = "tests.fixtures.test_registry.spatio_flux.processes";
 
-let parse: ReturnType<typeof parseHelper<V2Module>>;
+let parse: ReturnType<typeof parseHelper<ast.Module>>;
 let registry: Registry;
 
 beforeAll(() => {
   const services = createProcessBigraphLanguageServices(EmptyFileSystem);
-  parse = parseHelper<V2Module>(services.PblangV2);
+  parse = parseHelper<ast.Module>(services.Pblang);
   registry = new Registry();
   for (const name of [
     "test_registry.manifest.json",

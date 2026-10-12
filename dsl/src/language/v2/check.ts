@@ -10,38 +10,7 @@
  * (a header admitted against a sort). Codes follow `docs/v2/registry-and-authoring.md`.
  */
 import type { AstNode } from "langium";
-import type {
-  V2Composite,
-  V2ConfigBlock,
-  V2DictLiteral,
-  V2Emit,
-  V2InnerBlock,
-  V2Module,
-  V2Node,
-  V2NodeDecl,
-  V2Path,
-  V2Store,
-  V2Wire,
-  V2WireBlock,
-} from "../generated/ast.js";
-import {
-  isV2Composite,
-  isV2CompositeEdge,
-  isV2ConfigBlock,
-  isV2Emit,
-  isV2Index,
-  isV2InnerBlock,
-  isV2InputsBlock,
-  isV2ModelRef,
-  isV2Node,
-  isV2OutputsBlock,
-  isV2Param,
-  isV2ParamRef,
-  isV2PlainEdge,
-  isV2SharedEdge,
-  isV2SiteValue,
-  isV2Store,
-} from "../generated/ast.js";
+import * as ast from "../generated/ast.js";
 import {
   type ConfigField,
   type InterfaceDecl,
@@ -86,8 +55,8 @@ export interface Diagnostic {
 }
 
 type Entry =
-  | { kind: "store"; node: V2Store }
-  | { kind: "node"; node: V2Node }
+  | { kind: "store"; node: ast.Store }
+  | { kind: "node"; node: ast.Node }
   | { kind: "edge"; node: EdgeNode };
 
 interface Target {
@@ -111,7 +80,7 @@ const SEVERITY_ORDER: Record<Severity, number> = {
 };
 
 export function checkModule(
-  module: V2Module,
+  module: ast.Module,
   registry: Registry = new Registry(),
 ): Diagnostic[] {
   const checker = new Checker(module, registry);
@@ -139,22 +108,22 @@ class Checker {
   private obligations: UnitObligation[] = [];
 
   constructor(
-    private readonly module: V2Module,
+    private readonly module: ast.Module,
     private readonly registry: Registry,
   ) {
     this.ctx = moduleContext(module);
   }
 
   run(): void {
-    const composites: V2Composite[] = [];
-    const emits: V2Emit[] = [];
+    const composites: ast.Composite[] = [];
+    const emits: ast.Emit[] = [];
     for (const statement of this.module.statements) {
       const body = statement.body;
-      if (isV2Param(body)) {
+      if (ast.isParam(body)) {
         const units = unitsOf(fromAst(body.type));
         if (units !== undefined) this.paramUnits.set(body.name, units);
-      } else if (isV2Composite(body)) composites.push(body);
-      else if (isV2Emit(body)) emits.push(body);
+      } else if (ast.isComposite(body)) composites.push(body);
+      else if (ast.isEmit(body)) emits.push(body);
     }
     for (const composite of composites) this.scope(composite.decls, []);
     this.emitters(emits);
@@ -182,7 +151,7 @@ class Checker {
 
   // --- scopes ----------------------------------------------------------------------------------------------
 
-  private scope(decls: V2NodeDecl[], base: Step[]): void {
+  private scope(decls: ast.NodeDecl[], base: Step[]): void {
     const savedIndex = this.index;
     const savedWriters = this.writers;
     this.index = new Map();
@@ -200,9 +169,9 @@ class Checker {
     }
     for (const [key, entry] of this.index) {
       if (entry.kind === "edge") {
-        const inner = entry.node.items.find((item) => isV2InnerBlock(item)) as
-          | V2InnerBlock
-          | undefined;
+        const inner = entry.node.items.find((item) =>
+          ast.isInnerBlock(item),
+        ) as ast.InnerBlock | undefined;
         if (inner) this.scope(inner.decls, [...base, ...fromKey(key)]);
       }
     }
@@ -210,24 +179,24 @@ class Checker {
     this.writers = savedWriters;
   }
 
-  private indexDecls(decls: V2NodeDecl[], path: Step[]): void {
+  private indexDecls(decls: ast.NodeDecl[], path: Step[]): void {
     for (const decl of decls) {
       const body = decl.body;
-      if (isV2Store(body))
+      if (ast.isStore(body))
         this.index.set(toKey([...path, body.name]), {
           kind: "store",
           node: body,
         });
-      else if (isV2Node(body)) {
+      else if (ast.isNode(body)) {
         this.index.set(toKey([...path, body.name]), {
           kind: "node",
           node: body,
         });
         this.indexDecls(body.decls, [...path, body.name]);
       } else if (
-        isV2PlainEdge(body) ||
-        isV2SharedEdge(body) ||
-        isV2CompositeEdge(body)
+        ast.isPlainEdge(body) ||
+        ast.isSharedEdge(body) ||
+        ast.isCompositeEdge(body)
       ) {
         this.index.set(toKey([...path, body.name]), {
           kind: "edge",
@@ -241,14 +210,14 @@ class Checker {
 
   private edge(edge: EdgeNode, path: Step[]): void {
     this.obligations = [];
-    const kind = isV2PlainEdge(edge)
+    const kind = ast.isPlainEdge(edge)
       ? edge.kind
-      : isV2SharedEdge(edge)
+      : ast.isSharedEdge(edge)
       ? "shared_process"
       : "process";
     const decl = this.declaration(edge, path);
     if (
-      isV2PlainEdge(edge) &&
+      ast.isPlainEdge(edge) &&
       edge.kind === "step" &&
       edge.interval !== undefined
     ) {
@@ -263,8 +232,8 @@ class Checker {
       );
     }
     const config = (
-      edge.items.find((item) => isV2ConfigBlock(item)) as
-        | V2ConfigBlock
+      edge.items.find((item) => ast.isConfigBlock(item)) as
+        | ast.ConfigBlock
         | undefined
     )?.block;
     if (decl) this.config(config, decl, path, edge);
@@ -302,7 +271,7 @@ class Checker {
     if (decl && config) {
       for (const entry of config.entries) {
         const field = decl.config[entry.key];
-        if (!field || !isV2ParamRef(entry.value)) continue;
+        if (!field || !ast.isParamRef(entry.value)) continue;
         const fieldUnits = unitsOf(field.type);
         const paramUnits = this.paramUnits.get(paramName(entry.value.value));
         if (fieldUnits !== undefined && paramUnits !== undefined) {
@@ -360,7 +329,7 @@ class Checker {
   }
 
   private config(
-    config: V2DictLiteral | undefined,
+    config: ast.DictLiteral | undefined,
     decl: InterfaceDecl,
     path: Step[],
     edge: EdgeNode,
@@ -395,11 +364,11 @@ class Checker {
     }
   }
 
-  private wireBlocks(edge: EdgeNode): ["inputs" | "outputs", V2WireBlock][] {
-    const out: ["inputs" | "outputs", V2WireBlock][] = [];
+  private wireBlocks(edge: EdgeNode): ["inputs" | "outputs", ast.WireBlock][] {
+    const out: ["inputs" | "outputs", ast.WireBlock][] = [];
     for (const item of edge.items) {
-      if (isV2InputsBlock(item)) out.push(["inputs", item.block]);
-      else if (isV2OutputsBlock(item)) out.push(["outputs", item.block]);
+      if (ast.isInputsBlock(item)) out.push(["inputs", item.block]);
+      else if (ast.isOutputsBlock(item)) out.push(["outputs", item.block]);
     }
     return out;
   }
@@ -407,7 +376,7 @@ class Checker {
   // --- wires -----------------------------------------------------------------------------------------------
 
   private wire(
-    wire: V2Wire,
+    wire: ast.Wire,
     portType: TypeExpr | undefined,
     parent: Step[],
     portPath: Step[],
@@ -486,7 +455,7 @@ class Checker {
   }
 
   private resolve(
-    path: V2Path,
+    path: ast.Path,
     parent: Step[],
     at: Step[],
     node: AstNode,
@@ -494,7 +463,7 @@ class Checker {
     const absolute: Step[] = [...parent];
     let aboveRoot = false;
     for (const segment of path.segments) {
-      if (isV2Index(segment)) absolute.push(segment.index);
+      if (ast.isIndex(segment)) absolute.push(segment.index);
       else if (segment.up) {
         if (absolute.length === 0) aboveRoot = true;
         // process-bigraph clamps `..` at the root to the root
@@ -536,17 +505,17 @@ class Checker {
 
   // --- model sites -----------------------------------------------------------------------------------------
 
-  private modelSite(store: V2Store, path: Step[]): void {
+  private modelSite(store: ast.Store, path: Step[]): void {
     const typeName =
       store.type &&
       store.type.options.length === 1 &&
-      store.type.options[0].$type === "V2NamedType"
+      store.type.options[0].$type === "NamedType"
         ? (store.type.options[0] as { name: string }).name
         : undefined;
     const sort =
       typeName !== undefined ? this.ctx.models.get(typeName) : undefined;
     if (!sort || !sort.isSort) return;
-    if (store.value && isV2SiteValue(store.value)) {
+    if (store.value && ast.isSiteValue(store.value)) {
       this.report(
         "I301",
         "open-model-site",
@@ -558,7 +527,7 @@ class Checker {
       );
       return;
     }
-    if (!store.value || !isV2ModelRef(store.value)) return;
+    if (!store.value || !ast.isModelRef(store.value)) return;
     const name = store.value.model.$refText;
     const header = this.ctx.models.get(name);
     if (!header || header.isSort) {
@@ -724,7 +693,7 @@ class Checker {
 
   // --- emit declarations -----------------------------------------------------------------------------------
 
-  private emitters(emits: V2Emit[]): void {
+  private emitters(emits: ast.Emit[]): void {
     const saved = this.index;
     this.index = this.rootIndex;
     emits.forEach((emit, index) => {
@@ -846,19 +815,25 @@ function paramName(text: string): string {
 }
 
 /** `a/b/0`: the form `fill_sites` and CompositeSpec `emitters.paths` use. */
-export function pathSlash(path: V2Path): string {
+export function pathSlash(path: ast.Path): string {
   return path.segments
     .map((s) =>
-      isV2Index(s) ? String(s.index) : s.up ? ".." : s.star ? "*" : s.key ?? "",
+      ast.isIndex(s)
+        ? String(s.index)
+        : s.up
+        ? ".."
+        : s.star
+        ? "*"
+        : s.key ?? "",
     )
     .join("/");
 }
 
-export function pathSource(path: V2Path): string {
+export function pathSource(path: ast.Path): string {
   let text = "";
   let previous: Step | undefined;
   for (const segment of path.segments) {
-    if (isV2Index(segment)) text += `[${segment.index}]`;
+    if (ast.isIndex(segment)) text += `[${segment.index}]`;
     else {
       const token = segment.up ? ".." : segment.star ? "*" : segment.key ?? "";
       if (previous === undefined) text += token;
@@ -866,7 +841,7 @@ export function pathSource(path: V2Path): string {
       else text += `.${token}`;
       previous = token;
     }
-    if (isV2Index(segment)) previous = segment.index;
+    if (ast.isIndex(segment)) previous = segment.index;
   }
   return text;
 }

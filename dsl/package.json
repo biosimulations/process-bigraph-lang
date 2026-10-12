@@ -71,7 +71,7 @@
     "contributes": {
         "languages": [
             {
-                "id": "pblang-v2",
+                "id": "pblang",
                 "aliases": [
                     "Process Bigraph Language",
                     "pblang"
@@ -85,14 +85,14 @@
         ],
         "grammars": [
             {
-                "language": "pblang-v2",
-                "scopeName": "source.pblang-v2",
-                "path": "syntaxes/pblang-v2.tmLanguage.json"
+                "language": "pblang",
+                "scopeName": "source.pblang",
+                "path": "syntaxes/pblang.tmLanguage.json"
             }
         ]
     },
     "activationEvents": [
-        "onLanguage:pblang-v2"
+        "onLanguage:pblang"
     ],
     "main": "./out/extension/main.cjs",
     "bin": {

@@ -2,14 +2,14 @@
     "projectName": "ProcessBigraphLanguage",
     "languages": [
         {
-            "id": "pblang-v2",
-            "grammar": "src/language/pblang-v2.langium",
+            "id": "pblang",
+            "grammar": "src/language/pblang.langium",
             "fileExtensions": [".pblang", ".pbl"],
             "textMate": {
-                "out": "syntaxes/pblang-v2.tmLanguage.json"
+                "out": "syntaxes/pblang.tmLanguage.json"
             },
             "monarch": {
-                "out": "src/syntaxes/pblang-v2.monarch.ts"
+                "out": "src/syntaxes/pblang.monarch.ts"
             }
         }
     ],

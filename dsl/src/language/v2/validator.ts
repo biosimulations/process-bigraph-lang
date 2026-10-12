@@ -1,10 +1,6 @@
 import type { ValidationAcceptor, ValidationChecks } from "langium";
-import type {
-  ProcessBigraphLanguageAstType,
-  V2Module,
-} from "../generated/ast.js";
-import { isV2Interface } from "../generated/ast.js";
-import type { PblangV2Services } from "../process-bigraph-language-module.js";
+import * as ast from "../generated/ast.js";
+import type { PblangServices } from "../process-bigraph-language-module.js";
 import { checkModule } from "./check.js";
 import {
   type InterfaceDecl,
@@ -18,8 +14,8 @@ import { importedAddress } from "./resolve.js";
  * The header registry the v2 checks resolve addresses in. The CLI fills it from manifests; in the editor the
  * header files open in the workspace answer too: a `.pbl` with `module a.b;` declaring `X` is `local:!a.b.X`.
  */
-export class V2Registry extends Registry {
-  constructor(private readonly services: PblangV2Services) {
+export class WorkspaceRegistry extends Registry {
+  constructor(private readonly services: PblangServices) {
     super();
   }
 
@@ -31,7 +27,7 @@ export class V2Registry extends Registry {
   workspaceInterfaces(): InterfaceDecl[] {
     const out: InterfaceDecl[] = [];
     for (const description of this.services.shared.workspace.IndexManager.allElements(
-      "V2Interface",
+      "Interface",
     )) {
       const decl = this.declOf(description.documentUri, description.path);
       if (decl) out.push(decl);
@@ -44,7 +40,7 @@ export class V2Registry extends Registry {
     const name = shortName(address);
     const byName: InterfaceDecl[] = [];
     for (const description of this.services.shared.workspace.IndexManager.allElements(
-      "V2Interface",
+      "Interface",
     )) {
       if (description.name !== name) continue;
       const decl = this.declOf(description.documentUri, description.path);
@@ -67,16 +63,18 @@ export class V2Registry extends Registry {
     const document =
       this.services.shared.workspace.LangiumDocuments.getDocument(uri);
     if (!document) return undefined;
-    const root = document.parseResult.value as V2Module;
+    const root = document.parseResult.value as ast.Module;
     const node = this.services.workspace.AstNodeLocator.getAstNode(root, path);
-    return isV2Interface(node) ? interfaceFromAst(node, root.name) : undefined;
+    return ast.isInterface(node)
+      ? interfaceFromAst(node, root.name)
+      : undefined;
   }
 }
 
-export class V2Validator {
-  constructor(private readonly registry: V2Registry) {}
+export class PblangValidator {
+  constructor(private readonly registry: WorkspaceRegistry) {}
 
-  checkModule(module: V2Module, accept: ValidationAcceptor): void {
+  checkModule(module: ast.Module, accept: ValidationAcceptor): void {
     for (const d of checkModule(module, this.registry)) {
       accept(d.severity, d.message, {
         node: d.node,
@@ -88,10 +86,10 @@ export class V2Validator {
   }
 }
 
-export function registerV2Checks(services: PblangV2Services): void {
-  const validator = services.validation.V2Validator;
-  const checks: ValidationChecks<ProcessBigraphLanguageAstType> = {
-    V2Module: validator.checkModule,
+export function registerChecks(services: PblangServices): void {
+  const validator = services.validation.Validator;
+  const checks: ValidationChecks<ast.ProcessBigraphLanguageAstType> = {
+    Module: validator.checkModule,
   };
   services.validation.ValidationRegistry.register(checks, validator);
 }

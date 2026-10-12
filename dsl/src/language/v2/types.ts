@@ -3,17 +3,7 @@
  * manifests and documents), one canonical shape to compare them by, and the unit each carries. A type parsed
  * from a bigraph-schema form remembers it (`source`), so `toBigraph` is lossless.
  */
-import type {
-  V2NamedType,
-  V2PrimaryType,
-  V2StructType,
-  V2TypeExpr,
-} from "../generated/ast.js";
-import {
-  isV2LinkType,
-  isV2NamedType,
-  isV2StructType,
-} from "../generated/ast.js";
+import * as ast from "../generated/ast.js";
 import { literalValue } from "./headers.js";
 import { parseJson } from "./json.js";
 
@@ -78,14 +68,14 @@ const ARRAY_KEYS = ["_shape", "_data", "_units"];
 
 // --- from the AST ---------------------------------------------------------------------------------------------
 
-export function fromAst(expr: V2TypeExpr): TypeExpr {
+export function fromAst(expr: ast.TypeExpr): TypeExpr {
   const options = expr.options.map(fromPrimary);
   return options.length === 1 ? options[0] : { kind: "union", options };
 }
 
-function fromPrimary(node: V2PrimaryType): TypeExpr {
-  if (isV2NamedType(node)) return fromNamed(node);
-  if (isV2LinkType(node)) {
+function fromPrimary(node: ast.PrimaryType): TypeExpr {
+  if (ast.isNamedType(node)) return fromNamed(node);
+  if (ast.isLinkType(node)) {
     return {
       kind: "raw",
       attrs: {
@@ -95,7 +85,7 @@ function fromPrimary(node: V2PrimaryType): TypeExpr {
       },
     };
   }
-  if (isV2StructType(node)) return fromStruct(node);
+  if (ast.isStructType(node)) return fromStruct(node);
   try {
     const parsed: unknown = JSON.parse(node.raw);
     if (parsed && typeof parsed === "object")
@@ -106,7 +96,7 @@ function fromPrimary(node: V2PrimaryType): TypeExpr {
   return parseTypeString(node.raw);
 }
 
-function fromNamed(node: V2NamedType): Named {
+function fromNamed(node: ast.NamedType): Named {
   const args: TypeExpr[] = [];
   if (node.dims.length > 0) {
     args.push({
@@ -134,7 +124,7 @@ function fromNamed(node: V2NamedType): Named {
   return named;
 }
 
-function fromStruct(node: V2StructType): Struct {
+function fromStruct(node: ast.StructType): Struct {
   const fields: Record<string, TypeExpr> = {};
   for (const field of node.fields) fields[field.name] = fromAst(field.type);
   return { kind: "struct", fields };

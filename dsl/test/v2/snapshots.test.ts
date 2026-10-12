@@ -4,7 +4,7 @@ import { parseHelper } from "langium/test";
 import * as fs from "node:fs";
 import * as path from "node:path";
 import { createProcessBigraphLanguageServices } from "../../src/language/process-bigraph-language-module.js";
-import type { V2Module } from "../../src/language/generated/ast.js";
+import * as ast from "../../src/language/generated/ast.js";
 
 // The v2 snapshots the Python prototype prints and parses back; the Langium grammar must accept them all.
 const snapshots = path.resolve(
@@ -14,7 +14,7 @@ const snapshots = path.resolve(
 const files = fs.readdirSync(snapshots).filter((f) => f.endsWith(".pblang"));
 
 const services = createProcessBigraphLanguageServices(EmptyFileSystem);
-const parse = parseHelper<V2Module>(services.PblangV2);
+const parse = parseHelper<ast.Module>(services.Pblang);
 
 describe("v2 snapshots parse with the Langium grammar", () => {
   test("there are snapshots", () => {
@@ -32,7 +32,7 @@ describe("v2 snapshots parse with the Langium grammar", () => {
           .map((d) => `${d.range.start.line + 1}: ${d.message}`),
       ];
       expect(errors).toEqual([]);
-      expect(document.parseResult.value.$type).toBe("V2Module");
+      expect(document.parseResult.value.$type).toBe("Module");
     });
   }
 });

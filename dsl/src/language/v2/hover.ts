@@ -7,37 +7,8 @@ import { AstUtils, CstUtils, GrammarAST, type LangiumDocument } from "langium";
 import type { AstNode, LeafCstNode } from "langium";
 import { AstNodeHoverProvider } from "langium/lsp";
 import type { Hover, HoverParams } from "vscode-languageserver";
-import type {
-  V2Emit,
-  V2Module,
-  V2NodeDecl,
-  V2Path,
-  V2Store,
-  V2Wire,
-} from "../generated/ast.js";
-import {
-  isV2CompositeEdge,
-  isV2ConfigBlock,
-  isV2DictLiteral,
-  isV2EdgeHead,
-  isV2Emit,
-  isV2Entry,
-  isV2Field,
-  isV2ImportedName,
-  isV2Interface,
-  isV2ModelDecl,
-  isV2ModelRef,
-  isV2Node,
-  isV2NodeDecl,
-  isV2Param,
-  isV2ParamRef,
-  isV2Path,
-  isV2PlainEdge,
-  isV2Segment,
-  isV2Store,
-  isV2Wire,
-} from "../generated/ast.js";
-import type { PblangV2Services } from "../process-bigraph-language-module.js";
+import * as ast from "../generated/ast.js";
+import type { PblangServices } from "../process-bigraph-language-module.js";
 import {
   docText,
   type InterfaceDecl,
@@ -67,8 +38,8 @@ import {
 } from "./resolve.js";
 import { mapValueType, surface, type TypeExpr, unitsOf } from "./types.js";
 
-export class V2HoverProvider extends AstNodeHoverProvider {
-  constructor(private readonly services: PblangV2Services) {
+export class PblangHoverProvider extends AstNodeHoverProvider {
+  constructor(private readonly services: PblangServices) {
     super(services);
   }
 
@@ -103,31 +74,35 @@ export class V2HoverProvider extends AstNodeHoverProvider {
     leaf?: LeafCstNode,
   ): string | undefined {
     const ctx = moduleContext(
-      AstUtils.getDocument(node).parseResult.value as V2Module,
+      AstUtils.getDocument(node).parseResult.value as ast.Module,
     );
-    if (isV2EdgeHead(node)) {
+    if (ast.isEdgeHead(node)) {
       if (property === "sharedRef") return undefined;
       return this.edge(node.$container as EdgeNode, ctx);
     }
     if (isEdge(node)) return this.edge(node, ctx);
-    if (isV2Wire(node) && property === "port") return this.port(node, ctx);
-    if (isV2Segment(node) && property === "key" && leaf)
-      return this.segment(node.$container as V2Path, node.$containerIndex ?? 0);
-    if (isV2Path(node) && leaf) return this.pathLeaf(node, leaf);
-    if (isV2Entry(node) && property === "key") return this.configKey(node, ctx);
-    if (isV2Store(node) || isV2Node(node)) return this.declaration(node);
-    if (isV2Interface(node))
+    if (ast.isWire(node) && property === "port") return this.port(node, ctx);
+    if (ast.isSegment(node) && property === "key" && leaf)
+      return this.segment(
+        node.$container as ast.Path,
+        node.$containerIndex ?? 0,
+      );
+    if (ast.isPath(node) && leaf) return this.pathLeaf(node, leaf);
+    if (ast.isEntry(node) && property === "key")
+      return this.configKey(node, ctx);
+    if (ast.isStore(node) || ast.isNode(node)) return this.declaration(node);
+    if (ast.isInterface(node))
       return this.interface(ctx.interfaces.get(node.name));
-    if (isV2ImportedName(node)) return this.imported(node.name, ctx);
-    if (isV2ModelDecl(node)) return this.model(modelFromAst(node));
-    if (isV2ModelRef(node)) {
+    if (ast.isImportedName(node)) return this.imported(node.name, ctx);
+    if (ast.isModelDecl(node)) return this.model(modelFromAst(node));
+    if (ast.isModelRef(node)) {
       const decl = node.model.ref;
       return decl ? this.model(modelFromAst(decl)) : undefined;
     }
-    if (isV2Param(node)) return this.param(node.name, ctx);
-    if (isV2ParamRef(node)) return this.param(node.value.slice(2, -1), ctx);
-    if (isV2Emit(node) && property === "alias") return this.emit(node);
-    if (isV2Field(node)) {
+    if (ast.isParam(node)) return this.param(node.name, ctx);
+    if (ast.isParamRef(node)) return this.param(node.value.slice(2, -1), ctx);
+    if (ast.isEmit(node) && property === "alias") return this.emit(node);
+    if (ast.isField(node)) {
       const doc = docText(node.docs);
       return (
         code(
@@ -203,7 +178,7 @@ export class V2HoverProvider extends AstNodeHoverProvider {
     ctx: ModuleContext,
   ): string | undefined {
     const dict = entry.$container;
-    if (!isV2DictLiteral(dict) || !isV2ConfigBlock(dict.$container))
+    if (!ast.isDictLiteral(dict) || !ast.isConfigBlock(dict.$container))
       return undefined;
     const edge = dict.$container.$container;
     if (!isEdge(edge)) return undefined;
@@ -223,7 +198,7 @@ export class V2HoverProvider extends AstNodeHoverProvider {
 
   // --- wires -----------------------------------------------------------------------------------------------
 
-  private port(wire: V2Wire, ctx: ModuleContext): string | undefined {
+  private port(wire: ast.Wire, ctx: ModuleContext): string | undefined {
     const site = wireSite(wire);
     if (!site) return undefined;
     const resolution = resolveEdge(site.edge, ctx, this.registry());
@@ -255,14 +230,14 @@ export class V2HoverProvider extends AstNodeHoverProvider {
     return parts.join("\n\n");
   }
 
-  private segment(path: V2Path, index: number): string | undefined {
+  private segment(path: ast.Path, index: number): string | undefined {
     const scope = isEmitPath(path)
-      ? rootScope(path.$container as V2Emit)
+      ? rootScope(path.$container as ast.Emit)
       : scopeOfPath(path);
     return this.target(path, scope, index + 1);
   }
 
-  private pathLeaf(path: V2Path, leaf: LeafCstNode): string | undefined {
+  private pathLeaf(path: ast.Path, leaf: LeafCstNode): string | undefined {
     // an index `[0]` or a separator: describe the path up to and including this token
     let upto = 0;
     for (const segment of path.segments) {
@@ -270,22 +245,22 @@ export class V2HoverProvider extends AstNodeHoverProvider {
       if (cst && cst.offset + cst.length <= leaf.offset + leaf.length) upto++;
     }
     const scope = isEmitPath(path)
-      ? rootScope(path.$container as V2Emit)
+      ? rootScope(path.$container as ast.Emit)
       : scopeOfPath(path);
     return this.target(path, scope, upto);
   }
 
   private target(
-    path: V2Path,
+    path: ast.Path,
     scope: DeclScope | undefined,
     upto?: number,
   ): string | undefined {
     const located: Located = locate(path, scope, upto);
-    if (isV2Node(located.node))
+    if (ast.isNode(located.node))
       return `**node** \`${located.node.name}\`${
         located.node.type ? `: \`${located.node.type.$cstNode?.text}\`` : ""
       }`;
-    if (isV2Store(located.node)) {
+    if (ast.isStore(located.node)) {
       const store = located.node;
       const below = located.rest;
       const { type, declared } = descend(store, below);
@@ -301,7 +276,7 @@ export class V2HoverProvider extends AstNodeHoverProvider {
       return parts.join("\n\n");
     }
     if (located.rest.length === 0 && located.scope)
-      return isV2Node(located.scope)
+      return ast.isNode(located.scope)
         ? `**node** \`${located.scope.name}\``
         : "the composite root";
     return `\`${located.rest
@@ -314,10 +289,10 @@ export class V2HoverProvider extends AstNodeHoverProvider {
   // --- declarations ----------------------------------------------------------------------------------------
 
   private declaration(
-    node: V2Store | ({ name: string; type?: AstNode } & AstNode),
+    node: ast.Store | ({ name: string; type?: AstNode } & AstNode),
   ): string {
     const parts: string[] = [];
-    if (isV2Store(node)) {
+    if (ast.isStore(node)) {
       const type = node.type?.$cstNode?.text;
       parts.push(
         `**store** \`${node.name}\`${type ? `: \`${type}\`` : " (untyped)"}`,
@@ -361,7 +336,7 @@ export class V2HoverProvider extends AstNodeHoverProvider {
     return parts.join("\n\n");
   }
 
-  private emit(emit: V2Emit): string | undefined {
+  private emit(emit: ast.Emit): string | undefined {
     if (emit.alias === undefined) return undefined;
     const address = EMITTER_ALIASES[emit.alias];
     return address
@@ -372,7 +347,7 @@ export class V2HoverProvider extends AstNodeHoverProvider {
   }
 
   private registry() {
-    return this.services.validation.V2Registry;
+    return this.services.validation.HeaderRegistry;
   }
 }
 
@@ -397,34 +372,35 @@ export function propertyOf(leaf: LeafCstNode): string | undefined {
   return undefined;
 }
 
-function scopeOfPath(path: V2Path): DeclScope | undefined {
+function scopeOfPath(path: ast.Path): DeclScope | undefined {
   const site = wireSite(path);
   return site ? parentScope(site.edge) : undefined;
 }
 
 function docsOf(node: AstNode): string | undefined {
   const container = node.$container;
-  if (isV2NodeDecl(container)) return docText((container as V2NodeDecl).docs);
+  if (ast.isNodeDecl(container))
+    return docText((container as ast.NodeDecl).docs);
   if (container && "docs" in container)
     return docText((container as { docs: string[] }).docs);
   return undefined;
 }
 
-function declarationLine(store: V2Store): string {
+function declarationLine(store: ast.Store): string {
   const text = store.$cstNode?.text ?? `store ${store.name};`;
   const first = text.split("\n")[0];
   return code(first.length < text.length ? `${first} ...` : first);
 }
 
 function edgeHeadText(edge: EdgeNode): string {
-  if (isV2CompositeEdge(edge)) return "";
+  if (ast.isCompositeEdge(edge)) return "";
   const head = edge.head;
   const parts: string[] = [];
   if (head.sharedRef !== undefined) parts.push(`: shared ${head.sharedRef}`);
   else if (head.iface) parts.push(`: ${head.iface.$refText}`);
   if (head.address?.literal !== undefined)
     parts.push(`at ${JSON.stringify(head.address.literal)}`);
-  if (isV2PlainEdge(edge) && edge.interval)
+  if (ast.isPlainEdge(edge) && edge.interval)
     parts.push(`every ${edge.interval.$cstNode?.text ?? ""}`);
   return parts.length > 0 ? ` ${parts.join(" ")}` : "";
 }

@@ -19,20 +19,8 @@ import {
   type NextFeature,
 } from "langium/lsp";
 import { CompletionItemKind, type TextEdit } from "vscode-languageserver";
-import type { V2Emit, V2Import, V2Module, V2Path } from "../generated/ast.js";
-import {
-  isV2ConfigBlock,
-  isV2DictLiteral,
-  isV2Emit,
-  isV2Import,
-  isV2Node,
-  isV2Path,
-  isV2Segment,
-  isV2Store,
-  isV2Wire,
-  isV2WireBlock,
-} from "../generated/ast.js";
-import type { PblangV2Services } from "../process-bigraph-language-module.js";
+import * as ast from "../generated/ast.js";
+import type { PblangServices } from "../process-bigraph-language-module.js";
 import { type InterfaceDecl, renderField } from "./headers.js";
 import {
   declaredPorts,
@@ -51,8 +39,8 @@ import {
 } from "./resolve.js";
 import { surface, unitsOf } from "./types.js";
 
-export class V2CompletionProvider extends DefaultCompletionProvider {
-  constructor(private readonly v2: PblangV2Services) {
+export class PblangCompletionProvider extends DefaultCompletionProvider {
+  constructor(private readonly v2: PblangServices) {
     super(v2);
   }
 
@@ -60,9 +48,9 @@ export class V2CompletionProvider extends DefaultCompletionProvider {
     context: CompletionContext,
     keyword: GrammarAST.Keyword,
   ): boolean {
-    // `V2Key` and `V2TypeName` admit keywords so that `every = 2` is a legal config key; they are not proposals
+    // `ast.Key` and `ast.TypeName` admit keywords so that `every = 2` is a legal config key; they are not proposals
     const rule = AstUtils.getContainerOfType(keyword, GrammarAST.isParserRule);
-    if (rule?.name === "V2Keyword") return false;
+    if (rule?.name === "Keyword") return false;
     return super.filterKeyword(context, keyword);
   }
 
@@ -88,8 +76,8 @@ export class V2CompletionProvider extends DefaultCompletionProvider {
       feature.value === "}" &&
       afterComma(context)
     ) {
-      if (isV2WireBlock(context.node)) return this.ports(context, acceptor);
-      if (isV2DictLiteral(context.node)) return this.keys(context, acceptor);
+      if (ast.isWireBlock(context.node)) return this.ports(context, acceptor);
+      if (ast.isDictLiteral(context.node)) return this.keys(context, acceptor);
     }
     if (GrammarAST.isCrossReference(feature) && next.property === "iface")
       return this.interfaces(context, next, acceptor);
@@ -105,7 +93,7 @@ export class V2CompletionProvider extends DefaultCompletionProvider {
     const site = context.node ? wireSite(context.node) : undefined;
     if (!site) return;
     // the chain holds the wire being completed when its port is partly typed; sub-ports of a map are unknown
-    const depth = isV2Wire(context.node)
+    const depth = ast.isWire(context.node)
       ? site.chain.length - 1
       : site.chain.length;
     if (depth > 0) return;
@@ -119,8 +107,8 @@ export class V2CompletionProvider extends DefaultCompletionProvider {
     if (!ports) return;
     const block = site.edge.items.find((item) =>
       site.label === "inputs"
-        ? item.$type === "V2InputsBlock"
-        : item.$type === "V2OutputsBlock",
+        ? item.$type === "InputsBlock"
+        : item.$type === "OutputsBlock",
     ) as { block: { wires: { port: string }[] } } | undefined;
     const wired = new Set(block?.block.wires.map((w) => w.port) ?? []);
     for (const [name, type] of Object.entries(ports)) {
@@ -143,29 +131,29 @@ export class V2CompletionProvider extends DefaultCompletionProvider {
   private keys(context: CompletionContext, acceptor: CompletionAcceptor): void {
     const node = context.node;
     if (!node) return;
-    if (isV2DictLiteral(node)) {
-      if (isV2ConfigBlock(node.$container))
+    if (ast.isDictLiteral(node)) {
+      if (ast.isConfigBlock(node.$container))
         this.configKeys(node, context, acceptor);
       return;
     }
-    if (isV2Wire(node)) {
+    if (ast.isWire(node)) {
       // the first segment of this wire's path
       const site = wireSite(node);
       if (site) this.pathStart(parentScope(site.edge), context, acceptor);
       return;
     }
-    if (isV2Emit(node)) {
+    if (ast.isEmit(node)) {
       this.pathStart(rootScope(node), context, acceptor);
       return;
     }
-    const path = isV2Path(node)
+    const path = ast.isPath(node)
       ? node
-      : isV2Segment(node)
-      ? (node.$container as V2Path)
+      : ast.isSegment(node)
+      ? (node.$container as ast.Path)
       : undefined;
     if (!path) return;
     const scope = isEmitPath(path)
-      ? rootScope(path.$container as V2Emit)
+      ? rootScope(path.$container as ast.Emit)
       : pathScope(path);
     // segments that start at or after the token being completed are the one being typed
     const upto = path.segments.filter(
@@ -173,13 +161,13 @@ export class V2CompletionProvider extends DefaultCompletionProvider {
         s.$cstNode !== undefined && s.$cstNode.offset < context.tokenOffset,
     ).length;
     const located = locate(path, scope, upto);
-    if (isV2Store(located.node)) {
+    if (ast.isStore(located.node)) {
       for (const key of keysBelow(located.node, located.rest))
         acceptor(
           context,
           this.keyItem(key, "key", CompletionItemKind.Property),
         );
-    } else if (isV2Node(located.node))
+    } else if (ast.isNode(located.node))
       this.pathStart(located.node, context, acceptor);
     else if (located.rest.length === 0 && located.scope)
       this.pathStart(located.scope, context, acceptor);
@@ -193,7 +181,7 @@ export class V2CompletionProvider extends DefaultCompletionProvider {
     if (!scope) return;
     for (const decl of scope.decls) {
       const body = decl.body;
-      if (isV2Store(body))
+      if (ast.isStore(body))
         acceptor(
           context,
           this.keyItem(
@@ -202,7 +190,7 @@ export class V2CompletionProvider extends DefaultCompletionProvider {
             CompletionItemKind.Variable,
           ),
         );
-      else if (isV2Node(body))
+      else if (ast.isNode(body))
         acceptor(
           context,
           this.keyItem(body.name, "node", CompletionItemKind.Module),
@@ -307,17 +295,17 @@ export class V2CompletionProvider extends DefaultCompletionProvider {
   }
 
   private registry() {
-    return this.v2.validation.V2Registry;
+    return this.v2.validation.HeaderRegistry;
   }
 }
 
 // --- helpers --------------------------------------------------------------------------------------------------
 
-function moduleOf(node: AstNode): V2Module {
-  return AstUtils.getDocument(node).parseResult.value as V2Module;
+function moduleOf(node: AstNode): ast.Module {
+  return AstUtils.getDocument(node).parseResult.value as ast.Module;
 }
 
-function pathScope(path: V2Path): DeclScope | undefined {
+function pathScope(path: ast.Path): DeclScope | undefined {
   const site = wireSite(path);
   return site ? parentScope(site.edge) : undefined;
 }
@@ -334,7 +322,7 @@ function afterComma(context: CompletionContext): boolean {
 
 /** The edit that imports `name` from `module`: into an existing `import module.{...}`, else a new line. */
 function importEdit(
-  root: V2Module,
+  root: ast.Module,
   name: string,
   module: string,
   imports: Map<string, string>,
@@ -343,7 +331,7 @@ function importEdit(
   const document = AstUtils.getDocument(root).textDocument;
   const existing = root.statements
     .map((s) => s.body)
-    .filter((b): b is V2Import => isV2Import(b));
+    .filter((b): b is ast.Import => ast.isImport(b));
   const same = existing.find(
     (i) => i.modulePath !== undefined && i.modulePath.slice(0, -2) === module,
   );

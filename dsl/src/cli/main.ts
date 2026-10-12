@@ -1,6 +1,6 @@
 import chalk from "chalk";
 import { Command } from "commander";
-import { PblangV2LanguageMetaData } from "../language/generated/module.js";
+import { PblangLanguageMetaData } from "../language/generated/module.js";
 import { createProcessBigraphLanguageServices } from "../language/process-bigraph-language-module.js";
 import { extractAstNode, extractDocument } from "./cli-util.js";
 import { generateJson } from "./generator.js";
@@ -10,8 +10,8 @@ import * as fs from "node:fs/promises";
 import * as fsSync from "node:fs";
 import * as path from "node:path";
 import { type LangiumDocument, URI } from "langium";
-import type { V2Module } from "../language/generated/ast.js";
-import type { PblangV2Services } from "../language/process-bigraph-language-module.js";
+import * as ast from "../language/generated/ast.js";
+import type { PblangServices } from "../language/process-bigraph-language-module.js";
 import { assetLoader } from "../language/v2/assets.js";
 import { bindModule } from "../language/v2/bind.js";
 import { documentGraph } from "../language/v2/graph.js";
@@ -38,14 +38,14 @@ const packagePath = path.resolve(__dirname, "..", "..", "package.json");
 const packageContent = await fs.readFile(packagePath, "utf-8");
 
 const servicesFor = (_fileName: string) =>
-  createProcessBigraphLanguageServices(NodeFileSystem).PblangV2;
+  createProcessBigraphLanguageServices(NodeFileSystem).Pblang;
 
 export const generateAction = async (
   fileName: string,
   opts: GenerateOptions,
 ): Promise<void> => {
   const services = servicesFor(fileName);
-  const model = await extractAstNode<V2Module>(
+  const model = await extractAstNode<ast.Module>(
     fileName,
     services,
     opts.lenient,
@@ -109,14 +109,13 @@ async function checkFile(
   fileName: string,
   manifests: string[],
 ): Promise<{
-  services: PblangV2Services;
+  services: PblangServices;
   document: LangiumDocument;
   diagnostics: CliDiagnostic[];
 }> {
-  const services =
-    createProcessBigraphLanguageServices(NodeFileSystem).PblangV2;
+  const services = createProcessBigraphLanguageServices(NodeFileSystem).Pblang;
   for (const manifest of manifests) {
-    services.validation.V2Registry.addManifest(
+    services.validation.HeaderRegistry.addManifest(
       JSON.parse(await fs.readFile(manifest, "utf-8")),
     );
   }
@@ -223,8 +222,8 @@ export const compileAction = async (
     process.exit(1);
   }
   const model = bindModule(
-    document.parseResult.value as V2Module,
-    services.validation.V2Registry,
+    document.parseResult.value as ast.Module,
+    services.validation.HeaderRegistry,
   );
   const directory = path.dirname(path.resolve(fileName));
   const loader = assetLoader((p) =>
@@ -372,8 +371,8 @@ export const graphAction = async (
       fileName,
       opts.interfaces ?? [],
     );
-    registry = services.validation.V2Registry;
-    model = bindModule(document.parseResult.value as V2Module, registry);
+    registry = services.validation.HeaderRegistry;
+    model = bindModule(document.parseResult.value as ast.Module, registry);
   } else {
     const loaded = parseJson(await fs.readFile(fileName, "utf-8"));
     if (!isDict(loaded)) {
@@ -393,7 +392,7 @@ export default function (): void {
 
   program.version(JSON.parse(packageContent).version);
 
-  const fileExtensions = PblangV2LanguageMetaData.fileExtensions.join(", ");
+  const fileExtensions = PblangLanguageMetaData.fileExtensions.join(", ");
   program
     .command("generate")
     .argument(

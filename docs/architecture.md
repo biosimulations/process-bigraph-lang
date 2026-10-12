@@ -46,8 +46,8 @@ infrastructure from the grammar; the project adds its own services and reuses th
 
 ### Grammar and language services (`dsl/src/language/`)
 
-- **`pblang-v2.langium`** is the grammar (language id `pblang-v2`, files `.pblang` and `.pbl`). Rule names carry
-  a `V2` prefix from the time the v1 and v2 grammars coexisted. A module is a flat list of statements:
+- **`pblang.langium`** is the grammar (language id `pblang`, files `.pblang` and `.pbl`). A module is a flat list of
+  statements:
   imports, params, meta and options blocks, interface declarations (headers), model declarations (headers and
   sorts), the composite tree (`store`, `node`, `process`/`step` edges with `config`, `inputs`, `outputs`,
   `ports`, nested `composite`s, `shared` processes) and `emit` declarations. See the design's section 2 for the
@@ -56,7 +56,7 @@ infrastructure from the grammar; the project adds its own services and reuses th
   gitignored and must be regenerated after every grammar change.
 - **`process-bigraph-language-module.ts`** is the dependency-injection module;
   `createProcessBigraphLanguageServices()` is the factory every entry point calls.
-- **`pblang-v2-scope.ts`** exports every named node (interface and model declarations, imported names), so
+- **`pblang-scope.ts`** exports every named node (interface and model declarations, imported names), so
   edges resolve interfaces and model sites resolve headers.
 - **`v2/`** is the language:
   - `check.ts` is the static checker, registered as a Langium validation (`validator.ts`): unknown ports,
