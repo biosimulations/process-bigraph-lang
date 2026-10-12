@@ -144,7 +144,8 @@ store-not-declared`, `T121 config-missing`, `W220/W221/W223` writers, `W240/W241
 
 ## process-bigraph 1.x traps (each fails silently)
 
-- The document keys are `schema` and `state`. A `composition` key is ignored.
+- The document keys are `schema` and `state`. A `composition` key is ignored. (The decompiler also reads a bare state
+  tree, no `schema`/`state` keys, as some prebuilt simulator images take it.)
 - An edge's `address` must be a plain value in its **state** node. An address given only in `schema` (or wrapped in
   `quote`) leaves the edge as a no-op base `Edge`.
 - There is no `_config`: config is a value, and its types come from the class's `config_schema`. A missing config
