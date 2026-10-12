@@ -186,6 +186,43 @@ computes fingerprints, writes `manifest.json` and renders `interfaces.pblang` wi
 - `pblang preflight` in the execution env compares the installed version to the lock, then runs stage A for only the
   referenced classes and compares fingerprints, reporting a port-level diff when an interface is stale.
 
+### 1.7 What ships today: `pblang-manifest/0`, one manifest per environment
+
+Decided 2026-10-12 (see the [stage two plan](authoring-plan.md)). Sections 1.1 to 1.6 remain the target; what exists
+is smaller, and one decision changes the unit: **a manifest describes an environment, not a package.** `describe` must
+import the classes inside the environment that will run the document, and environments differ (compose-api's shared
+image carries process-bigraph 1.0.5, viva-pde-particle's image 1.8.x and its own core).
+
+- **Producer.** `process_bigraph_lang/v2/describe_env.py` is stage A in its smallest form: one file, standard library
+  only, importing nothing from this package, so it runs as a plain script in any image or env:
+  `python describe_env.py viva_pde_particle --env-name viva-pde-particle --image <ref> > manifest.json`. It imports
+  every module under the given roots (a failed import is recorded, never fatal), keeps the step and process classes each
+  module defines, and shares its per-class code with `describe_module`. compose-api runs it in CI inside each
+  environment it offers and serves the result at `GET /registry/environments/{name}/manifest`.
+- **Consumers.** `Pblang.addManifest` / `setManifests` (main thread) and the language server's `pblang/setManifests`
+  notification (`SET_MANIFESTS_NOTIFICATION`; a host editor sends it when the environment is known or changes, and every
+  open document is re-checked). A component with a known address replaces the earlier one; another `schema_version` is
+  rejected.
+
+The format carries no DSL syntax: types stay in bigraph-schema's own string or dict forms, addresses in
+process-bigraph's `local:!module.Class` form, so any tool that can read a bigraph-schema type (a core's `access`, the
+workbench, a prompt-driven skill, another checker) can use it as it is.
+
+| Key                                     | Content                                                                                                                                                                             |
+| --------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `schema_version`                        | `"pblang-manifest/0"`                                                                                                                                                               |
+| `environment`                           | `{name, image, python, process_bigraph, bigraph_schema, packages {dist: version}, roots, generated_by}` (from `describe_env.py`)                                                    |
+| `components[]`                          | one per step or process class, sorted by address                                                                                                                                    |
+| `.name`, `.kind`, `.address`, `.module` | class name; `process` or `step` (by MRO); `local:!module.Class`; the defining module                                                                                                |
+| `.config`                               | `{key: {type, default?}}` from `config_schema`: the type as authored (string or dict, else `null`), the default when the type carries one (`{"_type": T, "_default": v}` or `T{v}`) |
+| `.inputs`, `.outputs`                   | `{port: type}` from `inputs()` / `outputs()` called with the class as `self`; `null` when they need an instance                                                                     |
+| `.dynamic_ports`                        | `true` when the ports need an instance (config-dependent or children's)                                                                                                             |
+| `.doc`                                  | the first paragraph of the class docstring, when there is one                                                                                                                       |
+| `errors[]`                              | `{module, error}` per module or class that failed (from `describe_env.py`)                                                                                                          |
+
+Not yet in `/0`, compared with section 1.2: units and contracts, port semantics, adapter metadata, fingerprints, a
+published JSON Schema.
+
 ## 2. Adapters as first-class entries
 
 An adapter is a step whose purpose is to map one face to another (grid particle counts → mesh concentration field).
@@ -305,11 +342,9 @@ Decided 2026-10-12: the checker is TypeScript, inside the Langium services, beca
 document and header manifests) and a browser must validate without a round trip. Python does what needs an
 environment: `describe`, saved documents with numpy, equivalence through a core, groundness, preflight, running.
 A browser-based authoring tool therefore needs a Python-backed API only for those environment-bound operations.
-The earlier plan below (Langium for syntax, Python for the type algebra) is superseded by that decision.
-
-Langium keeps syntax, scoping and structural type checks. Anything that needs bigraph-schema's type algebra, pint or
-manifest types runs in Python. The language server shells out to `pblang check --json --level wiring` on save and merges
-the diagnostics; both sides emit the same format.
+The earlier plan (Langium for syntax only, Python for the type algebra, the language server shelling out to
+`pblang check` on save) is superseded by that decision. Manifests reach the checker as data: through `--interfaces` in
+the CLI, `addManifest`/`setManifests` in the API, and `pblang/setManifests` in a language server (section 1.7).
 
 ### 4.5 Diagnostics JSON (`pblang-diagnostics/1`)
 

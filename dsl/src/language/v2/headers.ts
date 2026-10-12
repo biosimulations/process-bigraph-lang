@@ -61,14 +61,46 @@ export function isCompositeAddress(address: string): boolean {
   return address.startsWith("local:") && shortName(address) === "Composite";
 }
 
+/** The manifest format this reader understands (`describe`, `describe_env.py`). */
+export const MANIFEST_VERSION = "pblang-manifest/0";
+
 export class Registry {
   readonly decls: InterfaceDecl[] = [];
 
+  /**
+   * Add a manifest's components. A component whose address is already known replaces the earlier one, so adding
+   * the same manifest twice changes nothing. A manifest of another `schema_version` is rejected.
+   */
   addManifest(manifest: unknown): void {
+    const version = (manifest as { schema_version?: unknown })?.schema_version;
+    if (version !== undefined && version !== MANIFEST_VERSION)
+      throw new Error(
+        `unsupported manifest schema_version ${JSON.stringify(
+          version,
+        )}: this reader understands ${MANIFEST_VERSION}`,
+      );
     const components =
       (manifest as { components?: unknown[] })?.components ?? [];
-    for (const entry of components)
-      this.decls.push(fromManifestEntry(entry as Record<string, unknown>));
+    for (const entry of components) {
+      const decl = fromManifestEntry(entry as Record<string, unknown>);
+      const known =
+        decl.address === undefined
+          ? -1
+          : this.decls.findIndex((d) => d.address === decl.address);
+      if (known >= 0) this.decls[known] = decl;
+      else this.decls.push(decl);
+    }
+  }
+
+  /** Replace every manifest-declared interface with these manifests' (an editor switching environments). */
+  setManifests(manifests: unknown[]): void {
+    const decls = this.decls.splice(0);
+    try {
+      for (const manifest of manifests) this.addManifest(manifest);
+    } catch (error) {
+      this.decls.splice(0, this.decls.length, ...decls);
+      throw error;
+    }
   }
 
   /** By exact address; else by unique short name (`local:Name`, or a class re-exported from another module). */

@@ -108,8 +108,11 @@ the Deno runtime plus the bundle) that does not need Node at runtime.
 | `process-bigraph-lang/language-configuration` | Comments, brackets and auto-closing pairs.                                                                                                                                 |
 
 A viewer decompiles a run's document on the main thread with a `Pblang` session, shows the text in an editor fed by
-the worker, and draws `graph(...)`. An authoring tool adds the registry's manifests to both (the session through
-`addManifest`; the worker has no channel for them yet), compiles the text and submits the document. `static/` and
+the worker, and draws `graph(...)`. An authoring tool adds the manifests of the environment the document will run in to both: the session
+through `addManifest` or `setManifests`, the worker through the `pblang/setManifests` notification
+(`SET_MANIFESTS_NOTIFICATION`, `{ manifests }`), after which it re-checks every open document. It then compiles the
+text and submits the document. Manifests come from `describe_env.py` run inside that environment
+([registry and authoring](v2/registry-and-authoring.md), section 1.7). `static/` and
 `src/setup*.ts` are the reference wiring of Monaco to the worker (`npm run dev`).
 
 ## The Python package (`process_bigraph_lang/v2/`)

@@ -103,7 +103,8 @@ store-not-declared`, `T121 config-missing`, `W220/W221/W223` writers, `W240/W241
   stay byte-identical), `bind.ts` (AST → model), `assets.ts` (sidecar decoding), `graph.ts`, `modelheader.ts`.
 - `resolve.ts` is shared by the checker, `hover.ts` and `completion.ts`: which header an edge is declared by
   (inline, import, registry), how a path walks the tree. `WorkspaceRegistry` (`validator.ts`) answers imports from manifests
-  (CLI `--interfaces`) or from header `.pblang` files open in the workspace (`module a.b;` + `X` is
+  (CLI `--interfaces`, API `addManifest`/`setManifests`, the language server's `pblang/setManifests` notification in
+  `src/language/manifests.ts`) or from header `.pblang` files open in the workspace (`module a.b;` + `X` is
   `local:!a.b.X`).
 - `src/api.ts` is the embeddable API (package export `process-bigraph-lang`): a `Pblang` session with `addManifest`,
   `addHeader`, `check`, `compile`, `decompile`, `graph`, all from strings and plain values, no file system; the CLI
@@ -121,7 +122,10 @@ store-not-declared`, `T121 config-missing`, `W220/W221/W223` writers, `W240/W241
   and `decompile` (text + assets). Documents cross the CLI as `json_codec` JSON with `__tuple__` tags
   (`dumps` / `loads`).
 - `interfaces.py`: `describe_module` → `InterfaceDecl`s with types in bigraph-schema's own form → manifest JSON
-  (`pblang-manifest/0`); `render_interfaces` via the CLI. `sbml.py`: `describe_sbml` → JSON (`pblang-model/0`);
+  (`pblang-manifest/0`); `render_interfaces` via the CLI. `describe_env.py` is the standalone form (standard library
+  only, never imports this package, so it runs as a plain script inside any image): every module under some roots →
+  one manifest per environment, with an `environment` block and `errors`. Keep it free of package imports; the
+  per-class helpers are shared with `interfaces.py`. `sbml.py`: `describe_sbml` → JSON (`pblang-model/0`);
   `print_model_header` via the CLI. `check.py`: `check_file` / `check_text`. `normalize.py`: `equivalent`,
   `diff_documents`, `deep_equal` (+ `types.py`, its parser). `langium.py`: `langium_cli`, `run_cli`.
 - Keep `process_bigraph` out of the shipped package (tests only); `bigraph_schema` and `numpy` are main deps.

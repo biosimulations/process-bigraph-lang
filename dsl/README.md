@@ -21,7 +21,19 @@ const compiled = await pblang.compile(text, { assets }); // .pblang -> document 
 const graph = await pblang.graph({ text }); // nodes, stores, edges for a viewer
 ```
 
-For an editor, start `process-bigraph-lang/worker` in a web worker and connect it with `monaco-languageclient`;
+For an editor, start `process-bigraph-lang/worker` in a web worker and connect a language client to it. Give it the
+manifests of the environment the text will run in with the `pblang/setManifests` notification; it re-checks every
+open document, and sending it again (another environment) replaces them:
+
+```ts
+import { SET_MANIFESTS_NOTIFICATION } from "process-bigraph-lang";
+
+connection.sendNotification(SET_MANIFESTS_NOTIFICATION, {
+  manifests: [manifestJson],
+});
+pblang.setManifests([manifestJson]); // the main-thread session, for compile and graph
+```
+
 `process-bigraph-lang/monarch`, `/textmate` and `/language-configuration` are the grammars. `src/setup*.ts` and
 `static/` show the wiring (`npm run dev`).
 

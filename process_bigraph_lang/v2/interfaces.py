@@ -19,6 +19,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
+from process_bigraph_lang.v2.describe_env import doc_of, is_edge_class, kind_of, ports_of
 from process_bigraph_lang.v2.types import MISSING, Named, parse_type
 
 MANIFEST_VERSION = "pblang-manifest/0"
@@ -59,7 +60,7 @@ def describe_module(module_name: str) -> list[InterfaceDecl]:
     is_package = hasattr(module, "__path__")
     decls: list[InterfaceDecl] = []
     for name, cls in inspect.getmembers(module, inspect.isclass):
-        if name.startswith("_") or not _is_edge_class(cls) or not _belongs_to(cls, module_name, is_package):
+        if name.startswith("_") or not is_edge_class(cls) or not _belongs_to(cls, module_name, is_package):
             continue
         decls.append(describe_class(cls, module_name, name))
     return decls
@@ -69,16 +70,16 @@ def describe_class(cls: type, module_name: str | None = None, name: str | None =
     """The declaration of one step/process class."""
     module_name = module_name or cls.__module__
     name = name or cls.__name__
-    inputs, outputs, dynamic = _ports(cls)
+    inputs, outputs, dynamic = ports_of(cls)
     return InterfaceDecl(
         name=name,
-        kind=_kind(cls),
+        kind=kind_of(cls),
         address=f"local:!{module_name}.{name}",
         module=module_name,
         config=_config_fields(getattr(cls, "config_schema", None) or {}),
         inputs=inputs,
         outputs=outputs,
-        doc=_doc(cls),
+        doc=doc_of(cls),
         dynamic_ports=dynamic,
     )
 
@@ -135,38 +136,9 @@ def render_interfaces(decls: list[InterfaceDecl], module_name: str) -> str:
 # --- describe ----------------------------------------------------------------------------------------------------
 
 
-def _is_edge_class(cls: type) -> bool:
-    return any(base.__name__ == "Edge" for base in cls.__mro__)
-
-
 def _belongs_to(cls: type, module_name: str, is_package: bool) -> bool:
     """Defined in the module itself, or (for a package) re-exported from one of its submodules."""
     return cls.__module__ == module_name or (is_package and cls.__module__.startswith(module_name + "."))
-
-
-def _kind(cls: type) -> str:
-    names = [base.__name__ for base in cls.__mro__]
-    if "Process" in names:
-        return "process"
-    return "step"
-
-
-def _ports(cls: type) -> tuple[dict[str, Any] | None, dict[str, Any] | None, bool]:
-    faces: list[dict[str, Any] | None] = []
-    dynamic = False
-    for method_name in ("inputs", "outputs"):
-        method = getattr(cls, method_name, None)
-        if method is None:
-            faces.append(None)
-            continue
-        try:
-            ports = method(cls)  # the class stands in for `self`: works for literal port dicts
-        except Exception:  # noqa: BLE001 - ports depend on an instance (self.config, children, ...)
-            faces.append(None)
-            dynamic = True
-            continue
-        faces.append({str(k): v for k, v in ports.items()} if isinstance(ports, dict) else None)
-    return faces[0], faces[1], dynamic
 
 
 def _config_fields(schema: Any) -> dict[str, ConfigField]:
@@ -183,14 +155,6 @@ def _config_fields(schema: Any) -> dict[str, ConfigField]:
             pass
         fields[str(key)] = ConfigField(spec if isinstance(spec, (str, dict)) else None, default)
     return fields
-
-
-def _doc(cls: type) -> str | None:
-    text = cls.__dict__.get("__doc__")
-    if not text:
-        return None
-    first = inspect.cleandoc(text).split("\n\n", 1)[0].strip()
-    return first or None
 
 
 # --- manifest ----------------------------------------------------------------------------------------------------
