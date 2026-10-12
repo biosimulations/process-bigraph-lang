@@ -133,7 +133,10 @@ the worker, and draws `graph(...)`. An authoring tool adds the registry's manife
 
 This directory holds the `cli-native` executable the package runs. `build.py` (also Poetry's build script) runs
 `npm install`, `npm run langium:generate` and `npm run build:native` in `dsl/`, then copies `dsl/dist/cli-native*`
-here. The wheel includes the binary, so installed users do not need Node or Deno.
+here. The wheel includes the binary, so installed users do not need Node or Deno. The wheel is therefore
+platform-specific: a release builds one per platform (Linux x86_64 and arm64, macOS arm64 and Intel, Windows),
+re-tagged `py3-none-<platform>` since the Python is pure, and publishes them to PyPI by trusted publishing
+(`.github/workflows/on-release-main.yml`).
 
 **Any change to the grammar or TypeScript code only reaches Python after the binary is rebuilt**
 (`python build.py`, or `cd dsl && npm run build:native && cp dist/cli-native ../process_bigraph_lang/bin/`).

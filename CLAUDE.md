@@ -47,8 +47,9 @@ npx vitest run test/v2/check.test.ts           # single test file
 npx tsc --noEmit -p tsconfig.json              # type-check src/ AND test/ (vitest does not type-check)
 npm run build:native         # also bundles the CLI (dist/cli.mjs) and builds dist/cli-native from it with `deno compile` (Deno, ~10 s)
 npm run pack                 # the npm tarball (prepack regenerates and builds) into dist/, for other apps to install
-# A GitHub release publishes the wheel to PyPI (on-release-main.yml) and stages dsl/ on npm as process-bigraph-lang
-# (publish-npm.yml, trusted publishing: no npm token; the tag is the version; a maintainer approves it on npmjs.com)
+# A GitHub release builds one py3-none-<platform> wheel per OS (Linux x86_64/arm64, macOS arm64/Intel, Windows) and
+# publishes them to PyPI by trusted publishing (on-release-main.yml), and stages dsl/ on npm as process-bigraph-lang
+# (publish-npm.yml, trusted publishing; a maintainer approves it on npmjs.com). The tag is the version, no `v`.
 ./bin/cli.js check <file.pblang> [-i manifest.json...] [--json]
 ./bin/cli.js compile <file.pblang> [-i ...] [--to document|spec] [--strict] [--force] [-o out]
 ./bin/cli.js decompile <doc.json | x.composite.yaml> [-i ...] [--name n] [-o out.pblang]
