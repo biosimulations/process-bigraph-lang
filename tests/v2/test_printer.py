@@ -1,6 +1,8 @@
 import numpy as np
 
-from process_bigraph_lang.v2 import print_document, read_document, write_document
+from process_bigraph_lang.v2.printer import print_document
+from process_bigraph_lang.v2.reader import read_document
+from process_bigraph_lang.v2.writer import write_document
 from process_bigraph_lang.v2.model import Composite, Document, Edge, ExternalRef, Store
 from process_bigraph_lang.v2.printer import _float, _scalar
 from process_bigraph_lang.v2.types import Named

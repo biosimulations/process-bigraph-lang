@@ -11,6 +11,17 @@
             "monarch": {
                 "out": "src/syntaxes/process-bigraph-language.monarch.ts"
             }
+        },
+        {
+            "id": "pblang-v2",
+            "grammar": "src/language/pblang-v2.langium",
+            "fileExtensions": [".pbl"],
+            "textMate": {
+                "out": "syntaxes/pblang-v2.tmLanguage.json"
+            },
+            "monarch": {
+                "out": "src/syntaxes/pblang-v2.monarch.ts"
+            }
         }
     ],
     "out": "src/language/generated"

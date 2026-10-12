@@ -101,6 +101,17 @@
                     ".pblang"
                 ],
                 "configuration": "./language-configuration.json"
+            },
+            {
+                "id": "pblang-v2",
+                "aliases": [
+                    "Process Bigraph Language v2",
+                    "pblang-v2"
+                ],
+                "extensions": [
+                    ".pbl"
+                ],
+                "configuration": "./language-configuration.json"
             }
         ],
         "grammars": [
@@ -108,11 +119,17 @@
                 "language": "process-bigraph-language",
                 "scopeName": "source.process-bigraph-language",
                 "path": "syntaxes/process-bigraph-language.tmLanguage.json"
+            },
+            {
+                "language": "pblang-v2",
+                "scopeName": "source.pblang-v2",
+                "path": "syntaxes/pblang-v2.tmLanguage.json"
             }
         ]
     },
     "activationEvents": [
-        "onLanguage:process-bigraph-language"
+        "onLanguage:process-bigraph-language",
+        "onLanguage:pblang-v2"
     ],
     "main": "./out/extension/main.cjs",
     "bin": {

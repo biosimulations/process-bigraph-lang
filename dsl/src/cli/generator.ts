@@ -23,8 +23,9 @@ export function generateJson(
 }
 
 export function generate(model: AstNode): string {
+  const all = createProcessBigraphLanguageServices(NodeFileSystem);
   const services =
-    createProcessBigraphLanguageServices(NodeFileSystem).ProcessBigraphLanguage;
+    model.$type === "V2Module" ? all.PblangV2 : all.ProcessBigraphLanguage;
   return services.serializer.JsonSerializer.serialize(model, {
     space: 2,
     sourceText: true,

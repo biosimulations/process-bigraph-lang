@@ -6,6 +6,8 @@ classifies every key as a site, an edge, a node (a subtree with edges or sites b
 subtree) or a store. It accepts both the authoring form and the form `Composite.save()` writes (`source="saved"`,
 auto-detected). `read_composite_spec` reads a CompositeSpec mapping (`*.composite.yaml`): its `parameters`
 become `Param`s, `${name}` strings become `ParamRef`s, and `emitters` become `Emitter` declarations.
+
+Internal: `api.decompile` is the public entry; the model is not a public target.
 """
 
 from __future__ import annotations

@@ -8,6 +8,7 @@ import {
   type PartialLangiumServices,
 } from "langium/lsp";
 import {
+  PblangV2GeneratedModule,
   ProcessBigraphLanguageGeneratedModule,
   ProcessBigraphLanguageGeneratedSharedModule,
 } from "./generated/module.js";
@@ -15,6 +16,10 @@ import { UnitValidator } from "./validation/unit-validator.js";
 import { registerValidationChecks } from "./validation/validator.js";
 import { TypeValidator } from "./validation/type-validator.js";
 import { MyScopeProvider } from "./validation/scope-provider.js";
+import { V2ScopeComputation } from "./pblang-v2-scope.js";
+import { registerV2Checks, V2Registry, V2Validator } from "./v2/validator.js";
+import { V2HoverProvider } from "./v2/hover.js";
+import { V2CompletionProvider } from "./v2/completion.js";
 
 /**
  * Declaration of custom services - add your own service classes here.
@@ -32,6 +37,33 @@ export type ProcessBigraphLanguageAddedServices = {
  */
 export type ProcessBigraphLanguageServices = LangiumServices &
   ProcessBigraphLanguageAddedServices;
+
+/** The v2 language (.pbl files): the static checker (headers, wires, writers, units, emit paths, model sites), hover and completion. */
+export type PblangV2AddedServices = {
+  validation: {
+    V2Registry: V2Registry;
+    V2Validator: V2Validator;
+  };
+};
+
+export type PblangV2Services = LangiumServices & PblangV2AddedServices;
+
+export const PblangV2Module: Module<
+  PblangV2Services,
+  PartialLangiumServices & PblangV2AddedServices
+> = {
+  references: {
+    ScopeComputation: (services) => new V2ScopeComputation(services),
+  },
+  validation: {
+    V2Registry: (services) => new V2Registry(services),
+    V2Validator: (services) => new V2Validator(services.validation.V2Registry),
+  },
+  lsp: {
+    HoverProvider: (services) => new V2HoverProvider(services),
+    CompletionProvider: (services) => new V2CompletionProvider(services),
+  },
+};
 
 /**
  * Dependency injection module that overrides Langium default services and contributes the
@@ -71,6 +103,7 @@ export function createProcessBigraphLanguageServices(
 ): {
   shared: LangiumSharedServices;
   ProcessBigraphLanguage: ProcessBigraphLanguageServices;
+  PblangV2: PblangV2Services;
 } {
   const shared = inject(
     createDefaultSharedModule(context),
@@ -83,10 +116,17 @@ export function createProcessBigraphLanguageServices(
   );
   shared.ServiceRegistry.register(ProcessBigraphLanguage);
   registerValidationChecks(ProcessBigraphLanguage);
+  const PblangV2 = inject(
+    createDefaultModule({ shared }),
+    PblangV2GeneratedModule,
+    PblangV2Module,
+  );
+  shared.ServiceRegistry.register(PblangV2);
+  registerV2Checks(PblangV2);
   if (!context.connection) {
     // We don't run inside a language server
     // Therefore, initialize the configuration provider instantly
     shared.workspace.ConfigurationProvider.initialized({});
   }
-  return { shared, ProcessBigraphLanguage };
+  return { shared, ProcessBigraphLanguage, PblangV2 };
 }

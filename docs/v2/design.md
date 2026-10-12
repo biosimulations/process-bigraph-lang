@@ -605,6 +605,36 @@ the [registry and authoring design](registry-and-authoring.md#4-validation-and-e
 | `W-PARAM-EVALUATED`                                                                     | warning  | `phase = step_multiplier - 1 evaluated with defaults (4)`                                                              |
 | `E-INTERVAL`, `E-DUPLICATE-KEY`, `E-UNRESOLVED-IMPORT`, `E-EMIT-ALIAS`, `E-BRIDGE-PORT` | error    | as named                                                                                                               |
 
+**Where the checks run.** The checker is TypeScript (`dsl/src/language/v2/check.ts`), inside the Langium
+services: the same code produces editor diagnostics, the browser's diagnostics (the language server runs in a web
+worker) and the CLI's `check --json` envelope. Its inputs are data only: the parsed document and header manifests
+(JSON). Units use mathjs. Python calls the CLI (`process_bigraph_lang/v2/check.py`), which `cli-native`
+provides without Node or Deno at run time (Deno compiles it once when the wheel is built). There is one grammar
+and one checker; the compliance suite is `dsl/test/v2/check.test.ts`, mirrored by the Python tests through the CLI.
+
+**Editor services.** Hover and completion are built on the same resolution the checker uses
+(`dsl/src/language/v2/resolve.ts`: which header an edge is declared by, and how a path walks the composite
+tree). Hover shows an edge's header as a header file would print it, a port's declared type and the store it is
+wired to, the store or node a path segment names, a header's config field under a config key, and the
+declarations of stores, params, models and emitter aliases, with their `///` docs. Completion offers the header's
+unwired ports in `inputs { }` / `outputs { }`, its config fields in `config { }` (required first, `key = `
+inserted), the stores and nodes of the edge's parent in a wire path and the keys below a dict store, the emitter
+aliases after `emit`, and interfaces at `process x : ` from the registry and from header files open in the
+workspace, with the `import` they need added as an additional edit. The keywords a key may coincide with
+(`every`, `process`, ...) are not proposed in key positions. In the editor, header `.pbl` files in the workspace
+answer `import a.b.{X}` directly (a document with `module a.b;` declaring `X` is `local:!a.b.X`), so a composite
+next to its generated headers is checked without a manifest; the CLI takes manifests with `--interfaces`.
+
+**The Python API.** `process_bigraph_lang.v2` exposes `compile_text` / `compile_file` (text -> parse -> check ->
+document or CompositeSpec; `CompileError` on errors, `strict=True` makes warnings fatal) and `decompile`
+(document or CompositeSpec -> text plus sidecar assets). The dataclass model behind them, with its reader,
+writer and printer, is internal. This is deliberate: a Python tool that builds composites targets the DSL
+text, where the result is checked, reviewed and documented, rather than a Python object model that would be a
+second authoring surface. A builder in viva-pde-particle, for example, emits `.pbl` text (or a document it then
+decompiles) and compiles that; it does not construct `Document` objects. The follow-up is to move reader,
+writer and printer into `cli-native` as `compile` and `decompile`, so that Python keeps only `describe`
+(introspection must run where the classes import) and thin wrappers, and no Python model exists at all.
+
 ### 5.3 `pblang check`
 
 ```text

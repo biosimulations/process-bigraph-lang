@@ -5,6 +5,8 @@ The printer is deterministic: it orders stores, then nodes, then edges (each in 
 inline when it fits in `width` columns and one entry per line otherwise, and externalizes large arrays and
 texts into sidecar assets (`array(file("…"))`, `file("…")`) so the text stays reviewable. There is no v2 parser
 yet, so the text is for human review and for seeding the Langium v2 grammar.
+
+Internal: `api.decompile` is the public entry.
 """
 
 from __future__ import annotations
@@ -125,6 +127,8 @@ class _Printer:
         self.saved = doc.source == "saved"
         self.declared = {d.name: d for d in doc.interfaces}
         self.lines = [f"// pblang v2 - printed from {self.name}"]
+        if doc.module:
+            self.lines.append(f"module {doc.module};")
         self.collect_interfaces(doc.root)
         if self.imports:
             self.lines.append("")

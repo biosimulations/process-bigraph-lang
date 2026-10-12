@@ -4,13 +4,9 @@ import json
 from copy import deepcopy
 from typing import Any
 
-from process_bigraph_lang.v2 import (
-    InterfaceRegistry,
-    describe_module,
-    print_document,
-    print_interfaces,
-    read_document,
-)
+from process_bigraph_lang.v2 import InterfaceRegistry, describe_module, print_interfaces
+from process_bigraph_lang.v2.printer import print_document
+from process_bigraph_lang.v2.reader import read_document
 from process_bigraph_lang.v2.model import Address
 from process_bigraph_lang.v2.printer import Printed
 from process_bigraph_lang.v2.types import to_surface

@@ -301,6 +301,12 @@ through `admits_why` and `required_open_sites`; addresses through `registry_depe
 
 ### 4.4 TypeScript and Python
 
+Decided 2026-10-12: the checker is TypeScript, inside the Langium services, because its inputs are data (the
+document and header manifests) and a browser must validate without a round trip. Python does what needs an
+environment: `describe`, saved documents with numpy, equivalence through a core, groundness, preflight, running.
+A browser-based authoring tool therefore needs a Python-backed API only for those environment-bound operations.
+The earlier plan below (Langium for syntax, Python for the type algebra) is superseded by that decision.
+
 Langium keeps syntax, scoping and structural type checks. Anything that needs bigraph-schema's type algebra, pint or
 manifest types runs in Python. The language server shells out to `pblang check --json --level wiring` on save and merges
 the diagnostics; both sides emit the same format.

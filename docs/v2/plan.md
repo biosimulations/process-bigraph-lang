@@ -48,7 +48,7 @@ Langium v2 AST binder):
 | `writer.py`    | `write_document(Document, assets=…)` → `{schema, state, **options}`; `write_composite_spec(Document)`                                                                                 |
 | `printer.py`   | `print_document(Document)` → `(text, assets)`                                                                                                                                         |
 | `normalize.py` | `normalize_document`, `equivalent`, `diff_documents`                                                                                                                                  |
-| `__main__.py`  | `python -m process_bigraph_lang.v2 print \| diff …`                                                                                                                                   |
+| `__main__.py`  | `python -m process_bigraph_lang.v2 compile \| decompile \| check \| diff \| describe …`                                                                                               |
 
 Reused from v1 without copying: `compiler/converter.py` (`edge_address`, `site`, `set_value_at_path`,
 `get_value_at_path`) and `compiler/generator.py` (`compute_relative_path`; `type_schema` as the reference for string vs
@@ -251,6 +251,35 @@ The grammar has `model` declarations (headers and sorts), `store m : Sort = Head
 checker admits a header against a sort (`G301`, units bound across the header) and checks config values that
 reference a `param` against the header's config units; the writer expands a filled model site into the model's
 typed blocks. The Caravagna header parses back and prints the same declaration.
+
+The Langium v2 grammar exists (`dsl/src/language/pblang-v2.langium`, language id `pblang-v2`, files `.pbl`),
+coexisting with v1 in the same language server, VS Code extension and CLI. It parses every snapshot with no
+parse or linking errors (`dsl/test/v2/`), and `process_bigraph_lang/v2/langium.py` binds its JSON AST to the same
+model the Lark grammar builds; `tests/v2/test_langium.py` requires identical prints from both. Not yet in the
+Langium side at that point: validators beyond parsing and name resolution, hover and completion, and the cutover of
+`.pblang` to v2.
+
+The checker was then ported to TypeScript (`dsl/src/language/v2/{types,headers,units,check,validator}.ts`) and
+registered as a Langium validation of `V2Module`, so the editor, the browser and the CLI (`check --json`) share one
+implementation; the Lark parser and the Python checker were retired, and `process_bigraph_lang/v2/langium.py` and
+`check.py` call `cli-native`. The compliance suite moved to `dsl/test/v2/check.test.ts` case for case; the Python
+tests keep the same expectations through the CLI. `lark` and `pint` are no longer dependencies. One semantic
+change surfaced by the shipped growth-division example: a wire to `..` from a root edge is the idiom for "the
+parent store", which process-bigraph resolves by clamping at the root, so going above the root is `W110`, a
+warning, rather than an error.
+
+Hover and completion followed (`dsl/src/language/v2/{resolve,hover,completion}.ts`, see the design's section
+5.3, "Editor services"), and header files open in the workspace now answer imports in the editor
+(`V2Registry` falls back to the index of `V2Interface` declarations by module).
+
+Decided 2026-10-12: the Python datamodel is not a public target. `process_bigraph_lang.v2` now exposes
+`compile_text` / `compile_file` (text -> parse -> check -> document or CompositeSpec, `CompileError` on
+errors) and `decompile` (document or CompositeSpec -> text); the model with its reader, writer and printer is
+internal (`api.py`, design section 5.3 "The Python API"), and the CLI gained `compile` and `decompile`
+(`print` stays as an alias). Follow-up, after the cutover: port reader, writer and printer to TypeScript as
+`cli-native compile | decompile`, so Python keeps only `describe` (introspection) and thin wrappers and no
+Python model exists; the snapshot and round-trip tests under `tests/v2/` become that port's acceptance suite,
+run through the CLI. Still open: the cutover of `.pblang` to v2.
 
 ## Verification
 

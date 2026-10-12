@@ -2,12 +2,16 @@
 
 from pathlib import Path
 
-from process_bigraph_lang.v2 import write_document
+from process_bigraph_lang.v2.writer import write_document
 from process_bigraph_lang.v2.check import check_document
-from process_bigraph_lang.v2.parser import read_text
+from process_bigraph_lang.v2.langium import langium_cli, read_text
 from process_bigraph_lang.v2.printer import print_model
 from process_bigraph_lang.v2.sbml import describe_sbml, print_model_header
+import pytest
 from tests.v2.helpers import SNAPSHOTS
+
+pytestmark = pytest.mark.skipif(langium_cli() is None, reason="no Langium CLI (build dsl/ or install cli-native)")
+
 
 CARAVAGNA = (
     Path(__file__).resolve().parent.parent / "fixtures" / "data" / "compiler" / "Caravagna2010" / "Caravagna2010.xml"
@@ -27,7 +31,7 @@ def _codes(text: str) -> dict[str, list[str]]:
 
 
 def test_generated_header_parses_and_prints_back() -> None:
-    doc = read_text((SNAPSHOTS / "Caravagna2010.model.pblang").read_text(encoding="utf-8"))
+    doc = read_text((SNAPSHOTS / "Caravagna2010.model.pbl").read_text(encoding="utf-8"))
     (header,) = doc.models
     assert header.name == "Caravagna2010" and header.source == "Caravagna2010.xml" and not header.is_sort
     assert header.time_units == "day" and set(header.species) == {"T", "E", "I"}
@@ -112,9 +116,8 @@ composite {
     assert codes.get("W201") == ["e/config/dt"]  # ?T is seconds (from the clock store) but the param is in minutes
 
 
-def test_parse_errors_name_the_place() -> None:
-    import lark
+def test_parse_errors_fail_loudly() -> None:
     import pytest
 
-    with pytest.raises(lark.exceptions.UnexpectedInput):
+    with pytest.raises(RuntimeError, match="Langium CLI failed"):
         read_text("model Broken from { }")

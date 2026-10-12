@@ -4,7 +4,7 @@ import json
 
 from process_bigraph.processes.growth_division import grow_divide_agent  # type: ignore[import-untyped]
 
-from process_bigraph_lang.v2 import read_document
+from process_bigraph_lang.v2.reader import read_document
 from process_bigraph_lang.v2.graph import document_graph
 from tests.v2.helpers import REGISTRY, load_corpus_json
 

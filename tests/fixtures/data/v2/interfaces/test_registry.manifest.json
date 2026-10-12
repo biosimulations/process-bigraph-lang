@@ -1,0 +1,260 @@
+{
+  "schema_version": "pblang-manifest/0",
+  "components": [
+    {
+      "name": "AddComplexNumbersStep",
+      "kind": "step",
+      "address": "local:!tests.fixtures.test_registry.toy_library.AddComplexNumbersStep",
+      "module": "tests.fixtures.test_registry.toy_library",
+      "config": {},
+      "inputs": {
+        "left_hand_addend": "complex_number",
+        "right_hand_addend": "complex_number"
+      },
+      "outputs": {
+        "result": "complex_number"
+      },
+      "dynamic_ports": false
+    },
+    {
+      "name": "AddFloatsProcess",
+      "kind": "process",
+      "address": "local:!tests.fixtures.test_registry.toy_library.AddFloatsProcess",
+      "module": "tests.fixtures.test_registry.toy_library",
+      "config": {},
+      "inputs": {
+        "left_hand_addend": "float",
+        "right_hand_addend": "float"
+      },
+      "outputs": {
+        "result": "float"
+      },
+      "dynamic_ports": false
+    },
+    {
+      "name": "AddFloatsStep",
+      "kind": "step",
+      "address": "local:!tests.fixtures.test_registry.toy_library.AddFloatsStep",
+      "module": "tests.fixtures.test_registry.toy_library",
+      "config": {},
+      "inputs": {
+        "left_hand_addend": "float",
+        "right_hand_addend": "float"
+      },
+      "outputs": {
+        "result": "float"
+      },
+      "dynamic_ports": false
+    },
+    {
+      "name": "GetRealFromComplexNumberStep",
+      "kind": "step",
+      "address": "local:!tests.fixtures.test_registry.toy_library.GetRealFromComplexNumberStep",
+      "module": "tests.fixtures.test_registry.toy_library",
+      "config": {},
+      "inputs": {},
+      "outputs": {},
+      "dynamic_ports": false
+    },
+    {
+      "name": "SaveFloatToFileStep",
+      "kind": "step",
+      "address": "local:!tests.fixtures.test_registry.toy_library.SaveFloatToFileStep",
+      "module": "tests.fixtures.test_registry.toy_library",
+      "config": {},
+      "inputs": {
+        "result": "float"
+      },
+      "outputs": {},
+      "dynamic_ports": false
+    },
+    {
+      "name": "DiffusionAdvection",
+      "kind": "process",
+      "address": "local:!tests.fixtures.test_registry.spatio_flux.processes.DiffusionAdvection",
+      "module": "tests.fixtures.test_registry.spatio_flux.processes",
+      "config": {
+        "n_bins": {
+          "type": "tuple[integer,integer]"
+        },
+        "bounds": {
+          "type": "tuple[float,float]"
+        },
+        "default_diffusion_rate": {
+          "type": {
+            "_type": "float",
+            "_default": 0.1
+          },
+          "default": 0.1
+        },
+        "default_diffusion_dt": {
+          "type": {
+            "_type": "float",
+            "_default": 0.1
+          },
+          "default": 0.1
+        },
+        "diffusion_coeffs": {
+          "type": "map[float]"
+        },
+        "advection_coeffs": {
+          "type": "map[tuple[float,float]]"
+        }
+      },
+      "inputs": null,
+      "outputs": null,
+      "dynamic_ports": true
+    },
+    {
+      "name": "DynamicFBA",
+      "kind": "process",
+      "address": "local:!tests.fixtures.test_registry.spatio_flux.processes.DynamicFBA",
+      "module": "tests.fixtures.test_registry.spatio_flux.processes",
+      "config": {
+        "model_file": {
+          "type": "string"
+        },
+        "kinetic_params": {
+          "type": "map[tuple[float,float]]"
+        },
+        "substrate_update_reactions": {
+          "type": "map[string]"
+        },
+        "biomass_identifier": {
+          "type": "string"
+        },
+        "bounds": {
+          "type": "map[bounds]"
+        }
+      },
+      "inputs": {
+        "substrates": "map[positive_float]"
+      },
+      "outputs": {
+        "substrates": "map[positive_float]"
+      },
+      "dynamic_ports": false,
+      "doc": "Performs dynamic FBA."
+    },
+    {
+      "name": "MinimalParticle",
+      "kind": "process",
+      "address": "local:!tests.fixtures.test_registry.spatio_flux.processes.MinimalParticle",
+      "module": "tests.fixtures.test_registry.spatio_flux.processes",
+      "config": {
+        "reactions": {
+          "type": {
+            "_type": "map[reaction]",
+            "_default": {
+              "grow": {
+                "biomass": {
+                  "vmax": 0.01,
+                  "kcat": 0.01,
+                  "role": "reactant"
+                },
+                "detritus": {
+                  "vmax": 0.001,
+                  "kcat": 0.001,
+                  "role": "product"
+                }
+              }
+            }
+          },
+          "default": {
+            "grow": {
+              "biomass": {
+                "vmax": 0.01,
+                "kcat": 0.01,
+                "role": "reactant"
+              },
+              "detritus": {
+                "vmax": 0.001,
+                "kcat": 0.001,
+                "role": "product"
+              }
+            }
+          }
+        }
+      },
+      "inputs": {
+        "mass": "float",
+        "substrates": "map[positive_float]"
+      },
+      "outputs": {
+        "mass": "float",
+        "substrates": "map[float]"
+      },
+      "dynamic_ports": false
+    },
+    {
+      "name": "Particles",
+      "kind": "process",
+      "address": "local:!tests.fixtures.test_registry.spatio_flux.processes.Particles",
+      "module": "tests.fixtures.test_registry.spatio_flux.processes",
+      "config": {
+        "bounds": {
+          "type": "tuple[float,float]"
+        },
+        "n_bins": {
+          "type": "tuple[integer,integer]"
+        },
+        "diffusion_rate": {
+          "type": {
+            "_type": "float",
+            "_default": 0.1
+          },
+          "default": 0.1
+        },
+        "advection_rate": {
+          "type": {
+            "_type": "tuple[float,float]",
+            "_default": [
+              0,
+              0
+            ]
+          },
+          "default": [
+            0,
+            0
+          ]
+        },
+        "add_probability": {
+          "type": "float"
+        },
+        "boundary_to_add": {
+          "type": {
+            "_type": "list[boundary_side]",
+            "_default": [
+              "left",
+              "right"
+            ]
+          },
+          "default": [
+            "left",
+            "right"
+          ]
+        },
+        "boundary_to_remove": {
+          "type": {
+            "_type": "list[boundary_side]",
+            "_default": [
+              "left",
+              "right",
+              "top",
+              "bottom"
+            ]
+          },
+          "default": [
+            "left",
+            "right",
+            "top",
+            "bottom"
+          ]
+        }
+      },
+      "inputs": null,
+      "outputs": null,
+      "dynamic_ports": true
+    }
+  ]
+}

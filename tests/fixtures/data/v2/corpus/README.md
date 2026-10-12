@@ -1,6 +1,6 @@
 # v2 round-trip corpus
 
-Real composite documents that `tests/v2/test_roundtrip_corpus.py` reads into the v2 model, prints as `.pblang` v2
+Real composite documents that `tests/v2/test_roundtrip_corpus.py` reads into the v2 model, prints as `.pbl` v2
 text (the snapshots in `../snapshots/`, committed and reviewed by hand) and writes back as an equivalent document.
 `PBLANG_UPDATE_SNAPSHOTS=1 pytest tests/v2` regenerates the snapshots. This directory is excluded from prettier
 (`.prettierignore`) so the fixtures stay verbatim.

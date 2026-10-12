@@ -10,19 +10,17 @@ import pytest
 import yaml
 from process_bigraph.processes.growth_division import grow_divide_agent  # type: ignore[import-untyped]
 
-from process_bigraph_lang.v2 import (
-    deep_equal,
-    diff_documents,
-    equivalent,
-    print_document,
-    write_composite_spec,
-    write_document,
-)
+from process_bigraph_lang.v2 import deep_equal, diff_documents, equivalent
+from process_bigraph_lang.v2.printer import print_document
+from process_bigraph_lang.v2.writer import write_composite_spec, write_document
 from process_bigraph_lang.v2.model import Edge, ParamRef, Site, Store
-from process_bigraph_lang.v2.parser import read_text
+from process_bigraph_lang.v2.langium import langium_cli, read_text
 from tests.compiler.generator.spatio_flux.test_spatio_flux_II import step_config_template as spatio_two
 from tests.compiler.generator.spatio_flux.test_spatio_flux_III import step_config_template as spatio_three
 from tests.v2.helpers import CORPUS, REGISTRY, SNAPSHOTS, load_corpus_json, snapshot_asset_loader
+
+pytestmark = pytest.mark.skipif(langium_cli() is None, reason="no Langium CLI (build dsl/ or install cli-native)")
+
 
 DOCUMENT_SNAPSHOTS = [
     "hybrid_two_way_exchange",
@@ -47,7 +45,7 @@ def _original(name: str) -> dict[str, Any]:
 
 @pytest.mark.parametrize("name", DOCUMENT_SNAPSHOTS)
 def test_snapshot_text_round_trips(name: str, spatio_core: Any) -> None:
-    text = (SNAPSHOTS / f"{name}.pblang").read_text(encoding="utf-8")
+    text = (SNAPSHOTS / f"{name}.pbl").read_text(encoding="utf-8")
     model = read_text(text, registry=REGISTRY)
     assert print_document(model, name=name, registry=REGISTRY).text == text  # the printer is a fixpoint
     written = write_document(model, assets=snapshot_asset_loader())
@@ -59,7 +57,7 @@ def test_snapshot_text_round_trips(name: str, spatio_core: Any) -> None:
 
 
 def test_composite_spec_text_round_trips(core: Any) -> None:
-    text = (SNAPSHOTS / "reversible-dimerization.pblang").read_text(encoding="utf-8")
+    text = (SNAPSHOTS / "reversible-dimerization.pbl").read_text(encoding="utf-8")
     model = read_text(text)
     assert print_document(model, name="reversible-dimerization").text == text
     spec = yaml.safe_load((CORPUS / "reversible-dimerization.composite.yaml").read_text(encoding="utf-8"))
@@ -70,7 +68,7 @@ def test_composite_spec_text_round_trips(core: Any) -> None:
 
 
 def test_saved_toy_text_round_trips() -> None:
-    text = (SNAPSHOTS / "saved_toy_add_floats.pblang").read_text(encoding="utf-8")
+    text = (SNAPSHOTS / "saved_toy_add_floats.pbl").read_text(encoding="utf-8")
     model = read_text(text, registry=REGISTRY)
     assert print_document(model, name="saved_toy_add_floats", registry=REGISTRY).text == text
     add = model.root.children["add_nums"]
