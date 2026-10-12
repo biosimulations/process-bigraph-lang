@@ -33,10 +33,15 @@ import { readCompositeSpec, readDocument } from "../language/v2/reader.js";
 import { writeCompositeSpec, writeDocument } from "../language/v2/writer.js";
 import { dumpYaml, parseYaml } from "../language/v2/yaml.js";
 
-const __dirname = url.fileURLToPath(new URL(".", import.meta.url));
+/** The package version: baked in by esbuild for the bundle (dist/cli.mjs, cli-native), read from package.json otherwise. */
+declare const __PBLANG_VERSION__: string | undefined;
 
-const packagePath = path.resolve(__dirname, "..", "..", "package.json");
-const packageContent = await fs.readFile(packagePath, "utf-8");
+function packageVersion(): string {
+  if (typeof __PBLANG_VERSION__ === "string") return __PBLANG_VERSION__;
+  const here = url.fileURLToPath(new URL(".", import.meta.url));
+  const packagePath = path.resolve(here, "..", "..", "package.json");
+  return JSON.parse(fsSync.readFileSync(packagePath, "utf-8")).version;
+}
 
 const servicesFor = (_fileName: string) =>
   createProcessBigraphLanguageServices(NodeFileSystem).Pblang;
@@ -348,7 +353,7 @@ export const graphAction = async (
 export default function (): void {
   const program = new Command();
 
-  program.version(JSON.parse(packageContent).version);
+  program.version(packageVersion());
 
   const fileExtensions = PblangLanguageMetaData.fileExtensions.join(", ");
   program

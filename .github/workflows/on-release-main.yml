@@ -1,13 +1,40 @@
+# On a published GitHub release: build the wheel on every platform the native CLI supports, publish them to PyPI by
+# trusted publishing (OIDC, no token), and deploy the docs. dsl/ goes to npm by publish-npm.yml on the same event.
+#
+# The wheel is platform-specific because it carries `cli-native` (a Deno-compiled executable), but its Python is pure,
+# so each wheel is re-tagged `py3-none-<platform>`: one wheel per platform for every Python this package supports.
+# The platform tags are the floors of the Deno runtime inside: glibc 2.18 on Linux, macOS 11 on Apple silicon,
+# macOS 10.12 on Intel (what `denort` is built against; checked with `strings` / `otool`).
+#
+# PyPI side (one time): on pypi.org add the project `process-bigraph-lang` as a pending trusted publisher (owner
+# `biosimulations`, repository `process-bigraph-lang`, workflow `on-release-main.yml`, environment `pypi`), and in
+# GitHub create the `pypi` environment. The first publish creates the project.
 name: release-main
 
 on:
   release:
     types: [published]
-    branches: [main]
 
 jobs:
-  publish:
-    runs-on: ubuntu-latest
+  build-wheels:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            platform: manylinux_2_18_x86_64
+          - os: ubuntu-24.04-arm
+            platform: manylinux_2_18_aarch64
+          - os: macos-latest
+            platform: macosx_11_0_arm64
+          - os: macos-15-intel
+            platform: macosx_10_12_x86_64
+          - os: windows-latest
+            platform: win_amd64
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
     steps:
       - name: Check out
         uses: actions/checkout@v4
@@ -15,18 +42,58 @@ jobs:
       - name: Set up the environment
         uses: ./.github/actions/setup-poetry-env
 
-      - name: Export tag
-        id: vars
-        run: echo tag=${GITHUB_REF#refs/*/} >> $GITHUB_OUTPUT
+      - name: Set the version from the release tag
+        run: poetry version "${GITHUB_REF_NAME#v}"
 
-      - name: Build and publish
+      - name: Build the wheel (build.py builds cli-native for this platform)
         run: |
-          source .venv/bin/activate
-          poetry version $RELEASE_VERSION
-          make build-and-publish
-        env:
-          PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
-          RELEASE_VERSION: ${{ steps.vars.outputs.tag }}
+          rm -rf dist
+          poetry build --no-interaction -f wheel
+
+      - name: Re-tag the wheel as py3-none-${{ matrix.platform }}
+        run: |
+          pip install --quiet wheel
+          python -m wheel tags --python-tag py3 --abi-tag none --platform-tag "${{ matrix.platform }}" --remove dist/*.whl
+          ls -la dist
+
+      - name: Smoke-test the wheel in a fresh environment
+        run: |
+          python -m venv smoke
+          if [ -d smoke/Scripts ]; then PY=smoke/Scripts/python; else PY=smoke/bin/python; fi
+          "$PY" -m pip install --quiet dist/*.whl
+          "$PY" -c "from process_bigraph_lang.v2 import check_text; print(check_text('composite { store a: float = 1.0; }'))"
+          "$PY" -m process_bigraph_lang.v2 check tests/fixtures/data/v2/snapshots/growth_division.pblang --interfaces tests/fixtures/data/v2/interfaces/test_registry.manifest.json
+
+      - name: Upload the wheel
+        uses: actions/upload-artifact@v4
+        with:
+          name: wheel-${{ matrix.platform }}
+          path: dist/*.whl
+          if-no-files-found: error
+
+  publish:
+    needs: build-wheels
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: Download the wheels
+        uses: actions/download-artifact@v4
+        with:
+          pattern: wheel-*
+          path: dist
+          merge-multiple: true
+
+      - name: List
+        run: ls -la dist
+
+      - name: Publish to PyPI (trusted publishing)
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: dist
+
   deploy-docs:
     needs: publish
     runs-on: ubuntu-latest
