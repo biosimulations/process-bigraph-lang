@@ -1,0 +1,2439 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="This is a LSP, CLI and Python package for a domain specific language for process bigraphs.">
+      
+      
+        <meta name="author" content="Jim Schaff">
+      
+      
+        <link rel="canonical" href="https://biosimulations.github.io/process-bigraph-lang/v2/design/">
+      
+      
+        <link rel="prev" href="../research/">
+      
+      
+        <link rel="next" href="../registry-and-authoring/">
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.14">
+    
+    
+      
+        <title>Language design - process-bigraph-lang</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.342714a4.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="white" data-md-color-accent="deep-orange">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#v2-language-design" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="process-bigraph-lang" class="md-header__button md-logo" aria-label="process-bigraph-lang" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            process-bigraph-lang
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Language design
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="white" data-md-color-accent="deep-orange"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="black" data-md-color-accent="deep-orange"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/biosimulations/process-bigraph-lang" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    biosimulations/process-bigraph-lang
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="process-bigraph-lang" class="md-nav__button md-logo" aria-label="process-bigraph-lang" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    process-bigraph-lang
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/biosimulations/process-bigraph-lang" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    biosimulations/process-bigraph-lang
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Architecture
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../modules/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Modules
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    v2 (design)
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            v2 (design)
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../research/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Research notes
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    Language design
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    Language design
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#0-framing" class="md-nav__link">
+    <span class="md-ellipsis">
+      0. Framing
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1-semantic-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Semantic model
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. Semantic model">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#11-abstract-document" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.1 Abstract document
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#12-denotation" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.2 Denotation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#13-round-trip-equivalence" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.3 Round-trip equivalence
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-syntax" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Syntax
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. Syntax">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#21-lexical" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.1 Lexical
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#22-grammar-sketch" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.2 Grammar sketch
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#23-rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.3 Rules
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#24-interface-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.4 Interface files
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-mapping-tables" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Mapping tables
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Mapping tables">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#31-dsl-document" class="md-nav__link">
+    <span class="md-ellipsis">
+      3.1 DSL → document
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#32-dsl-compositespec-yaml" class="md-nav__link">
+    <span class="md-ellipsis">
+      3.2 DSL → CompositeSpec yaml
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#33-document-dsl-decompilation" class="md-nav__link">
+    <span class="md-ellipsis">
+      3.3 Document → DSL (decompilation)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-worked-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. Worked examples
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Worked examples">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#41-viva-smoldyn-reversible-dimerization-from-reversible-dimerizationcompositeyaml" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.1 viva-smoldyn reversible dimerization (from reversible-dimerization.composite.yaml)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#42-nested-growth-division-composite-localcomposite-with-a-bridge" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.2 Nested growth-division composite (local:Composite with a bridge)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#43-viva-pde-particle-hybrid-fv-pde-smoldyn-adapters-stepper-spatialrecorder" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.3 viva-pde-particle hybrid (FV PDE + Smoldyn + adapters + Stepper + SpatialRecorder)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#44-spatio-flux-cell-01-with-array-indexed-wires" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.4 spatio-flux cell "[0,1]" with array-indexed wires
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#45-template-with-a-face-site-for-the-engine-and-a-required-param" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.5 Template with a face site for the engine and a required param
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-diagnostics" class="md-nav__link">
+    <span class="md-ellipsis">
+      5. Diagnostics
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. Diagnostics">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#51-stages" class="md-nav__link">
+    <span class="md-ellipsis">
+      5.1 Stages
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#52-codes" class="md-nav__link">
+    <span class="md-ellipsis">
+      5.2 Codes
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#53-pblang-check" class="md-nav__link">
+    <span class="md-ellipsis">
+      5.3 pblang check
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#54-operator-splitting-as-a-construct-the-stepper-and-the-splittingcoordinator-as-syntax" class="md-nav__link">
+    <span class="md-ellipsis">
+      5.4 Operator splitting as a construct (the Stepper and the SplittingCoordinator as syntax)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5.4 Operator splitting as a construct (the Stepper and the SplittingCoordinator as syntax)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#541-superposition-on-a-shared-store-is-native-not-split" class="md-nav__link">
+    <span class="md-ellipsis">
+      5.4.1 Superposition on a shared store is native, not split
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#55-units-declared-on-stores-polymorphic-on-components" class="md-nav__link">
+    <span class="md-ellipsis">
+      5.5 Units: declared on stores, polymorphic on components
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#56-model-headers-and-model-sites-sbml-and-other-model-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      5.6 Model headers and model sites (SBML and other model files)
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-open-questions" class="md-nav__link">
+    <span class="md-ellipsis">
+      6. Open questions
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../registry-and-authoring/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Registry and authoring
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../plan/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Implementation plan
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../authoring-plan/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Stage two (authoring) plan
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sedml-plan/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    SED-ML plan
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#0-framing" class="md-nav__link">
+    <span class="md-ellipsis">
+      0. Framing
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1-semantic-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Semantic model
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. Semantic model">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#11-abstract-document" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.1 Abstract document
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#12-denotation" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.2 Denotation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#13-round-trip-equivalence" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.3 Round-trip equivalence
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-syntax" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Syntax
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. Syntax">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#21-lexical" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.1 Lexical
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#22-grammar-sketch" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.2 Grammar sketch
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#23-rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.3 Rules
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#24-interface-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.4 Interface files
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-mapping-tables" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Mapping tables
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Mapping tables">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#31-dsl-document" class="md-nav__link">
+    <span class="md-ellipsis">
+      3.1 DSL → document
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#32-dsl-compositespec-yaml" class="md-nav__link">
+    <span class="md-ellipsis">
+      3.2 DSL → CompositeSpec yaml
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#33-document-dsl-decompilation" class="md-nav__link">
+    <span class="md-ellipsis">
+      3.3 Document → DSL (decompilation)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-worked-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. Worked examples
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Worked examples">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#41-viva-smoldyn-reversible-dimerization-from-reversible-dimerizationcompositeyaml" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.1 viva-smoldyn reversible dimerization (from reversible-dimerization.composite.yaml)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#42-nested-growth-division-composite-localcomposite-with-a-bridge" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.2 Nested growth-division composite (local:Composite with a bridge)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#43-viva-pde-particle-hybrid-fv-pde-smoldyn-adapters-stepper-spatialrecorder" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.3 viva-pde-particle hybrid (FV PDE + Smoldyn + adapters + Stepper + SpatialRecorder)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#44-spatio-flux-cell-01-with-array-indexed-wires" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.4 spatio-flux cell "[0,1]" with array-indexed wires
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#45-template-with-a-face-site-for-the-engine-and-a-required-param" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.5 Template with a face site for the engine and a required param
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-diagnostics" class="md-nav__link">
+    <span class="md-ellipsis">
+      5. Diagnostics
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. Diagnostics">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#51-stages" class="md-nav__link">
+    <span class="md-ellipsis">
+      5.1 Stages
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#52-codes" class="md-nav__link">
+    <span class="md-ellipsis">
+      5.2 Codes
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#53-pblang-check" class="md-nav__link">
+    <span class="md-ellipsis">
+      5.3 pblang check
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#54-operator-splitting-as-a-construct-the-stepper-and-the-splittingcoordinator-as-syntax" class="md-nav__link">
+    <span class="md-ellipsis">
+      5.4 Operator splitting as a construct (the Stepper and the SplittingCoordinator as syntax)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5.4 Operator splitting as a construct (the Stepper and the SplittingCoordinator as syntax)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#541-superposition-on-a-shared-store-is-native-not-split" class="md-nav__link">
+    <span class="md-ellipsis">
+      5.4.1 Superposition on a shared store is native, not split
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#55-units-declared-on-stores-polymorphic-on-components" class="md-nav__link">
+    <span class="md-ellipsis">
+      5.5 Units: declared on stores, polymorphic on components
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#56-model-headers-and-model-sites-sbml-and-other-model-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      5.6 Model headers and model sites (SBML and other model files)
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-open-questions" class="md-nav__link">
+    <span class="md-ellipsis">
+      6. Open questions
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="v2-language-design">v2 language design<a class="headerlink" href="#v2-language-design" title="Permanent link">&para;</a></h1>
+<p>Status: design, 2026-10-11. Validated by the round-trip prototype described in the <a href="../plan/">plan</a>. The background
+is in the <a href="../research/">research notes</a>; the tooling around the language is in
+<a href="../registry-and-authoring/">registry and authoring</a>.</p>
+<h2 id="0-framing">0. Framing<a class="headerlink" href="#0-framing" title="Permanent link">&para;</a></h2>
+<p><code>.pblang</code> v2 is a tree-shaped, verifiable projection of a process-bigraph composite. Three artifacts share one abstract
+model:</p>
+<table>
+<thead>
+<tr>
+<th>Artifact</th>
+<th>Role</th>
+<th>Produced by</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>*.pblang</code> composite</td>
+<td>reviewable, checkable, canonical text</td>
+<td>prompt-guided tools or humans; or decompiled from a document</td>
+</tr>
+<tr>
+<td><code>*.pblang</code> interface file</td>
+<td>generated <code>.d.ts</code>-like declarations per package</td>
+<td><code>pblang describe</code> at release time; hand-editable</td>
+</tr>
+<tr>
+<td><code>{"schema","state"}</code> document, template, <code>*.composite.yaml</code></td>
+<td>what process-bigraph and the workbench run</td>
+<td><code>pblang compile</code></td>
+</tr>
+</tbody>
+</table>
+<p>Decisions behind this design:</p>
+<ol>
+<li>The syntax is <strong>tree-shaped and mirrors the document</strong>: nodes nest like the state tree, edges are declared in place,
+   wires use <code>-&gt;</code> relative to the edge's parent, <code>..</code> goes up.</li>
+<li>The DSL is a <strong>verifiable target layer</strong>, not the only thing an author writes. Diagnostics must be precise and
+   located, the text must be readable for review, and printing must be canonical so generated text is deterministic.</li>
+<li>Interfaces come from <strong>generated interface files</strong> imported like TypeScript <code>.d.ts</code> files.</li>
+<li>The DSL interoperates <strong>both ways</strong> with CompositeSpec <code>*.composite.yaml</code>; <code>param</code> ↔ CompositeSpec parameter ↔
+   value site with a default.</li>
+</ol>
+<p>Non-goals: Python builder logic (engine choice, random placement, probe runs) stays in Python. The DSL captures the
+result as a ground or template document plus <code>param</code>s for the knobs.</p>
+<h2 id="1-semantic-model">1. Semantic model<a class="headerlink" href="#1-semantic-model" title="Permanent link">&para;</a></h2>
+<h3 id="11-abstract-document">1.1 Abstract document<a class="headerlink" href="#11-abstract-document" title="Permanent link">&para;</a></h3>
+<pre><code class="language-text">Module    := { name?, docs, imports[], params[], types[], lets[], root: Composite, emitters[], options, meta }
+Composite := { nodes: {key -&gt; Node}, options?, bridge?, interface? }
+Node      := Store | Subtree | Edge | Replicate
+Store     := { type?: TypeExpr, value?: Value | Site, docs }
+Subtree   := { type?: TypeExpr, nodes: {key -&gt; Node}, docs }                     // `node x { … }`
+Edge      := { kind: process|step|composite|shared|shared_ref, iface?: Ref&lt;Interface&gt;,
+               address?: Address | Site(face), config: Value, inputs: Wires, outputs: Wires,
+               interval?: Expr, priority?: int, triggers?: [Path], port_overrides?: {inputs, outputs},
+               inner?: Composite, bridge?: {inputs, outputs, conduits}, process_id?, extra: {}, docs }
+Wires     := {port -&gt; Path | Wires}           Path := [Key | &quot;..&quot; | &quot;*&quot; | Index]
+Site      := { sort: TypeExpr | Face | Ref&lt;Interface&gt; | NamedSort, default?: Value }
+Replicate := { count: Expr, region: Subtree }                                     // _control: replicate
+Param     := { name, type, default?, required, choices?, docs }
+Interface := { kind: process|step|adapter|composite, name, address?, config: {key -&gt; {type, default?, docs}},
+               inputs: Face, outputs: Face, docs, contract?: {units, min, max, assumptions, refs} }
+Face      := { ports: {name -&gt; {type, units?, docs}}, conditional: [{when, ports}], open: bool, delegate?: ConfigKey }
+Emitter   := { address, paths: [Path], config }
+Options   := { global_time_precision, run_steps_on_init, parallel_*, skip_process_state, contract_strict }
+</code></pre>
+<h3 id="12-denotation">1.2 Denotation<a class="headerlink" href="#12-denotation" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>Store</code> → <code>schema[path] = type</code>, <code>state[path] = value</code>. A site value emits <strong>state only</strong> (no schema entry;
+  process-bigraph#213).</li>
+<li><code>Subtree</code> → a dict in both halves.</li>
+<li><code>Edge</code> → the state node <code>{_type, address, config, inputs, outputs, interval?, priority?, _triggers?, _inputs?,
+_outputs?, …extra}</code>; the schema half gets <code>{"_type": kind}</code> only when there are no port overrides. A composite edge
+  → <code>address: "local:Composite"</code>, <code>config: {schema, state, bridge, interface?, options…}</code>.</li>
+<li><code>Site</code> by position: value site (store value, config value, param), address site (<code>address</code> of an edge, sorted by the
+  interface face), model site (a <code>node</code> whose sort is a face), named sort, replicate region.</li>
+<li><code>Param p</code> has two projections: template mode → a site with <code>_default</code> at the referenced position; spec mode →
+  <code>"${p}"</code> at every reference plus <code>parameters: {p: {type, default, choices, description}}</code>.</li>
+<li><code>Emitter</code> → CompositeSpec <code>emitters:</code> or the step node that <code>process_bigraph.emitter.emitter_node_from_declaration</code>
+  builds.</li>
+<li><code>Options</code> → top-level document keys, or keys of a nested composite's <code>config</code>.</li>
+</ul>
+<p>Deliberately not modelled (stripped by normalization, never printed): <code>instance</code>, <code>_contract</code>, the injected
+<code>global_time</code>, emitter <code>results</code> stores, serialized dict-form addresses, the legacy <code>composition</code> key, run-specific
+emitter config injected by the workbench, CompositeSpec <code>id</code>.</p>
+<h3 id="13-round-trip-equivalence">1.3 Round-trip equivalence<a class="headerlink" href="#13-round-trip-equivalence" title="Permanent link">&para;</a></h3>
+<pre><code class="language-python">def normalize(doc, core):
+    schema = core.render(core.access(doc.get(&quot;schema&quot;, {})), defaults=True)
+    state = strip(doc[&quot;state&quot;])
+    # strip: drop runtime keys; address dict -&gt; &quot;proto:data&quot;; wire str -&gt; [str]; tuples/numpy -&gt; lists;
+    #        int -&gt; float where the schema says float; sort edge keys;
+    #        drop config keys equal to the class default (only when the core resolves the address);
+    #        drop _inputs/_outputs equal to interface() of the resolved class
+    return {&quot;schema&quot;: schema, &quot;state&quot;: state, &quot;options&quot;: {k: doc[k] for k in OPTION_KEYS if k in doc}}
+
+equivalent(a, b) := normalize(a) == normalize(b)
+</code></pre>
+<p>Three levels, all in the test suite: (1) textual fixpoint, <code>format(parse(text)) == text</code> once a parser exists;
+(2) semantic, <code>equivalent(compile(decompile(doc)), doc)</code> for every fixture; (3) spec, the yaml round-trip equals the
+original after key sorting, <code>requires</code> recomputed and <code>id</code> dropped. Nested composites compare recursively on
+<code>config.state</code> and <code>config.schema</code> using authored documents (saved ones are lossy upstream).</p>
+<h2 id="2-syntax">2. Syntax<a class="headerlink" href="#2-syntax" title="Permanent link">&para;</a></h2>
+<h3 id="21-lexical">2.1 Lexical<a class="headerlink" href="#21-lexical" title="Permanent link">&para;</a></h3>
+<p>v1 terminals are kept: <code>ID</code>, <code>INT</code> with a leading <code>-</code>, <code>FLOAT</code> needs a <code>.</code>, strings in either quote style, <code>//</code> and
+<code>/* */</code> comments. New: <code>///</code> doc comments attach to the next declaration; <code>${name}</code> in a string is parameter
+interpolation.</p>
+<p>Keywords: <code>module import as param type struct interface process step adapter composite shared node store let emit
+options meta every priority at with bridge conduits config inputs outputs ports extra triggers replicate when else of
+file load true false</code>.</p>
+<h3 id="22-grammar-sketch">2.2 Grammar sketch<a class="headerlink" href="#22-grammar-sketch" title="Permanent link">&para;</a></h3>
+<p>The executable form of the subset the prototype prints is the Lark grammar in <code>process_bigraph_lang/v2/parser.py</code>,
+verified against every snapshot in <code>tests/fixtures/data/v2/snapshots/</code>. The sketch below is the full target.</p>
+<pre><code class="language-text">Module:        ('module' QualifiedName ';')? TopLevel*;
+TopLevel:      Import | Param | TypeDecl | Let | InterfaceDecl | RootComposite | Emit | Options | Meta;
+Import:        'import' (QualifiedName ('.' '{' ID (',' ID)* '}')? | STRING ('as' ID)?) ';';
+Param:         DOC* 'param' ID ':' TypeExpr ('=' (Value | '?'))? ('choices' '[' Value (',' Value)* ']')? ';';
+TypeDecl:      DOC* ('type' ID '=' TypeExpr ';' | 'struct' ID '{' Field* '}');
+Field:         DOC* ID ':' TypeExpr ('=' Value)? ';';
+
+TypeExpr:      PrimaryType ('|' PrimaryType)*;                     // union (bigraph `~`)
+PrimaryType:   NamedType | GenericType | ArrayType | StructType | LinkType | RawType;
+GenericType:   ID '&lt;' TypeArg (',' TypeArg)* '&gt;';                  // map&lt;K,V&gt; list&lt;T&gt; maybe&lt;T&gt; overwrite&lt;T&gt; const&lt;T&gt;
+                                                                   // set&lt;T&gt; tree&lt;T&gt; tuple&lt;A,B&gt; range&lt;lo,hi&gt;
+                                                                   // enum&lt;a,b,c&gt; object&lt;&quot;pkg.Cls&quot;&gt;
+ArrayType:     'array' '&lt;' TypeExpr '&gt;' ('[' ShapeDim (',' ShapeDim)* ']')? ('@' STRING)?;   // ShapeDim: INT | '_' | param
+StructType:    '{' Field* '}';                                     // anonymous struct = bigraph merge a:T|b:U
+LinkType:      'link' '&lt;' '{' Field* '}' ',' '{' Field* '}' '&gt;';
+RawType:       STRING;                                             // any bigraph-schema expression verbatim
+
+Let:           DOC* 'let' ID (':' TypeExpr)? '=' Value ';';
+
+InterfaceDecl: DOC* ('process'|'step'|'adapter'|'composite') ID ('at' STRING)? '{'
+                 ('config' '{' Field* '}')? ('inputs' FaceBody)? ('outputs' FaceBody)? ('contract' '{' … '}')? '}';
+FaceBody:      '{' (PortDecl | CondPorts | '...')* '}' | 'of' 'config' '.' ID ';';   // '...' open face; 'of' delegated
+PortDecl:      DOC* ID ':' TypeExpr ('@' STRING)? ';';
+CondPorts:     'when' Predicate '{' PortDecl* '}' ('else' '{' PortDecl* '}')?;      // Predicate: config path ('==' Value)?
+
+RootComposite: DOC* 'composite' ID? '{' NodeDecl* '}';
+NodeDecl:      StoreDecl | SubtreeDecl | EdgeDecl | ReplicateDecl;
+StoreDecl:     DOC* 'store' Key (':' TypeExpr)? ('=' Value)? ';';
+SubtreeDecl:   DOC* 'node' Key (':' TypeExpr)? ('=' SiteValue ';' | '{' NodeDecl* '}');
+ReplicateDecl: 'replicate' Expr SubtreeDecl;
+EdgeDecl:      DOC* ('process'|'step') Key ':' EdgeHead ('every' Expr)? ('priority' INT)? '{' EdgeItem* '}'
+             | DOC* 'composite' Key ('every' Expr)? ('at' STRING)? '{' CompositeItem* '}'
+             | DOC* 'shared' 'process' Key ':' EdgeHead '{' ('config' ConfigBlock)? '}';
+EdgeHead:      [InterfaceDecl] ('at' (STRING | '?' ('(' STRING ')')?))? | 'at' STRING | 'shared' [EdgeDecl];
+EdgeItem:      'config' ConfigBlock | 'inputs' WireBlock | 'outputs' WireBlock
+             | 'ports' '{' ('inputs' '{' PortDecl* '}')? ('outputs' '{' PortDecl* '}')? '}'
+             | 'triggers' '[' Path (',' Path)* ']' | 'extra' '{' KeyValue* '}';
+CompositeItem: EdgeItem | 'bridge' '{' ('inputs' WireBlock)? ('outputs' WireBlock)? ('conduits' WireBlock)? '}'
+             | 'interface' '{' ('outputs' '{' PortDecl* '}')? '}' | Options | NodeDecl;
+ConfigBlock:   '{' (KeyValue (',' KeyValue)* ','?)? '}' | '=' [Let];
+WireBlock:     '{' (Wire (',' Wire)* ','?)? '}';     Wire: Key ('-&gt;' Path | WireBlock);   // nested = sub-ports
+Path:          Seg ('.' Seg)*;     Seg: ID | STRING | '..' | '*' | '[' INT ']';           // fields.A[0][1]
+
+Value:         Literal | Ref | SiteValue | StructLit | MapLit | ListLit | TupleLit | EdgeLit | FileRef | Interp;
+SiteValue:     '?' ('(' Value ')')? ('as' (TypeExpr | NamedSort))?;
+EdgeLit:       [InterfaceDecl] '{' KeyValue* '}';                  // {address, config} child for higher-order nodes
+FileRef:       'file' '(' STRING ')' | 'load' '(' STRING ')';      // text / json|npy|npz|csv; inlined at compile
+Expr:          Value | Expr ('*'|'/'|'+'|'-') Expr;                // only in every / replicate / shapes / config leaves
+Emit:          'emit' (ID | STRING) '{' Path (',' Path)* '}' ('with' ConfigBlock)? ';';
+Options:       'options' '{' KeyValue* '}';     Meta: 'meta' '{' KeyValue* '}';     Key: ID | STRING;
+</code></pre>
+<h3 id="23-rules">2.3 Rules<a class="headerlink" href="#23-rules" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Wire paths are relative to the edge's parent</strong>, exactly like the document. The printer uses <code>.</code> and quotes
+  non-identifier keys (<code>node "[0,1]"</code>).</li>
+<li><strong>One <code>Site</code> type; position decides the kind.</strong> <code>= ?</code>, <code>= ?(v)</code>, <code>= ? as positive</code> (value); <code>at ?</code>,
+  <code>at ?("local:FV")</code> (address, sorted by the interface face); <code>node model : Engine = ?;</code> (model site). An edge whose
+  interface has no <code>at</code> <strong>must</strong> be written <code>at ?</code>, so openness is visible in review.</li>
+<li><strong>Literals keep the v1 rules</strong>: bare keys make a struct, literal keys make a map, <code>{}</code> is either; <code>-</code> is allowed in
+  numbers; floats need a <code>.</code>.</li>
+<li><strong>Type spelling</strong>: <code>int</code>, <code>bool</code>, <code>float</code>, <code>string</code>, <code>map&lt;string, V&gt;</code>, <code>list&lt;T&gt;</code>, <code>maybe&lt;T&gt;</code>, <code>overwrite&lt;T&gt;</code>,
+  <code>enum&lt;a, b&gt;</code>, <code>array&lt;float&gt;[3,3] @ "uM"</code>, <code>{ a: T; b: U }</code>, <code>A | B</code>, raw <code>"…"</code>. The compiler maps <code>int</code> →
+  <code>integer</code>, <code>bool</code> → <code>boolean</code>, <code>map&lt;string, V&gt;</code> → <code>map[V]</code>. An unknown type name is an error, never passed
+  through.</li>
+<li><strong><code>file()</code> / <code>load()</code></strong>: compile inlines the content so the document stays self-contained. The decompiler
+  externalizes strings longer than 2000 characters and arrays with more than 64 elements into sidecar files named
+  <code>&lt;composite&gt;.&lt;path&gt;.{txt,json,npy}</code>.</li>
+<li><strong><code>let</code></strong>: module constants inlined at compile. The decompiler hoists subtrees that appear verbatim at two or more
+  places and exceed about ten leaves (a shared <code>grid</code> config, for example), named after the config key.</li>
+<li><strong><code>every</code> and <code>replicate</code> accept expressions</strong> (<code>every k * dt</code>). The spec projection cannot represent arithmetic.</li>
+<li><strong>Doc comments</strong>: <code>///</code> on <code>composite</code> → spec <code>description</code>; on <code>param</code> → parameter <code>description</code>; on interface
+  ports → contract description; on stores and edges → text and <code>pblang doc</code> only (never emitted as document keys).</li>
+<li><strong><code>emit</code> aliases</strong>: <code>parquet</code>, <code>ram</code>, <code>sqlite</code>, <code>xarray</code>, <code>console</code>, <code>json</code> → <code>local:&lt;X&gt;Emitter</code>; an unknown alias
+  is an error listing the known ones. <code>emit "local:ParquetEmitter" { … }</code> gives an address directly.</li>
+<li><strong>Canonical formatter</strong>: two-space indent; the decompiler orders stores, then nodes, then edges, each
+  alphabetically; config entries in interface-declared order, then unknown keys alphabetically; one wire per line when
+  more than two; strings double-quoted.</li>
+</ul>
+<h3 id="24-interface-files">2.4 Interface files<a class="headerlink" href="#24-interface-files" title="Permanent link">&para;</a></h3>
+<p>Generated once per package (<code>&lt;pkg&gt;/pblang/interfaces.pblang</code>), hand-editable for ports the generator cannot see.
+<code>describe</code> emits what <code>config_schema</code> and <code>interface()</code> report, adds <code>...</code> and a <code>// TODO: dynamic</code> comment on any face
+whose <code>inputs()</code>/<code>outputs()</code> body references <code>self.config</code>, and <code>describe --check</code> verifies that a hand-edited file is a
+superset of the generated one.</p>
+<pre><code class="language-text">module viva_smoldyn;
+
+struct Species { difc: float; count: int = 0; color: string = &quot;black&quot;; display_size: float = 1.0; }
+
+/// Smoldyn particle simulation in a box.
+process SmoldynProcess at &quot;local:!viva_smoldyn.processes.SmoldynProcess&quot; {
+  config {
+    dimensions: int = 3;
+    bounds: list&lt;list&lt;float&gt;&gt;;
+    boundary_type: string = &quot;r&quot;;
+    dt: float = 0.01;
+    seed: maybe&lt;int&gt;;
+    species: map&lt;string, Species&gt;;
+    reactions: list&lt;map&lt;string, &quot;any&quot;&gt;&gt;;     // raw type kept verbatim: describe found &quot;map&quot;
+  }
+  inputs { }
+  outputs {
+    molecule_counts: map&lt;string, int&gt;;
+    molecule_positions: list&lt;&quot;any&quot;&gt;;
+    time: float @ &quot;s&quot;;
+  }
+}
+</code></pre>
+<p>Dynamic ports, written honestly:</p>
+<pre><code class="language-text">module viva_pde_particle;
+
+process SmoldynHybrid at &quot;local:!viva_pde_particle.processes.smoldyn_hybrid.SmoldynHybrid&quot; {
+  config { grid: map&lt;string, &quot;any&quot;&gt;; config_text: string; particle_species: list&lt;string&gt;;
+           field_species: list&lt;string&gt; = []; dt: float = 0.01; step_multiplier: int = 1;
+           quiet: bool = true; emit_positions: bool = false; }
+  inputs  { fields: map&lt;string, array&lt;float&gt;&gt; @ &quot;uM&quot;; }
+  outputs {
+    particle_counts: map&lt;string, overwrite&lt;array&lt;float&gt;&gt;&gt;;
+    particle_totals: map&lt;string, overwrite&lt;float&gt;&gt;;
+    when emit_positions { particle_positions: map&lt;string, overwrite&lt;array&lt;float&gt;&gt;&gt;; }
+  }
+}
+
+process SpatialRecorder at &quot;local:!viva_pde_particle.processes.recorder.SpatialRecorder&quot; {
+  config { out_dir: string; base_dt: float; every: int; layout: map&lt;string, &quot;any&quot;&gt;; species: list&lt;string&gt;;
+           particle_species: list&lt;string&gt; = []; membranes: map&lt;string, &quot;any&quot;&gt; = {}; region: string = &quot;cell&quot;; }
+  inputs {
+    when layout.kind == &quot;mesh&quot; { field_dofs: map&lt;string, array&lt;float&gt;&gt;; } else { fields: map&lt;string, array&lt;float&gt;&gt;; }
+    when particle_species { particle_positions: map&lt;string, array&lt;float&gt;&gt;; }
+    ...                                   // open face: undeclared ports warn, not error
+  }
+  outputs { }
+}
+
+/// Runs a child process on a sub-multiple of the base tick.
+process Stepper at &quot;local:!viva_pde_particle.processes.stepper.Stepper&quot; {
+  config { process: edge; dt: float; every: int = 1; phase: int = 0; }   // `edge` = an {address, config} child
+  inputs  of config.process;
+  outputs of config.process;
+}
+
+adapter GridCountsToConcentration at &quot;local:!viva_pde_particle.steps.transfer.GridCountsToConcentration&quot; {
+  config  { grid: map&lt;string, &quot;any&quot;&gt;; species: list&lt;string&gt;; staircase: map&lt;string, &quot;any&quot;&gt; = {}; }
+  inputs  { particle_counts: map&lt;string, array&lt;float&gt;&gt; @ &quot;count&quot;; }
+  outputs { particle_conc:   map&lt;string, overwrite&lt;array&lt;float&gt;&gt;&gt; @ &quot;uM&quot;; }
+}
+</code></pre>
+<p><code>adapter</code> is <code>step</code> plus role metadata; the checker uses it for unit-mismatch fix hints. The DSL-only <code>edge</code> type is an
+<code>{address, config}</code> child spec; in config position it is written as an edge literal (<code>SmoldynHybrid { … }</code>).</p>
+<h2 id="3-mapping-tables">3. Mapping tables<a class="headerlink" href="#3-mapping-tables" title="Permanent link">&para;</a></h2>
+<h3 id="31-dsl-document">3.1 DSL → document<a class="headerlink" href="#31-dsl-document" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>DSL</th>
+<th><code>schema</code> half</th>
+<th><code>state</code> half</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>store t: float = 0.0;</code></td>
+<td><code>"t": "float"</code></td>
+<td><code>"t": 0.0</code></td>
+</tr>
+<tr>
+<td><code>store counts: map&lt;string, int&gt;;</code></td>
+<td><code>"counts": "map[integer]"</code></td>
+<td>absent (process-bigraph fills from schema)</td>
+</tr>
+<tr>
+<td><code>store m: float = ?(1.0);</code></td>
+<td>none (#213)</td>
+<td><code>{"_type":"site","_sort":"float","_default":1.0}</code></td>
+</tr>
+<tr>
+<td><code>store x: float = ? as positive;</code></td>
+<td>none</td>
+<td><code>{"_type":"site","_sort":"positive"}</code></td>
+</tr>
+<tr>
+<td><code>node cell { … }</code></td>
+<td><code>"cell": {children}</code></td>
+<td><code>"cell": {children}</code></td>
+</tr>
+<tr>
+<td><code>node model : Engine = ?;</code></td>
+<td>none</td>
+<td><code>{"_type":"site","_sort":{"_type":"link","_inputs":…,"_outputs":…}}</code></td>
+</tr>
+<tr>
+<td><code>replicate n node cell {…}</code></td>
+<td>children</td>
+<td><code>{"_control":"replicate","_count":n, …}</code> (assembly.build only)</td>
+</tr>
+<tr>
+<td><code>process p : I every 0.5 { config{…} inputs{…} outputs{…} }</code></td>
+<td><code>"p": {"_type":"process"}</code></td>
+<td><code>{"_type":"process","address":I.address,"config":…,"inputs":…,"outputs":…,"interval":0.5}</code></td>
+</tr>
+<tr>
+<td><code>… ports { inputs { a: T } }</code></td>
+<td><code>{"_type":"process","_inputs":{"a":T}}</code></td>
+<td>also <code>"_inputs": {"a": T}</code></td>
+</tr>
+<tr>
+<td><code>step s : I priority 2 { triggers [a.b] }</code></td>
+<td><code>{"_type":"step"}</code></td>
+<td><code>{"_type":"step", …, "priority":2, "_triggers":[["a","b"]]}</code></td>
+</tr>
+<tr>
+<td><code>process p : I at ? { … }</code></td>
+<td><code>{"_type":"process"}</code></td>
+<td><code>"address": {"_type":"site","_sort":{"_type":"link",…}}</code></td>
+</tr>
+<tr>
+<td><code>process p : I at ?("local:FV")</code></td>
+<td>same</td>
+<td><code>_sort</code> + <code>"_default":"local:FV"</code></td>
+</tr>
+<tr>
+<td><code>process p at "local:X" { ports{…} }</code></td>
+<td><code>_inputs</code>/<code>_outputs</code></td>
+<td>address literal; <code>_inputs</code>/<code>_outputs</code></td>
+</tr>
+<tr>
+<td><code>composite c every 1.0 { body bridge{…} interface{…} }</code></td>
+<td><code>"c": {"_type":"process"}</code></td>
+<td><code>{"_type":"process","address":"local:Composite","interval":1.0,"config":{"schema":…,"state":…,"bridge":…,"interface":…},"inputs":…,"outputs":…}</code></td>
+</tr>
+<tr>
+<td><code>shared process e : I { config {…} }</code></td>
+<td>—</td>
+<td><code>{"_type":"shared_process","address":…,"config":…}</code></td>
+</tr>
+<tr>
+<td><code>process a : shared e { inputs{…} }</code></td>
+<td>—</td>
+<td><code>{"_type":"shared_process_ref","process_id":"e","inputs":…}</code></td>
+</tr>
+<tr>
+<td><code>inputs { a -&gt; fields.A[0][1], b -&gt; ../x, sub { p -&gt; q } }</code></td>
+<td>—</td>
+<td><code>{"a":["fields","A",0,1],"b":["..","x"],"sub":{"p":["q"]}}</code></td>
+</tr>
+<tr>
+<td><code>extra { note = "…" }</code></td>
+<td>—</td>
+<td>extra keys verbatim</td>
+</tr>
+<tr>
+<td><code>emit parquet { counts, cell.mass } with { out_dir = "o" }</code></td>
+<td>—</td>
+<td>step from <code>emitter_node_from_declaration({"address":"local:ParquetEmitter","paths":["counts","cell/mass"],"config":{"out_dir":"o"}})</code></td>
+</tr>
+<tr>
+<td><code>options { global_time_precision = 6 }</code></td>
+<td>top-level document key</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>param dt: float = 0.01;</code> + <code>every dt</code> (template mode)</td>
+<td>—</td>
+<td><code>"interval": {"_type":"site","_sort":"float","_default":0.01}</code></td>
+</tr>
+<tr>
+<td><code>param n: int = ?;</code> (template mode)</td>
+<td>—</td>
+<td>site without <code>_default</code> (required)</td>
+</tr>
+<tr>
+<td><code>file("m.txt")</code> / <code>load("a.npy")</code></td>
+<td>—</td>
+<td>inlined string / list</td>
+</tr>
+</tbody>
+</table>
+<p>Type expressions: <code>int</code> → <code>integer</code>, <code>bool</code> → <code>boolean</code>, <code>list&lt;T&gt;</code> → <code>list[T]</code>, <code>map&lt;string,V&gt;</code> → <code>map[V]</code>,
+<code>map&lt;K,V&gt;</code> → <code>map[K,V]</code>, <code>maybe&lt;T&gt;</code> → <code>maybe[T]</code>, <code>overwrite&lt;T&gt;</code> → <code>overwrite[T]</code>, <code>enum&lt;a,b&gt;</code> → <code>enum[a,b]</code>,
+<code>range&lt;0.0,1.0&gt;</code> → <code>range[0.0,1.0]</code>, <code>array&lt;float&gt;[3,3] @ "uM"</code> → <code>{"_type":"array","_shape":[3,3],"_data":"float","_units":"uM"}</code>
+(dict form when shape or units are present, else <code>array[float]</code>), <code>{a: T; b: U}</code> → <code>a:T|b:U</code> (dict form when a member
+is a struct with defaults), <code>A | B</code> → <code>A~B</code>, <code>link&lt;{…},{…}&gt;</code> → <code>{"_type":"link","_inputs":…,"_outputs":…}</code>, <code>"raw"</code> →
+verbatim. A field default → <code>{"_type":T,"_default":v}</code>.</p>
+<h3 id="32-dsl-compositespec-yaml">3.2 DSL → CompositeSpec yaml<a class="headerlink" href="#32-dsl-compositespec-yaml" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>DSL</th>
+<th>yaml</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>module x;</code> / <code>composite Name {…}</code></td>
+<td><code>name: Name</code> (fallback: file stem)</td>
+</tr>
+<tr>
+<td><code>/// text</code> on <code>composite</code></td>
+<td><code>description: "text"</code></td>
+</tr>
+<tr>
+<td><code>meta { tags = […], default_n_steps = 100, … }</code></td>
+<td>the same keys</td>
+</tr>
+<tr>
+<td><code>param dt: float = 0.01 choices [0.01, 0.1];</code> + <code>///</code></td>
+<td><code>parameters: {dt: {type: float, default: 0.01, choices: […], description: …}}</code></td>
+</tr>
+<tr>
+<td><code>param n: int = ?;</code></td>
+<td><code>parameters: {n: {type: integer}}</code> (no default; <code>to_document</code> raises if not overridden)</td>
+</tr>
+<tr>
+<td><code>every dt</code>, <code>config { dt = dt }</code>, <code>"out_${run}"</code></td>
+<td><code>interval: "${dt}"</code>, <code>dt: "${dt}"</code>, <code>"out_${run}"</code></td>
+</tr>
+<tr>
+<td><code>import viva_smoldyn.{SmoldynProcess}</code> + uses</td>
+<td><code>requires: {processes: [SmoldynProcess]}</code> (computed; <code>meta { requires = … }</code> overrides)</td>
+</tr>
+<tr>
+<td><code>emit …</code></td>
+<td><code>emitters: [{address, paths, config?}]</code></td>
+</tr>
+<tr>
+<td><code>options { global_time_precision = 6 }</code></td>
+<td><code>global_time_precision: 6</code></td>
+</tr>
+<tr>
+<td>composite body</td>
+<td><code>state:</code> (+ <code>schema:</code> only for typed stores process-bigraph could not infer)</td>
+</tr>
+<tr>
+<td>sites other than params</td>
+<td>not representable → <code>E-SPEC-UNREPRESENTABLE</code></td>
+</tr>
+<tr>
+<td>param types beyond float/int/string/bool/list/map</td>
+<td><code>enum&lt;…&gt;</code> becomes <code>string</code> + <code>choices</code>; others → <code>E-SPEC-PARAM-TYPE</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="33-document-dsl-decompilation">3.3 Document → DSL (decompilation)<a class="headerlink" href="#33-document-dsl-decompilation" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Document</th>
+<th>DSL</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>dict containing an edge (directly or below)</td>
+<td><code>node key { … }</code></td>
+</tr>
+<tr>
+<td>dict with no edges</td>
+<td><code>store key: T = {…};</code> (<code>T</code> from schema if present, else inferred)</td>
+</tr>
+<tr>
+<td>leaf value, schema present</td>
+<td><code>store key: T = v;</code></td>
+</tr>
+<tr>
+<td>leaf value, no schema</td>
+<td><code>store key: &lt;inferred&gt; = v;</code> (type printed for review)</td>
+</tr>
+<tr>
+<td>schema entry without state</td>
+<td><code>store key: T;</code></td>
+</tr>
+<tr>
+<td><code>{"_type":"site",…}</code></td>
+<td><code>= ?(default)</code> / <code>= ? as Sort</code>; in <code>address</code> → <code>at ?</code>; face sort → <code>node x : &lt;interface or link&lt;&gt;&gt; = ?</code></td>
+</tr>
+<tr>
+<td><code>"local:Name"</code> / <code>"local:!pkg.mod.Class"</code></td>
+<td>resolved against interface files on the search path → <code>import pkg.{Name}</code> + <code>process key : Name</code>; unresolved → <code>process key at "…" { ports { … from _inputs/_outputs } }</code> + <code>W-IFACE-UNRESOLVED</code></td>
+</tr>
+<tr>
+<td><code>{"protocol","data"}</code></td>
+<td><code>"protocol:data"</code></td>
+</tr>
+<tr>
+<td><code>config</code></td>
+<td>keys equal to the interface default dropped; unknown keys kept with <code>W-CONFIG-UNKNOWN-KEY</code></td>
+</tr>
+<tr>
+<td><code>_inputs</code>/<code>_outputs</code> equal to the interface face</td>
+<td>omitted; otherwise <code>ports { }</code></td>
+</tr>
+<tr>
+<td><code>interval</code> 1.0 on a process</td>
+<td>omitted (default)</td>
+</tr>
+<tr>
+<td><code>address: "local:Composite"</code></td>
+<td><code>composite key every I { … bridge … }</code></td>
+</tr>
+<tr>
+<td>emitter step equal to <code>emitter_node_from_declaration(decl)</code></td>
+<td><code>emit alias { paths } with {config}</code>; otherwise a plain <code>step</code></td>
+</tr>
+<tr>
+<td><code>global_time</code>, <code>results</code>, <code>instance</code>, <code>_contract</code></td>
+<td>dropped</td>
+</tr>
+<tr>
+<td>template sites with <code>_default</code> at <code>interval</code>/config leaves</td>
+<td><code>param &lt;key&gt;: T = default;</code> + a reference (bare key when unique, else path-joined)</td>
+</tr>
+<tr>
+<td>yaml <code>parameters</code> + <code>${p}</code></td>
+<td><code>param p …</code> + references; <code>${p}</code> inside strings kept as interpolation</td>
+</tr>
+<tr>
+<td>yaml <code>description</code>, <code>tags</code>, …</td>
+<td><code>///</code> and <code>meta {}</code></td>
+</tr>
+<tr>
+<td>large strings and arrays</td>
+<td><code>file()</code> / <code>load()</code> sidecars</td>
+</tr>
+</tbody>
+</table>
+<h2 id="4-worked-examples">4. Worked examples<a class="headerlink" href="#4-worked-examples" title="Permanent link">&para;</a></h2>
+<h3 id="41-viva-smoldyn-reversible-dimerization-from-reversible-dimerizationcompositeyaml">4.1 viva-smoldyn reversible dimerization (from <code>reversible-dimerization.composite.yaml</code>)<a class="headerlink" href="#41-viva-smoldyn-reversible-dimerization-from-reversible-dimerizationcompositeyaml" title="Permanent link">&para;</a></h3>
+<pre><code class="language-text">module viva_smoldyn.composites.reversible_dimerization;
+import viva_smoldyn.{SmoldynProcess};
+
+meta { tags = [&quot;particles&quot;, &quot;reaction-diffusion&quot;, &quot;3d&quot;, &quot;simularium&quot;] }
+
+/// Smoldyn 3D reversible dimerization: fast red monomers A diffuse and bind pairwise into
+/// slower blue dimers B (A + A &lt;-&gt; B) in a reflecting cubic box. Emits per-species counts,
+/// per-molecule positions, and time each step; the positions drive a Simularium trajectory.
+composite reversible_dimerization {
+  store molecule_counts: map&lt;string, int&gt; = {};
+  store molecule_positions: list&lt;&quot;any&quot;&gt; = [];
+  store time: float = 0.0;
+
+  process smoldyn : SmoldynProcess every 0.5 {
+    config {
+      dimensions = 3,
+      bounds = [[0, 50], [0, 50], [0, 50]],
+      boundary_type = &quot;r&quot;,
+      dt = 0.01,
+      seed = 12345,
+      species = {
+        &quot;A&quot; = { difc = 3.0, count = 250, color = &quot;red&quot;,  display_size = 1.2 },
+        &quot;B&quot; = { difc = 1.0, count = 0,   color = &quot;blue&quot;, display_size = 2.0 }
+      },
+      reactions = [ { &quot;name&quot; = &quot;dimerize&quot;, &quot;subs&quot; = [&quot;A&quot;, &quot;A&quot;], &quot;prds&quot; = [&quot;B&quot;], &quot;rate&quot; = 2.0, &quot;kb&quot; = 0.15 } ]
+    }
+    inputs  { }
+    outputs { molecule_counts -&gt; molecule_counts, molecule_positions -&gt; molecule_positions, time -&gt; time }
+  }
+}
+
+emit parquet { molecule_counts, molecule_positions, time };
+</code></pre>
+<p><code>pblang compile --to yaml</code> reproduces the yaml (<code>requires</code> computed from the import, <code>name</code> from the composite);
+<code>pblang compile</code> produces the document with the emitter step materialized. From the yaml alone the stores are untyped
+(<code>molecule_counts: {}</code>); the checker reports <code>W-STORE-UNTYPED</code> with the fix "declare <code>: map&lt;string, int&gt;</code> (from
+<code>SmoldynProcess.outputs.molecule_counts</code>)". That review signal is exactly what the DSL is for.</p>
+<h3 id="42-nested-growth-division-composite-localcomposite-with-a-bridge">4.2 Nested growth-division composite (<code>local:Composite</code> with a bridge)<a class="headerlink" href="#42-nested-growth-division-composite-localcomposite-with-a-bridge" title="Permanent link">&para;</a></h3>
+<pre><code class="language-text">import demo.{Grow, Divide};
+
+param growth_rate: float = 0.1;
+
+composite grow_divide {
+  store environment: map&lt;string, float&gt; = { &quot;nutrient&quot; = 10.0 };
+  store mass_out: float = 0.0;
+
+  /// One cell as a nested composite; the bridge exposes its mass and a division signal.
+  composite cell every 1.0 {
+    store mass: float = 1.0;
+    store divide_signal: bool = false;
+    process grow : Grow every 1.0 {
+      config  { rate = growth_rate }
+      inputs  { mass -&gt; mass, env -&gt; ../environment }   // `..` escapes the inner root through the bridge
+      outputs { mass -&gt; mass }
+    }
+    step divide : Divide {
+      config  { threshold = 2.0 }
+      inputs  { mass -&gt; mass }
+      outputs { divide -&gt; divide_signal }
+    }
+
+    bridge {
+      inputs   { environment -&gt; environment }           // inner path for the outer `environment` port
+      outputs  { mass -&gt; mass }
+      conduits { divide -&gt; divide_signal }
+    }
+    interface { outputs { mass: float; } }
+    options { run_steps_on_init = true }
+
+    inputs  { environment -&gt; environment }              // outer wires, relative to the root
+    outputs { mass -&gt; mass_out }
+  }
+}
+</code></pre>
+<p>Compiles to <code>cell: {_type: process, address: "local:Composite", interval: 1.0, config: {schema, state, bridge: {inputs:
+{environment: ["environment"]}, outputs: {mass: ["mass"]}, conduits: {divide: ["divide_signal"]}}, interface: {outputs:
+{mass: "float"}}, run_steps_on_init: true}, inputs, outputs}</code>. Decompiling a <em>saved</em> document whose nested
+<code>config.state</code> is empty raises <code>W-NESTED-SAVE-LOSSY</code>.</p>
+<h3 id="43-viva-pde-particle-hybrid-fv-pde-smoldyn-adapters-stepper-spatialrecorder">4.3 viva-pde-particle hybrid (FV PDE + Smoldyn + adapters + Stepper + SpatialRecorder)<a class="headerlink" href="#43-viva-pde-particle-hybrid-fv-pde-smoldyn-adapters-stepper-spatialrecorder" title="Permanent link">&para;</a></h3>
+<pre><code class="language-text">module viva_pde_particle.composites.hybrid;
+import viva_pde_particle.{FVReactionDiffusion, SmoldynHybrid, GridCountsToConcentration,
+                          ExtendGridField, Stepper, SpatialRecorder};
+
+param dt: float = 0.01;
+param step_multiplier: int = 5;
+/// Which PDE engine fills the `pde` slot; the face is shared by FV and FEniCSx.
+param pde_engine: string = &quot;fv&quot; choices [&quot;fv&quot;, &quot;fenicsx&quot;];
+
+let grid = { &quot;origin&quot; = [0.0, 0.0, 0.0], &quot;size&quot; = [10.0, 10.0, 10.0], &quot;num&quot; = [20, 20, 20] };
+let species = [&quot;A&quot;, &quot;B&quot;];
+
+composite hybrid {
+  store fields:          map&lt;string, array&lt;float&gt;[20,20,20] @ &quot;uM&quot;&gt;    = load(&quot;hybrid.fields.npz&quot;);
+  store particle_counts: map&lt;string, array&lt;float&gt;[20,20,20] @ &quot;count&quot;&gt; = load(&quot;hybrid.particle_counts.npz&quot;);
+  store particle_conc:   map&lt;string, array&lt;float&gt;[20,20,20] @ &quot;uM&quot;&gt;    = load(&quot;hybrid.particle_conc.npz&quot;);
+  store particle_totals: map&lt;string, float&gt; = { &quot;A&quot; = 1200.0, &quot;B&quot; = 0.0 };
+  store fields_ext:      map&lt;string, array&lt;float&gt;&gt;;
+
+  /// Filled by the builder with the engine chosen by `pde_engine`; both engines satisfy this face.
+  process pde : FVReactionDiffusion at ?(&quot;local:FVReactionDiffusion&quot;) every dt {
+    config  { grid = grid, pde = load(&quot;hybrid.pde.json&quot;), dt = dt,
+              domain = { &quot;mask&quot; = ?, &quot;volume_fraction&quot; = ? } }    // builder-computed arrays left open
+    inputs  { fields -&gt; fields, external_conc -&gt; particle_conc }
+    outputs { fields -&gt; fields }
+  }
+
+  step particle_to_field : GridCountsToConcentration {
+    config  { grid = grid, species = species }
+    inputs  { particle_counts -&gt; particle_counts }
+    outputs { particle_conc -&gt; particle_conc }
+  }
+
+  step extend_field : ExtendGridField {
+    config  { grid = grid, species = species, staircase = {} }
+    inputs  { fields -&gt; fields }
+    outputs { fields_ext -&gt; fields_ext }
+  }
+
+  /// SmoldynHybrid driven on a sub-multiple of dt, phase k-1 (vcell-fvsolver coupling).
+  process particles : Stepper every dt {
+    config {
+      process = SmoldynHybrid {                                  // edge literal: {address, config}
+        grid = grid, config_text = file(&quot;hybrid.particles.smol&quot;),
+        particle_species = species, field_species = [&quot;A&quot;],
+        dt = dt, step_multiplier = step_multiplier
+      },
+      dt = dt, every = step_multiplier, phase = step_multiplier - 1
+    }
+    inputs  { fields -&gt; fields }                                 // face delegated from config.process
+    outputs { particle_counts -&gt; particle_counts, particle_totals -&gt; particle_totals }
+  }
+
+  process recorder : SpatialRecorder every dt {
+    config  { out_dir = &quot;${out_dir}&quot;, base_dt = dt, every = 10,
+              layout = { &quot;kind&quot; = &quot;grid&quot;, &quot;grid&quot; = grid }, species = species }
+    inputs  { fields -&gt; fields }                                 // ok: `when layout.kind == &quot;mesh&quot;` is false
+  }
+}
+</code></pre>
+<p><code>load()</code> and <code>file()</code> keep the text reviewable while the document stays self-contained; the <code>?</code> inside <code>domain</code> are
+config sites the builder fills with <code>fill_sites</code>; the <code>Stepper</code> child is an edge literal, which the checker uses to
+resolve the delegated face and to type-check the child's config; <code>pde_engine</code> is a plain spec parameter (the mapping to
+an address stays in the builder; the DSL records the open address site with its default). <code>phase = step_multiplier - 1</code>
+is an expression: the spec projection reports <code>E-SPEC-EXPR</code>, the template projection evaluates it from the defaults with
+<code>W-PARAM-EVALUATED</code>.</p>
+<h3 id="44-spatio-flux-cell-01-with-array-indexed-wires">4.4 spatio-flux cell <code>"[0,1]"</code> with array-indexed wires<a class="headerlink" href="#44-spatio-flux-cell-01-with-array-indexed-wires" title="Permanent link">&para;</a></h3>
+<pre><code class="language-text">import spatio_flux.{DynamicFBA};
+import spatio_flux.types;                 // registers positive_float etc. (register_types hook)
+
+param n_bins: int = 2;
+
+composite spatial_dfba {
+  store fields: map&lt;string, array&lt;float&gt;[n_bins, n_bins] @ &quot;mM&quot;&gt; = {
+    &quot;glucose&quot; = [[10.0, 10.0], [10.0, 10.0]], &quot;acetate&quot; = [[0.0, 0.0], [0.0, 0.0]], &quot;biomass&quot; = [[0.1, 0.1], [0.1, 0.1]]
+  };
+
+  node &quot;[0,1]&quot; {
+    process dfba : DynamicFBA every 1.0 {
+      config { model_file = &quot;textbook&quot;, biomass_identifier = &quot;biomass&quot;,
+               kinetic_params = { &quot;glucose&quot; = [0.5, 1.0], &quot;acetate&quot; = [0.5, 2.0] },
+               substrate_update_reactions = { &quot;glucose&quot; = &quot;EX_glc__D_e&quot;, &quot;acetate&quot; = &quot;EX_ac_e&quot; },
+               bounds = { &quot;EX_o2_e&quot; = { &quot;lower&quot; = -2.0, &quot;upper&quot; = ? as maybe&lt;float&gt; },
+                          &quot;ATPM&quot; = { &quot;lower&quot; = 1.0, &quot;upper&quot; = 1.0 } } }
+      inputs  { substrates { glucose -&gt; ../fields.glucose[0][1], acetate -&gt; ../fields.acetate[0][1],
+                             biomass -&gt; ../fields.biomass[0][1] } }
+      outputs { substrates { glucose -&gt; ../fields.glucose[0][1], acetate -&gt; ../fields.acetate[0][1],
+                             biomass -&gt; ../fields.biomass[0][1] } }
+    }
+  }
+}
+</code></pre>
+<p><code>../fields.glucose[0][1]</code> → <code>["..","fields","glucose",0,1]</code>. The checker resolves the path type through <code>map</code> →
+<code>array</code> → index → index and checks it against the port type with <code>core.resolve_schemas</code>. <code>n_bins</code> in a shape is a
+param, so the shape is <code>[2,2]</code> in both projections (shapes must be ground at compile time).</p>
+<h3 id="45-template-with-a-face-site-for-the-engine-and-a-required-param">4.5 Template with a face site for the engine and a required param<a class="headerlink" href="#45-template-with-a-face-site-for-the-engine-and-a-required-param" title="Permanent link">&para;</a></h3>
+<pre><code class="language-text">import viva_pde_particle.{PdeEngine};    // an interface: a process declaration with no `at`
+
+param n_particles: int = ?;              // required: fill_sites must supply it
+param dt: float = 0.01;
+
+composite pde_study {
+  store fields: map&lt;string, array&lt;float&gt;&gt; = {};
+  node model : PdeEngine = ?;            // model site: a whole subtree admitted by the PdeEngine face
+  process engine : PdeEngine at ? every dt {   // address site sorted by the face
+    config  { n = n_particles }
+    inputs  { fields -&gt; fields }
+    outputs { fields -&gt; fields }
+  }
+}
+</code></pre>
+<p>Compiles in template mode to sites at <code>engine/address</code> (sorted by the link face), <code>engine/config/n</code> (required),
+<code>interval</code> (default 0.01) and <code>model</code>. <code>pblang check</code> reports groundness with process-bigraph's own wording:
+<code>required site(s) left unfilled: 'engine/config/n', 'engine/address', 'model'</code>.</p>
+<h2 id="5-diagnostics">5. Diagnostics<a class="headerlink" href="#5-diagnostics" title="Permanent link">&para;</a></h2>
+<h3 id="51-stages">5.1 Stages<a class="headerlink" href="#51-stages" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Stage</th>
+<th>Where</th>
+<th>Needs</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>S1</td>
+<td>parse (Langium; Lark in the prototype)</td>
+<td>text</td>
+</tr>
+<tr>
+<td>S2</td>
+<td>scope and imports</td>
+<td>interface files</td>
+</tr>
+<tr>
+<td>S3</td>
+<td>static types (Langium validators)</td>
+<td>DSL types only</td>
+</tr>
+<tr>
+<td>S4</td>
+<td>schema (<code>core.access</code>, <code>core.check</code>, <code>resolve_schemas</code>)</td>
+<td>a core with imported <code>register_types</code></td>
+</tr>
+<tr>
+<td>S5</td>
+<td>face and contract (<code>admits_why</code>, <code>face_conforms</code>, <code>find_candidates</code>, unit scale)</td>
+<td>core + interface files</td>
+</tr>
+<tr>
+<td>S6</td>
+<td>registry (<code>link_registry</code>, <code>unresolvable_addresses</code>; optional <code>--env</code>)</td>
+<td>the target environment</td>
+</tr>
+<tr>
+<td>S7</td>
+<td>groundness (<code>required_open_sites</code>)</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<p>S1–S3 run in the editor; S4–S7 in <code>pblang check</code> and CI. Every diagnostic has a stable code (family prefix plus slug, see
+the <a href="../registry-and-authoring/#4-validation-and-error-ux">registry and authoring design</a>), a range, a document <code>path</code>
+(slash-joined, as <code>fill_sites</code> uses it) and, where possible, an LSP-shaped fix.</p>
+<h3 id="52-codes">5.2 Codes<a class="headerlink" href="#52-codes" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Code</th>
+<th>Severity</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>E-UNKNOWN-PORT</code></td>
+<td>error</td>
+<td><code>smoldyn: port 'molecule_count' is not an output of SmoldynProcess (outputs: molecule_counts, …)</code></td>
+</tr>
+<tr>
+<td><code>E-WIRE-TYPE</code></td>
+<td>error</td>
+<td><code>grow.inputs.mass: port type 'float' cannot be resolved with store 'cell.mass' of type 'string'</code></td>
+</tr>
+<tr>
+<td><code>E-UNKNOWN-TYPE</code></td>
+<td>error</td>
+<td><code>type 'any' is not a bigraph-schema type (it would pass through silently); did you mean "any" as a raw type, or node?</code></td>
+</tr>
+<tr>
+<td><code>E-CONFIG-TYPE</code></td>
+<td>error</td>
+<td><code>smoldyn.config.dimensions: expected integer, got 3.0</code></td>
+</tr>
+<tr>
+<td><code>E-CONFIG-MISSING</code></td>
+<td>error</td>
+<td><code>recorder.config: required key 'out_dir' is missing</code></td>
+</tr>
+<tr>
+<td><code>E-FACE-NOT-ADMITTED</code></td>
+<td>error</td>
+<td><code>pde: address 'local:FenicsxMesh' does not satisfy face PdeEngine: missing input 'external_conc'</code></td>
+</tr>
+<tr>
+<td><code>E-ADDRESS-UNRESOLVABLE</code></td>
+<td>error</td>
+<td><code>particles: 'local:SmoldynHybrid' is not registered in this environment (known: …)</code></td>
+</tr>
+<tr>
+<td><code>E-NOT-GROUND</code></td>
+<td>error</td>
+<td><code>composite document is not ground — required site(s) left unfilled: 'engine/config/n'</code></td>
+</tr>
+<tr>
+<td><code>E-PARAM-UNDECLARED</code></td>
+<td>error</td>
+<td><code>'${out_dir}' references a parameter that is not declared</code></td>
+</tr>
+<tr>
+<td><code>E-MIXED-APPLY</code></td>
+<td>error</td>
+<td><code>store 'fields' receives 'overwrite[array[float]]' from pde and additive 'array[float]' from extend_field</code></td>
+</tr>
+<tr>
+<td><code>E-SPEC-UNREPRESENTABLE</code></td>
+<td>error</td>
+<td><code>site at 'pde/address' cannot be written as a CompositeSpec; use --template or give it a param</code></td>
+</tr>
+<tr>
+<td><code>E-PATH-ESCAPES-ROOT</code></td>
+<td>error</td>
+<td><code>grow.inputs.env: '../../x' goes above the composite root</code></td>
+</tr>
+<tr>
+<td><code>W-WIRE-UNIT</code></td>
+<td>warning</td>
+<td><code>particle_to_field.inputs.particle_counts: 'count' wired to a store in 'uM'</code> (fix hint lists adapters)</td>
+</tr>
+<tr>
+<td><code>W-ADDITIVE-OUTPUT</code></td>
+<td>info</td>
+<td><code>particles.outputs.particle_counts: 'map[array[float]]' is additive; wrap in overwrite&lt;&gt; if the port replaces values</code></td>
+</tr>
+<tr>
+<td><code>W-STORE-CREATED-FROM-PORT</code></td>
+<td>warning</td>
+<td><code>wire 'fields_ext' names no store; it will be created from ExtendGridField.outputs.fields_ext</code></td>
+</tr>
+<tr>
+<td><code>W-STORE-UNTYPED</code></td>
+<td>warning</td>
+<td>see 4.1</td>
+</tr>
+<tr>
+<td><code>W-OPEN-FACE-PORT</code></td>
+<td>warning</td>
+<td><code>recorder.inputs.extra: not declared by SpatialRecorder, which has an open face ('...')</code></td>
+</tr>
+<tr>
+<td><code>W-CONFIG-UNKNOWN-KEY</code></td>
+<td>warning</td>
+<td><code>smoldyn.config.colour: not in SmoldynProcess.config</code></td>
+</tr>
+<tr>
+<td><code>W-IFACE-UNRESOLVED</code></td>
+<td>warning</td>
+<td><code>'local:Foo' has no interface file; ports taken from _inputs/_outputs</code></td>
+</tr>
+<tr>
+<td><code>W-NESTED-SAVE-LOSSY</code></td>
+<td>warning</td>
+<td><code>cell: nested composite has empty config.state (saved documents lose inner state)</code></td>
+</tr>
+<tr>
+<td><code>W-PARAM-EVALUATED</code></td>
+<td>warning</td>
+<td><code>phase = step_multiplier - 1 evaluated with defaults (4)</code></td>
+</tr>
+<tr>
+<td><code>E-INTERVAL</code>, <code>E-DUPLICATE-KEY</code>, <code>E-UNRESOLVED-IMPORT</code>, <code>E-EMIT-ALIAS</code>, <code>E-BRIDGE-PORT</code></td>
+<td>error</td>
+<td>as named</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Where the checks run.</strong> The checker is TypeScript (<code>dsl/src/language/v2/check.ts</code>), inside the Langium
+services: the same code produces editor diagnostics, the browser's diagnostics (the language server runs in a web
+worker) and the CLI's <code>check --json</code> envelope. Its inputs are data only: the parsed document and header manifests
+(JSON). Units use mathjs. Python calls the CLI (<code>process_bigraph_lang/v2/check.py</code>), which <code>cli-native</code>
+provides without Node or Deno at run time (Deno compiles it once when the wheel is built). There is one grammar
+and one checker; the compliance suite is <code>dsl/test/v2/check.test.ts</code>, mirrored by the Python tests through the CLI.</p>
+<p><strong>Editor services.</strong> Hover and completion are built on the same resolution the checker uses
+(<code>dsl/src/language/v2/resolve.ts</code>: which header an edge is declared by, and how a path walks the composite
+tree). Hover shows an edge's header as a header file would print it, a port's declared type and the store it is
+wired to, the store or node a path segment names, a header's config field under a config key, and the
+declarations of stores, params, models and emitter aliases, with their <code>///</code> docs. Completion offers the header's
+unwired ports in <code>inputs { }</code> / <code>outputs { }</code>, its config fields in <code>config { }</code> (required first, <code>key =</code>
+inserted), the stores and nodes of the edge's parent in a wire path and the keys below a dict store, the emitter
+aliases after <code>emit</code>, and interfaces at <code>process x :</code> from the registry and from header files open in the
+workspace, with the <code>import</code> they need added as an additional edit. The keywords a key may coincide with
+(<code>every</code>, <code>process</code>, ...) are not proposed in key positions. In the editor, header <code>.pblang</code> files in the workspace
+answer <code>import a.b.{X}</code> directly (a document with <code>module a.b;</code> declaring <code>X</code> is <code>local:!a.b.X</code>), so a composite
+next to its generated headers is checked without a manifest; the CLI takes manifests with <code>--interfaces</code>.</p>
+<p><strong>Compile and decompile.</strong> The reader (document or CompositeSpec -&gt; model), the writer (model -&gt; document or
+CompositeSpec), the printer (model -&gt; text) and the binder (Langium AST -&gt; model) are TypeScript too
+(<code>dsl/src/language/v2/{reader,writer,printer,bind}.ts</code> over the model in <code>model.ts</code>), so <code>cli-native compile</code>
+and <code>cli-native decompile</code> are the only implementations: the same code serves the CLI, the editor and the
+browser. Documents cross the CLI boundary as JSON in <code>bigraph_schema.json_codec</code>'s encoding (numpy arrays
+tagged; tuples tagged as <code>__tuple__</code> by the Python side), with ints and floats kept apart (<code>1</code> is not <code>1.0</code>),
+dicts in source order, and Python's float and string spellings reproduced so that printed text and sidecar
+assets are byte-identical on both sides. <code>compile</code> runs the checker first and stops on errors (<code>--strict</code>
+makes warnings fatal; <code>--force</code> compiles an existing document that relies on defaults the checker flags).
+<code>headers</code> renders a manifest as <code>.pblang</code> header files, <code>model-header</code> renders <code>describe-model</code>'s JSON, <code>graph</code>
+prints the wiring graph for viewers.</p>
+<p><strong>The Python API.</strong> <code>process_bigraph_lang.v2</code> exposes <code>compile_text</code> / <code>compile_file</code> and <code>decompile</code>, thin
+wrappers over those commands, plus what has to be Python: <code>describe_module</code> (introspection runs where the
+classes import; it writes the manifest the CLI reads), <code>describe_sbml</code> (the model header as JSON), and the
+normalizer (<code>equivalent</code>, <code>diff_documents</code>; it needs bigraph-schema's <code>core.render</code>). There is no Python
+model of a composite. This is deliberate: a Python tool that builds composites targets the DSL text, where
+the result is checked, reviewed and documented, rather than a Python object model that would be a second
+authoring surface. A builder in viva-pde-particle, for example, emits <code>.pblang</code> text (or a document it then
+decompiles) and compiles that.</p>
+<h3 id="53-pblang-check">5.3 <code>pblang check</code><a class="headerlink" href="#53-pblang-check" title="Permanent link">&para;</a></h3>
+<pre><code class="language-text">pblang check &lt;file.pblang&gt;... [--env] [--format json|text] [--spec|--template|--ground]
+             [--set name=value]... [--interface-path DIR]... [--strict]
+exit 0 = no errors; 1 = errors; 2 = tool failure
+</code></pre>
+<pre><code class="language-json">{
+  &quot;version&quot;: 1,
+  &quot;ok&quot;: false,
+  &quot;diagnostics&quot;: [
+    {
+      &quot;code&quot;: &quot;E-UNKNOWN-PORT&quot;,
+      &quot;severity&quot;: &quot;error&quot;,
+      &quot;stage&quot;: &quot;type&quot;,
+      &quot;file&quot;: &quot;hybrid.pblang&quot;,
+      &quot;range&quot;: {
+        &quot;start&quot;: { &quot;line&quot;: 41, &quot;col&quot;: 15 },
+        &quot;end&quot;: { &quot;line&quot;: 41, &quot;col&quot;: 30 }
+      },
+      &quot;path&quot;: &quot;particles/outputs/particle_count&quot;,
+      &quot;message&quot;: &quot;...&quot;,
+      &quot;related&quot;: [
+        {
+          &quot;file&quot;: &quot;viva_pde_particle.pblang&quot;,
+          &quot;line&quot;: 88,
+          &quot;message&quot;: &quot;outputs declared here&quot;
+        }
+      ],
+      &quot;fix&quot;: {
+        &quot;title&quot;: &quot;rename to particle_counts&quot;,
+        &quot;edits&quot;: [{ &quot;range&quot;: {}, &quot;newText&quot;: &quot;particle_counts&quot; }]
+      },
+      &quot;docs&quot;: &quot;https://…/codes#E-UNKNOWN-PORT&quot;
+    }
+  ],
+  &quot;summary&quot;: {
+    &quot;errors&quot;: 1,
+    &quot;warnings&quot;: 2,
+    &quot;ground&quot;: false,
+    &quot;open_sites&quot;: [&quot;engine/config/n&quot;]
+  }
+}
+</code></pre>
+<p><code>fmt</code>, <code>compile</code>, <code>decompile</code>, <code>describe</code> and <code>doc</code> share the same envelope.</p>
+<h2 id="54-operator-splitting-as-a-construct-the-stepper-and-the-splittingcoordinator-as-syntax">5.4 Operator splitting as a construct (the Stepper and the SplittingCoordinator as syntax)<a class="headerlink" href="#54-operator-splitting-as-a-construct-the-stepper-and-the-splittingcoordinator-as-syntax" title="Permanent link">&para;</a></h2>
+<p>viva-pde-particle couples its engines with two wrappers whose faces are their children's: <code>Stepper</code> (run a
+child on every k-th tick of a <code>dt</code> clock, phase-shifted, so that it reads the field at <code>T + (k−1)·dt</code> and has its
+counts applied at <code>T + k·dt</code>, vcell-fvsolver's lagged coupling) and <code>SplittingCoordinator</code> (run both engines and
+the adapters in an explicit order over one coupling interval <code>τ = k·dt</code> on a private copy of the stores). The
+coordinator's schemes are:</p>
+<table>
+<thead>
+<tr>
+<th>Scheme</th>
+<th>One interval <code>τ = k·dt</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>jacobi</code></td>
+<td>PDE for <code>(k−1)·dt</code>; particles for <code>τ</code> reading the field now, update held back; PDE for <code>dt</code>; commit the particles. Equals the two-process composite with the Stepper.</td>
+</tr>
+<tr>
+<td><code>gs_particles_first</code></td>
+<td>particles for <code>τ</code>; PDE for <code>τ</code> seeing the new particles</td>
+</tr>
+<tr>
+<td><code>gs_pde_first</code></td>
+<td>PDE for <code>τ</code>; particles for <code>τ</code> seeing the new field</td>
+</tr>
+<tr>
+<td><code>strang</code></td>
+<td>PDE for <code>τ/2</code>; particles for <code>τ</code>; PDE for <code>τ/2</code> with the new particles (<code>k</code> even)</td>
+</tr>
+</tbody>
+</table>
+<p>Only Jacobi is a per-process clock setting. Gauss–Seidel and Strang are <strong>sequential</strong> compositions inside one
+interval: the second engine sees the first one's result before the interval ends, which process-bigraph's
+scheduler cannot express because every process reads the state at the start of its interval. A splitting scheme is
+therefore a composition operator over a group of processes, not an attribute of one of them, and the DSL gives it a
+construct that says the physics as an ordered sequence per coupling interval:</p>
+<pre><code class="language-text">split coupling every 4 * dt {
+  run pde for 3 * dt;
+  run particles for 4 * dt, hold;   // reads the field now; its update is applied at commit
+  run pde for dt;
+  commit particles;
+}
+</code></pre>
+<p>Gauss–Seidel is <code>run particles for τ; run pde for τ;</code> (or the reverse) and Strang is
+<code>run pde for τ/2; run particles for τ; run pde for τ/2;</code>. Adapters run whenever a store they read changed, the rule
+process-bigraph applies to steps, so they need no mention unless an order is pinned. Named schemes are sugar
+(<code>split coupling every 4 * dt scheme strang { pde, particles }</code>) whose expansion the formatter and hover show.
+<code>pde</code> and <code>particles</code> are ordinary processes declared in the composite, with static headers.</p>
+<p>What the construct buys statically: the participants' config and wires are checked as usual, and the schedule itself
+is checked, which today happens as <code>ValueError</code>s in <code>initialize()</code>: each engine's <code>for</code> durations sum to <code>τ</code> per
+interval, Strang's <code>k</code> is even, every <code>hold</code> has a <code>commit</code>, and the adapters' faces bridge the engines' stores.</p>
+<p>What it compiles to: Jacobi can go to the two-process form with the Stepper (the PDE stays a normal process that
+emitters see every <code>dt</code>); the other schemes go to the <code>SplittingCoordinator</code> node with its <code>pde</code>, <code>particles</code>,
+<code>adapters</code> and <code>scheme</code> config. The decompiler prints both shapes back as <code>split</code>. Either way the wrappers are
+desugaring targets and should live in a shared package rather than in viva-pde-particle; if process-bigraph grows
+ordered sub-steps within an interval, the same text compiles to that instead.</p>
+<p><strong>Decisions (2026-10-11):</strong> the sequence is optional, the named schemes stay, and no scheme means the lagged
+Jacobi scheme (<code>split coupling every τ { pde, particles }</code>), which is the coordinator's default and the Stepper
+form. Scheme names should keep the distinction visible: <code>lagged</code> (viva's <code>jacobi</code>, kept as an alias),
+<code>sequential</code> with the order, <code>strang</code>.</p>
+<h3 id="541-superposition-on-a-shared-store-is-native-not-split">5.4.1 Superposition on a shared store is native, not <code>split</code><a class="headerlink" href="#541-superposition-on-a-shared-store-is-native-not-split" title="Permanent link">&para;</a></h3>
+<p>Several processes adding increments to one store is process-bigraph's default model: the apply semantics for
+numbers, arrays and maps of them are additive, and every delta that lands at the same time is summed onto the
+store. Numerically that is simultaneous (Jacobi, additive) splitting, for <code>du/dt = A(u) + B(u)</code> the step
+<code>u(T+Δ) = u(T) + Δ·A(u(T)) + Δ·B(u(T))</code>, multirate when intervals differ. It needs no construct. What the
+language says about it is the store's apply semantics, which the type already carries (<code>float</code> and
+<code>array&lt;float&gt;</code> accumulate, <code>overwrite&lt;T&gt;</code> replaces), and what the checker does about it is the writer analysis of
+the registry design: two overwriting writers on one store (<code>W221</code>, an ordering race), an additive writer mixed
+with an overwriting one (<code>W220</code>/<code>E-MIXED-APPLY</code>), and a step publishing a whole array with accumulate semantics
+(<code>W223</code>). <code>pblang doc</code> lists writers and readers per store with those badges.</p>
+<p><code>split</code> is only for the other coupling style: engines that own their variables and exchange whole values
+through ports and adapters, where the question is <em>when</em> each engine reads the other's result within an interval.</p>
+<h2 id="55-units-declared-on-stores-polymorphic-on-components">5.5 Units: declared on stores, polymorphic on components<a class="headerlink" href="#55-units-declared-on-stores-polymorphic-on-components" title="Permanent link">&para;</a></h2>
+<p>Units are an annotation on a type, on a store (<code>store conc: map&lt;string, float&gt; @ "uM";</code>) and on a port in a
+header (<code>fields: map&lt;string, array&lt;float&gt;&gt; @ "uM";</code>). They are data: <code>_units</code> on the bigraph-schema type, checked
+with pint, never executed. The store is the single source of truth for the composite's unit system; every port
+wired to it must agree.</p>
+<p>Most solvers do not own a unit system. An ODE or PDE engine integrates whatever consistent units the model
+carries, so its header must not commit to <code>uM</code>. It declares <strong>unit variables</strong> instead:</p>
+<pre><code class="language-text">process Tellurium at &quot;…&quot; {
+  inputs  { species: map&lt;string, float&gt; @ &quot;?U&quot;; time: float @ &quot;?T&quot;; }
+  outputs { species: map&lt;string, overwrite&lt;float&gt;&gt; @ &quot;?U&quot;; fluxes: map&lt;string, float&gt; @ &quot;?U/?T&quot;; }
+}
+</code></pre>
+<p><code>?U</code> and <code>?T</code> are bound per instance from the stores the ports are wired to, the way type variables are inferred:
+<code>species -&gt; conc</code> binds <code>?U = uM</code>, <code>time -&gt; clock</code> binds <code>?T = s</code>, and <code>fluxes -&gt; rates</code> is then checked against
+<code>uM/s</code>. A variable that only appears in a derived expression is solved for (<code>?T</code> from <code>?U/?T</code> once <code>?U</code> is
+known). This is what "units-of" and "rate-units-of" mean here: <code>@ "?U"</code> is "the units of whatever this is wired
+to" and <code>@ "?U/?T"</code> is "those units per time unit", with the checker proving the composite consistent without
+the component naming any unit. If nothing pins a variable the obligation is reported as unresolved, not as an
+error: a composite with no declared units is unchecked, not wrong.</p>
+<p>Findings: <code>W201 unit-mismatch</code> when a bound expression and its store differ, with the conversion factor when the
+dimensions agree (<code>uM/s</code> into <code>mM/s</code>, factor 0.001: insert an adapter or align the stores) or as incompatible when
+they do not (<code>uM</code> into <code>kg</code>); <code>I230</code> when pint cannot parse a unit; <code>I231</code> when no store pins a variable.</p>
+<p>Where an SBML model declares its own unit system, the units belong on the stores the model's species and
+parameters are mapped to, and they can be generated from the model: the existing SBML stub generator already reads
+the model file and writes stores with values, and writing their <code>@ units</code> from the model's unit definitions is
+the same step. A data-level lint that compares a model file's unit definitions with the stores it is wired to is
+a separate, later check. Pinning a variable explicitly at an instance (<code>units { U = "uM" }</code>) is possible syntax
+for the case where no store declares units; it is not needed when the stores do.</p>
+<h2 id="56-model-headers-and-model-sites-sbml-and-other-model-files">5.6 Model headers and model sites (SBML and other model files)<a class="headerlink" href="#56-model-headers-and-model-sites-sbml-and-other-model-files" title="Permanent link">&para;</a></h2>
+<p>The v1 SBML stub generator read a model file and wrote a <em>composite</em> specialized to it: stores named after that
+model's species and parameters, values baked in. That conflates two things that v2 keeps apart.</p>
+<p><strong>A model file has an interface, like a process does.</strong> Its species, parameters and compartments with their
+units, its time unit, and which species are amounts rather than concentrations are the model's face. The
+model-side twin of <code>describe</code> is <code>describe-model</code>: it reads the file once and writes a <strong>model header</strong>, a
+generated, read-only declaration next to the file (<code>Caravagna2010.model.pblang</code>), not a composite:</p>
+<pre><code class="language-text">model Caravagna2010 from &quot;Caravagna2010.xml&quot; {
+  time @ &quot;s&quot;;
+  compartments { compartment: float @ &quot;mL&quot; = 1.0; }
+  species { T: float @ &quot;umol/mL&quot; = 1.0; E: float @ &quot;umol/mL&quot; = 1.0; I: float @ &quot;umol/mL&quot; = 1.0; }
+  parameters { r2: float = 0.18; b: float = 1.0e-09; … }
+  meta { sbml = &quot;L2V4&quot;, reactions = 3, events = 0, rules = 0 }
+}
+</code></pre>
+<p>Everything in it is data and regenerable; units come from the model's unit definitions, which is where the
+stores' units in section 5.5 come from. <code>process_bigraph_lang/v2/sbml.py</code> prototypes this on the Caravagna
+fixture with the standard library's XML parser (no libsbml).</p>
+<p><strong>Two kinds of workflow, both first-class.</strong></p>
+<ul>
+<li>A <strong>per-document composite</strong> imports the model header and uses it: <code>store species: Caravagna2010.species =
+Caravagna2010.initial;</code>, a solver wired <code>species -&gt; species</code>, adapters naming real species
+  (<code>substrates { T -&gt; species.T }</code>), emit paths naming real species. The checker verifies all of that statically
+  against the header: a wire to a species the model lacks, a unit mismatch through <code>?U</code>, an emit path for a
+  species that does not exist.</li>
+<li>A <strong>per-class workflow</strong> is a template. The model is a site and the class is the site's sort, what any filler
+  must provide: <code>node model : SBMLModel = ?</code> with a sort that says concentration species in some <code>?U</code>, a time
+  unit <code>?T</code>, and the members the workflow touches (<code>parameters.k1</code> to sweep, <code>species.A</code> for an adapter). The
+  solver's header is polymorphic (<code>?U/?T</code>), the species store is an open map, the model file is a <code>param</code>.
+  Whether a given document fits is a static <code>admits</code> check of its model header against the sort, before
+  anything runs.</li>
+</ul>
+<p>Instantiation relates the two: a per-class template plus a model header, with the site filled, is a per-document
+composite. That is process-bigraph's site-and-fill machinery applied to a data input instead of a process.</p>
+<p><strong>What the class can say that v1 could not.</strong> The things that decide whether a solver handles a document: amounts
+versus concentrations (the v1 stub converted by compartment size, silently), events and rules, local
+parameters, SBML level, version and packages (<code>spatial</code>, <code>comp</code>, <code>fbc</code>). Those become predicates of the model
+site's sort, and solvers declare what they accept in their headers (<code>accepts: sbml-l3v2, no spatial</code>), so
+choosing a solver for a model is the same face matching the registry design uses for adapters.</p>
+<p><strong>Syntax (implemented in the prototype grammar).</strong> A header is <code>model Name from "file" { time @ "…"; compartments
+{…} species {…} parameters {…} meta {…} }</code>; a sort is the same without <code>from</code>. In a sort, a member named <code>_</code>
+stands for every member of its block (<code>species { _: float @ "?U"; ... }</code> says "all species, in one unit <code>?U</code>"),
+a block ending in <code>...</code> admits members the sort does not name, and <code>meta</code> entries are requirements (<code>events = 0</code>,
+<code>kind = "concentration"</code>). A model site is a store typed by a sort: <code>store model : ODEModel = ?;</code> is open and
+<code>store model : ODEModel = Caravagna2010;</code> fills it with a header. The checker admits the header against the sort
+(<code>G301 model-not-admitted</code> for a missing member, an extra member of an exact block or a failed meta requirement;
+units bind across the whole header, so species in <code>?U</code> and time in <code>?T</code> are checked with the same machinery as
+ports; <code>I232</code> when the model declares no units for a required member, because an undeclared unit is unknown, not
+dimensionless). In the document, a filled site becomes the model's blocks as typed stores with the model's values,
+and an open site becomes a site whose sort is the schema the sort admits.</p>
+<p><strong>Units on values that are not stores.</strong> Units belong to the type, wherever the value sits: a header's config field
+can declare <code>dt: float @ "?T"</code> and a <code>param step: float @ "min"</code> referenced as <code>config { dt = ${step} }</code> is then
+checked against the composite's time unit. Parameter units from a model file are captured when the file declares
+them and otherwise left undeclared; nothing is ever assumed dimensionless.</p>
+<p>Still to do: <code>Name.species</code>-style member types so a composite can type a store by a header's block, and a
+data-level lint comparing a model file's unit definitions with the stores it is wired to.</p>
+<h2 id="6-open-questions">6. Open questions<a class="headerlink" href="#6-open-questions" title="Permanent link">&para;</a></h2>
+<ol>
+<li><strong>Params referenced at several positions in template mode.</strong> Substitute at compile time by default (<code>--set</code>);
+   emit same-key multi-sites only if <code>fill_sites</code> confirms multi-fill (a quick test against
+   <code>process_bigraph/templates.py</code>).</li>
+<li><strong>Expressions.</strong> Allow <code>+ - * /</code> on literals and params in <code>every</code>, <code>replicate</code>, shapes and config leaves; the spec
+   projection emits <code>E-SPEC-EXPR</code> unless the expression is a bare param; the template projection evaluates with
+   defaults.</li>
+<li><strong>Union syntax.</strong> <code>A | B</code> in the DSL (bigraph <code>~</code>); anonymous struct <code>{a: T; b: U}</code> for merges; raw strings cover
+   the rest.</li>
+<li><strong><code>node</code> vs <code>store</code> for dicts.</strong> The edges-inside rule is deterministic; <code>--node-depth N</code> promotes dicts to <code>node</code>
+   for readability without changing meaning.</li>
+<li><strong>Untyped stores.</strong> <code>W-STORE-UNTYPED</code> with an auto-fix; <code>pblang fmt --infer-types</code>.</li>
+<li><strong>Interface resolution.</strong> <code>&lt;pkg&gt;/pblang/interfaces.pblang</code> in the wheel plus an entry point; <code>PBLANG_PATH</code>
+   overrides; the catalog aggregates by reading wheels, never by importing.</li>
+<li><strong>Units <code>@ "uM"</code>.</strong> Contract-level metadata (<code>_units</code> in the contract and on <code>array</code>); <code>W-WIRE-UNIT</code> fires only when
+   both ends declare units.</li>
+<li><strong>Edge literals in config.</strong> Allowed wherever the interface declares an <code>edge</code> or <code>list&lt;edge&gt;</code> field.</li>
+<li><strong><code>shared</code> semantics.</strong> Wires on <code>shared_process_ref</code> and where <code>interval</code> lives need confirmation against
+   <code>composite.py</code>.</li>
+<li><strong>Doc comments on stores and edges.</strong> Text-only until process-bigraph has a convention for state descriptions.</li>
+<li><strong>Prototype parser.</strong> A small Lark grammar in Python gives text-level round trip quickly; the Langium v2 grammar
+    remains the long-term single source of truth and binds to the same model.</li>
+</ol>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Maintained by <a href="https://biosimulations.com">Florian</a>.
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        <div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/biosimulations/process-bigraph-lang" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://pypi.org/project/process-bigraph-lang" target="_blank" rel="noopener" title="pypi.org" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.8 200.5c-7.7-30.9-22.3-54.2-53.4-54.2h-40.1v47.4c0 36.8-31.2 67.8-66.8 67.8H172.7c-29.2 0-53.4 25-53.4 54.3v101.8c0 29 25.2 46 53.4 54.3 33.8 9.9 66.3 11.7 106.8 0 26.9-7.8 53.4-23.5 53.4-54.3v-40.7H226.2v-13.6h160.2c31.1 0 42.6-21.7 53.4-54.2 11.2-33.5 10.7-65.7 0-108.6M286.2 404c11.1 0 20.1 9.1 20.1 20.3 0 11.3-9 20.4-20.1 20.4-11 0-20.1-9.2-20.1-20.4.1-11.3 9.1-20.3 20.1-20.3M167.8 248.1h106.8c29.7 0 53.4-24.5 53.4-54.3V91.9c0-29-24.4-50.7-53.4-55.6-35.8-5.9-74.7-5.6-106.8.1-45.2 8-53.4 24.7-53.4 55.6v40.7h106.9v13.6h-147c-31.1 0-58.3 18.7-66.8 54.2-9.8 40.7-10.2 66.1 0 108.6 7.6 31.6 25.7 54.2 56.8 54.2H101v-48.8c0-35.3 30.5-66.4 66.8-66.4m-6.7-142.6c-11.1 0-20.1-9.1-20.1-20.3.1-11.3 9-20.4 20.1-20.4 11 0 20.1 9.2 20.1 20.4s-9 20.3-20.1 20.3"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "../..", "features": [], "search": "../../assets/javascripts/workers/search.d50fe291.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.13a4f30d.min.js"></script>
+      
+    
+  </body>
+</html>

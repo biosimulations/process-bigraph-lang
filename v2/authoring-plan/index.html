@@ -1,0 +1,987 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="This is a LSP, CLI and Python package for a domain specific language for process bigraphs.">
+      
+      
+        <meta name="author" content="Jim Schaff">
+      
+      
+        <link rel="canonical" href="https://biosimulations.github.io/process-bigraph-lang/v2/authoring-plan/">
+      
+      
+        <link rel="prev" href="../plan/">
+      
+      
+        <link rel="next" href="../sedml-plan/">
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.14">
+    
+    
+      
+        <title>Stage two (authoring) plan - process-bigraph-lang</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.342714a4.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="white" data-md-color-accent="deep-orange">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#stage-two-plan-manifests-per-environment-and-authoring-in-compose-api" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="process-bigraph-lang" class="md-header__button md-logo" aria-label="process-bigraph-lang" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            process-bigraph-lang
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Stage two (authoring) plan
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="white" data-md-color-accent="deep-orange"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="black" data-md-color-accent="deep-orange"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/biosimulations/process-bigraph-lang" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    biosimulations/process-bigraph-lang
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="process-bigraph-lang" class="md-nav__button md-logo" aria-label="process-bigraph-lang" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    process-bigraph-lang
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/biosimulations/process-bigraph-lang" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    biosimulations/process-bigraph-lang
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Architecture
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../modules/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Modules
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    v2 (design)
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            v2 (design)
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../research/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Research notes
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../design/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Language design
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../registry-and-authoring/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Registry and authoring
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../plan/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Implementation plan
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    Stage two (authoring) plan
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    Stage two (authoring) plan
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#context" class="md-nav__link">
+    <span class="md-ellipsis">
+      Context
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#facts-this-rests-on-from-exploration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Facts this rests on (from exploration)
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#part-1-process-bigraph-lang-one-pr-then-release-020" class="md-nav__link">
+    <span class="md-ellipsis">
+      Part 1: process-bigraph-lang (one PR, then release 0.2.0)
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#part-2-compose-api-backend-pr-a" class="md-nav__link">
+    <span class="md-ellipsis">
+      Part 2: compose-api backend (PR A)
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#part-3-compose-api-webapp" class="md-nav__link">
+    <span class="md-ellipsis">
+      Part 3: compose-api webapp
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#order-and-releases" class="md-nav__link">
+    <span class="md-ellipsis">
+      Order and releases
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#verification" class="md-nav__link">
+    <span class="md-ellipsis">
+      Verification
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#out-of-scope" class="md-nav__link">
+    <span class="md-ellipsis">
+      Out of scope
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sedml-plan/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    SED-ML plan
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#context" class="md-nav__link">
+    <span class="md-ellipsis">
+      Context
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#facts-this-rests-on-from-exploration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Facts this rests on (from exploration)
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#part-1-process-bigraph-lang-one-pr-then-release-020" class="md-nav__link">
+    <span class="md-ellipsis">
+      Part 1: process-bigraph-lang (one PR, then release 0.2.0)
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#part-2-compose-api-backend-pr-a" class="md-nav__link">
+    <span class="md-ellipsis">
+      Part 2: compose-api backend (PR A)
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#part-3-compose-api-webapp" class="md-nav__link">
+    <span class="md-ellipsis">
+      Part 3: compose-api webapp
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#order-and-releases" class="md-nav__link">
+    <span class="md-ellipsis">
+      Order and releases
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#verification" class="md-nav__link">
+    <span class="md-ellipsis">
+      Verification
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#out-of-scope" class="md-nav__link">
+    <span class="md-ellipsis">
+      Out of scope
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="stage-two-plan-manifests-per-environment-and-authoring-in-compose-api">Stage two plan: manifests per environment, and authoring in compose-api<a class="headerlink" href="#stage-two-plan-manifests-per-environment-and-authoring-in-compose-api" title="Permanent link">&para;</a></h1>
+<p>Status: approved 2026-10-12. Follows the <a href="../registry-and-authoring/">registry and authoring design</a> and the
+<a href="../plan/">v2 implementation plan</a>; stage one (the read-only composite viewer in compose-api's web app) shipped in
+compose-api 0.7.12 and 0.7.13.</p>
+<h2 id="context">Context<a class="headerlink" href="#context" title="Permanent link">&para;</a></h2>
+<p>Stage one shipped: compose-api 0.7.13 shows a submitted <code>.pbg</code> as <code>.pblang</code> text and a wiring graph. Every process
+shows as "not in the registry" because the browser has no manifests. Stage two (authoring) needs manifests in two
+places: the main-thread <code>Pblang</code> session (check, compile, graph) and the language-server worker (hover, completion,
+diagnostics as you type).</p>
+<p>Jim asked two things: where manifests are produced (from the registered entries or when environments are built), and
+where the webapp gets them. Decided 2026-10-12:</p>
+<ul>
+<li><strong>A manifest is a fact about an environment, not about a package.</strong> <code>describe</code> must import the classes inside the
+  image that runs the document. The images differ: <code>registry_env</code> has process-bigraph 1.0.5 (via pbest), while the
+  viva-pde-particle image has 1.8.x and its own core.</li>
+<li><strong>Producer: compose-api CI, inside each image.</strong> A workflow runs a dependency-free describe script in every
+  environment the deployment offers and opens a PR with <code>compose_api/registry/manifests/&lt;env&gt;.json</code>. Each manifest is
+  reviewed like <code>catalog.yaml</code>, works without image owners' cooperation, and is strategy decision 5's phase B first
+  output.</li>
+<li><strong>viva-pde-particle becomes a registry entry</strong> in <code>manifest.yaml</code>, at level <code>tested</code>, with bundle <code>viva-pde-particle</code>.
+  The evidence is its <code>compose-image.yml</code> job-contract and smoke tests. This closes the gap strategy.md records.</li>
+<li><strong>The webapp gets manifests from the API, same origin</strong>: <code>GET /registry/environments</code> and
+  <code>GET /registry/environments/{name}/manifest</code>, through the typed <code>useApi()</code> client. In dev they come from the
+  production API through <code>NUXT_PUBLIC_API_BASE</code>, as today. They are not baked into the static build. Manifests ship
+  in the API image with the other registry files, so a refreshed manifest goes live with the next compose-api release.</li>
+</ul>
+<h2 id="facts-this-rests-on-from-exploration">Facts this rests on (from exploration)<a class="headerlink" href="#facts-this-rests-on-from-exploration" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Environments today:</strong></li>
+<li><code>registry_env</code>: a pbest-generated definition, identified by md5. Its image is <code>ghcr.io/biosimulations/registry_env:&lt;hash&gt;</code>. That org package exists but the cluster's pull falls back to a SLURM build.</li>
+<li>Prebuilt images: <code>PREBUILT_SIMULATORS</code> in <code>kustomize/config/compose-api-rke/api.env</code>, today only <code>viva-pde-particle</code> pinned by digest. Its entrypoint is a bash script that sources <code>/app/docker/shell-hook.sh</code>.</li>
+<li><strong>Registry of record:</strong> <code>compose_api/registry/manifest.yaml</code> plus the generated <code>catalog.yaml</code>. <code>RegistryEntry</code> has <code>module_roots</code>, <code>level</code> and <code>bundles</code>, but no ports. No HTTP route exposes any of it. The legacy <code>/core/processes|steps/list</code> (Postgres, string ports, no write path) stays untouched.</li>
+<li><strong>The run endpoint:</strong> <code>POST /simulation/run?simulator=&lt;name&gt;</code> takes one <code>.pbg</code> file. <code>simulator</code> absent means <code>registry_env</code>.</li>
+<li><strong>PBL <code>describe</code></strong> (<code>process_bigraph_lang/v2/interfaces.py</code>):</li>
+<li>It scans only a module's own members, not submodules.</li>
+<li>It needs <code>bigraph_schema.parse</code> for defaults.</li>
+<li><code>_describe</code> in <code>__main__.py</code> always renders headers through the CLI binary.</li>
+<li>None of that can run inside an arbitrary image.</li>
+<li><strong>PBL <code>Registry</code></strong> (<code>dsl/src/language/v2/headers.ts</code>) only appends: a second <code>addManifest</code> makes short names ambiguous.</li>
+<li><strong>PBL worker</strong> (<code>dsl/src/language/main-browser.ts</code>) discards the services and registers no custom notifications.
+  <code>WorkspaceRegistry</code> extends <code>Registry</code>, so filling <code>services.validation.HeaderRegistry</code> serves the checker, hover
+  and completion at once.</li>
+</ul>
+<h2 id="part-1-process-bigraph-lang-one-pr-then-release-020">Part 1: process-bigraph-lang (one PR, then release 0.2.0)<a class="headerlink" href="#part-1-process-bigraph-lang-one-pr-then-release-020" title="Permanent link">&para;</a></h2>
+<ol>
+<li><strong>A standalone describe script.</strong></li>
+<li>New file <code>process_bigraph_lang/v2/describe_env.py</code>, standard library only and runnable as a plain file: <code>python describe_env.py &lt;module_root&gt;... [--env-name N --image REF] &gt; manifest.json</code>.</li>
+<li>It walks submodules (<code>pkgutil.walk_packages</code>) and keeps Edge subclasses (MRO name check, as <code>_is_edge_class</code> does) defined under the given roots. Import errors per submodule are recorded, never fatal.</li>
+<li>Output is the shared interface manifest (<code>pbg-interfaces/1</code>, see the registry design, section 1.7) plus <code>environment {name, image, python, process_bigraph, bigraph_schema, generated_by}</code> and <code>errors[]</code>.</li>
+<li>Config defaults are taken only from dict specs with <code>_default</code>; types stay raw, and the TypeScript side parses them.</li>
+<li><code>describe_module</code> delegates its per-class work to the same functions, so there is one implementation. <code>describe</code> gains <code>--manifest-only</code>, which skips header rendering and needs no CLI.</li>
+<li>Tests: the script's output on <code>tests/fixtures/test_registry</code> matches <code>describe_module</code>'s manifest for the same classes, run in a subprocess with <code>-I</code>.</li>
+<li><strong>Replaceable registry.</strong> In <code>Registry</code> (<code>headers.ts</code>):</li>
+<li><code>setManifests(manifests[])</code> clears and refills.</li>
+<li>Declarations are keyed by address, so a duplicate replaces rather than appends.</li>
+<li>A <code>schema_version</code> other than <code>pbg-interfaces/1</code> (or the earlier <code>pblang-manifest/0</code>) is rejected with a clear error.</li>
+<li><code>Pblang.setManifests</code> mirrors it in <code>dsl/src/api.ts</code>.</li>
+<li>Tests go in <code>api.test.ts</code>.</li>
+<li><strong>Worker channel.</strong></li>
+<li><code>main-browser.ts</code> keeps the services and handles the notification <code>pblang/setManifests</code> (<code>{ manifests: object[] }</code>): it calls <code>HeaderRegistry.setManifests</code>, then rebuilds every open document (<code>DocumentBuilder.update(allUris, [])</code>) so markers refresh.</li>
+<li>The notification name is exported as a constant from <code>process-bigraph-lang</code>.</li>
+<li>Tests: a unit test drives the handler through an in-memory connection, or the services directly if that is simpler.</li>
+<li><strong>Docs.</strong></li>
+<li><code>docs/v2/registry-and-authoring.md</code>: a new section, "Manifests per environment", records today's decision and the compose-api flow. It notes that <code>/0</code> is what ships, with <code>/1</code> as the target, and replaces §4.4's stale "LSP shells out to Python" paragraph.</li>
+<li><code>docs/architecture.md</code>: the worker now has a channel.</li>
+<li><code>dsl/README.md</code>: the worker usage.</li>
+<li><code>CLAUDE.md</code>: the describe script.</li>
+<li><strong>Iterate before releasing.</strong> Use the local loop (npm link plus <code>nuxt dev</code> on port 4200 against the production API), then cut release 0.2.0 when compose-api's editor works locally. The release recipe is unchanged.</li>
+</ol>
+<h2 id="part-2-compose-api-backend-pr-a">Part 2: compose-api backend (PR A)<a class="headerlink" href="#part-2-compose-api-backend-pr-a" title="Permanent link">&para;</a></h2>
+<ol>
+<li><strong>A registry entry</strong> for viva-pde-particle in <code>compose_api/registry/manifest.yaml</code>:</li>
+<li><code>module_roots: [viva_pde_particle]</code>, <code>level: tested</code>, <code>bundles: [viva-pde-particle]</code>.</li>
+<li>Pinned to the commit behind the pinned digest: read the image's <code>org.opencontainers.image.revision</code> label or the <code>sha-&lt;short&gt;</code> tag.</li>
+<li>The evidence names <code>compose-image.yml</code>.</li>
+<li>Prebuilt submissions still skip <code>validate_submission</code>; that gap is unchanged here.</li>
+<li>
+<p><strong>Environments file</strong> <code>compose_api/registry/environments.yaml</code>. It holds per environment:</p>
+</li>
+<li>
+<p><code>name</code>;</p>
+</li>
+<li><code>kind: shared | prebuilt</code>;</li>
+<li>how to enter it (<code>python</code> for registry_env; <code>bash -c 'source /app/docker/shell-hook.sh &amp;&amp; python …'</code> for viva-pde-particle).</li>
+</ol>
+<p>Modules come from entries whose <code>bundles</code> include the environment's name. Images are not duplicated: registry_env's comes from the definition hash, and prebuilt ones come from the setting parsed out of <code>api.env</code>.</p>
+<ol>
+<li><strong>Workflow</strong> <code>.github/workflows/registry-manifests.yml</code>:</li>
+<li>Triggers: <code>workflow_dispatch</code>, weekly, and on changes to the registry files, <code>simulator_registry.json</code> or <code>api.env</code>.</li>
+<li>For each environment it pulls the image: registry_env from <code>ghcr.io/biosimulations/registry_env:&lt;hash&gt;</code> with <code>packages: read</code>, falling back to <code>docker build</code> of pbest's Docker definition; prebuilt ones by their pinned digest.</li>
+<li>It runs <code>describe_env.py</code>, taken from the pinned PBL release's source, mounted read-only, with <code>--entrypoint</code>.</li>
+<li>It writes <code>compose_api/registry/manifests/&lt;env&gt;.json</code> and opens a PR (<code>peter-evans/create-pull-request</code>) when anything changed.</li>
+<li>The same logic is a script (<code>scripts/registry_manifests.py</code>), so it can be run locally with Docker.</li>
+<li><strong>API</strong> <code>compose_api/api/routers/registry.py</code>, prefix <code>/registry</code>, added to <code>APP_ROUTERS</code>, with Pydantic models:</li>
+<li><code>GET /registry/environments</code> returns, per environment: <code>[{name, kind, image, simulator (the run-endpoint value or null), components, entries: [{id, level}], generated_at, stale}]</code>. <code>stale</code> is true when the manifest's recorded image differs from the deployed pin.</li>
+<li><code>GET /registry/environments/{name}/manifest</code> returns the manifest JSON, with each component annotated with its entry id and level, and an ETag.</li>
+<li><code>make clients</code> regenerates the Python client and the webapp types.</li>
+<li><strong>Tests</strong> (<code>tests/registry/</code>):</li>
+<li>Every manifest parses.</li>
+<li>Every component's module lies under a root of an entry in that bundle.</li>
+<li>The routes answer.</li>
+<li>The stale flag works.</li>
+<li>Local first manifests come from running the script once, through Docker on this Mac or by dispatching the workflow on the branch.</li>
+<li><strong>Docs:</strong></li>
+<li><code>docs/strategy.md</code>: a decision 5 progress note.</li>
+<li><code>docs/webapp.md</code>: where manifests come from.</li>
+<li>A new <code>docs/plan-authoring.md</code>: this plan's compose-api half, covering stage two of the editor.</li>
+</ol>
+<h2 id="part-3-compose-api-webapp">Part 3: compose-api webapp<a class="headerlink" href="#part-3-compose-api-webapp" title="Permanent link">&para;</a></h2>
+<p><strong>PR B, the viewer resolves processes</strong> (quick win, small):</p>
+<ul>
+<li>A <code>useRegistry()</code> composable lists environments and fetches one manifest, cached per name.</li>
+<li><code>CompositeViewer.vue</code> chooses the environment from the dataset's simulation: <code>simulator</code>, else <code>registry_env</code>. If the simulation summary lacks the simulator name, add it to the API model in PR A. It then calls <code>pblang.addManifest</code> before check and graph, so the findings and the graph's interface names resolve.</li>
+</ul>
+<p><strong>PR C, the editor:</strong></p>
+<ul>
+<li>A page <code>/ui/composites/new</code>, plus "Edit a copy" from the viewer. It has an environment picker, from <code>/registry/environments</code>, which drives both the session and the worker.</li>
+<li>Monaco is editable, and the language worker runs as <code>new Worker(new URL('process-bigraph-lang/worker', import.meta.url), {type:'module'})</code>.</li>
+<li>
+<p>A thin client in <code>viewers/composite/languageClient.ts</code>, over <code>vscode-jsonrpc/browser</code>:</p>
+</li>
+<li>
+<p>sends <code>didOpen</code>/<code>didChange</code>;</p>
+</li>
+<li>maps <code>publishDiagnostics</code> to markers through the existing <code>toMarkers</code>;</li>
+<li>registers Monaco hover and completion providers that forward to the server.</li>
+</ul>
+<p><code>monaco-languageclient</code> stays out: it pulls in the <code>@codingame</code> stack and pins Monaco.</p>
+<ul>
+<li>Compile: <code>pblang.compile(text)</code>, with <code>CompileError.diagnostics</code> shown as markers. Then submit as <code>File([json], '&lt;name&gt;.pbg')</code> to <code>POST /simulation/run</code> with <code>simulator</code> set from the environment. The submit is shared with <code>simulations/new.vue</code> through a <code>useSubmitRun</code> composable, and success navigates to <code>/simulations/&lt;id&gt;</code>.</li>
+<li>Open sites and params: list <code>?</code> sites and params in a side form, then compile with them filled (<code>compile</code> already reports <code>G300</code> for unfilled ones). Keep this minimal in PR C and extend later.</li>
+</ul>
+<h2 id="order-and-releases">Order and releases<a class="headerlink" href="#order-and-releases" title="Permanent link">&para;</a></h2>
+<ol>
+<li>PBL PR (parts 1.1–1.4), CI green, merged on Jim's word. No release yet.</li>
+<li>compose-api PR A: generate the first manifests, review their contents with Jim, merge on his word.</li>
+<li>PR B and PR C, developed through the local loop against the production API. PR A's routes must be deployed for the production API to serve manifests; until then, point dev at <code>make run</code> locally.</li>
+<li>Release PBL 0.2.0. compose-api bumps to <code>^0.2.0</code> and cuts its release (recipe as for 0.7.13), which deploys A, B and C together.</li>
+</ol>
+<h2 id="verification">Verification<a class="headerlink" href="#verification" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>PBL:</strong></li>
+<li><code>make check</code>, <code>make test</code>, <code>npm test</code> and <code>npx tsc --noEmit</code> all pass.</li>
+<li><code>describe_env.py</code> matches <code>describe_module</code> on the fixtures.</li>
+<li>The worker test shows a diagnostic disappearing after <code>pblang/setManifests</code>.</li>
+<li><strong>compose-api:</strong></li>
+<li><code>make check</code>, <code>make test</code> and <code>make webapp-check</code> all pass.</li>
+<li>The workflow, dispatched on the branch, produces <code>registry_env.json</code> and <code>viva-pde-particle.json</code>. The latter includes <code>FVReactionDiffusion</code> and matches PBL's fixture <code>viva_pde_particle.manifest.json</code> modulo version drift.</li>
+<li><code>curl /registry/environments</code> answers locally.</li>
+<li><strong>End to end:</strong> headless Chrome through the scratchpad <code>pw/</code> scripts.</li>
+<li>Simulation 4571's viewer shows no "not in the registry" findings, and its graph nodes carry interface names.</li>
+<li>The editor shows hover over a process, completion of port names, and a marker that clears when fixed.</li>
+<li>Compile and submit of a small composite to <code>registry_env</code> creates a simulation, which is then deleted or left as a test run per Jim's preference.</li>
+</ul>
+<h2 id="out-of-scope">Out of scope<a class="headerlink" href="#out-of-scope" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Server-side port checking at submission, and validation of prebuilt submissions.</li>
+<li>Manifests for catalog entries at level <code>listed</code>, which have no built environment.</li>
+<li>Later versions of the manifest (contracts, port semantics, adapters).</li>
+<li>The per-composite resolver (phase C).</li>
+<li>Retiring <code>/core/processes|steps/list</code>.</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Maintained by <a href="https://biosimulations.com">Florian</a>.
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        <div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/biosimulations/process-bigraph-lang" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://pypi.org/project/process-bigraph-lang" target="_blank" rel="noopener" title="pypi.org" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.8 200.5c-7.7-30.9-22.3-54.2-53.4-54.2h-40.1v47.4c0 36.8-31.2 67.8-66.8 67.8H172.7c-29.2 0-53.4 25-53.4 54.3v101.8c0 29 25.2 46 53.4 54.3 33.8 9.9 66.3 11.7 106.8 0 26.9-7.8 53.4-23.5 53.4-54.3v-40.7H226.2v-13.6h160.2c31.1 0 42.6-21.7 53.4-54.2 11.2-33.5 10.7-65.7 0-108.6M286.2 404c11.1 0 20.1 9.1 20.1 20.3 0 11.3-9 20.4-20.1 20.4-11 0-20.1-9.2-20.1-20.4.1-11.3 9.1-20.3 20.1-20.3M167.8 248.1h106.8c29.7 0 53.4-24.5 53.4-54.3V91.9c0-29-24.4-50.7-53.4-55.6-35.8-5.9-74.7-5.6-106.8.1-45.2 8-53.4 24.7-53.4 55.6v40.7h106.9v13.6h-147c-31.1 0-58.3 18.7-66.8 54.2-9.8 40.7-10.2 66.1 0 108.6 7.6 31.6 25.7 54.2 56.8 54.2H101v-48.8c0-35.3 30.5-66.4 66.8-66.4m-6.7-142.6c-11.1 0-20.1-9.1-20.1-20.3.1-11.3 9-20.4 20.1-20.4 11 0 20.1 9.2 20.1 20.4s-9 20.3-20.1 20.3"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "../..", "features": [], "search": "../../assets/javascripts/workers/search.d50fe291.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.13a4f30d.min.js"></script>
+      
+    
+  </body>
+</html>
