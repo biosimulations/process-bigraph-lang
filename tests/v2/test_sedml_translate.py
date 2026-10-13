@@ -166,3 +166,22 @@ def test_the_cli_writes_texts_models_archives_and_findings(tmp_path: Path) -> No
     ]
     findings = json.loads((out / "findings.json").read_text())
     assert [(f["code"], f["solver"]) for f in findings] == [("X405", "copasi")]
+
+
+def test_the_cli_reads_solvers_as_json_without_pyyaml(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    import builtins
+
+    real_import = builtins.__import__
+
+    def no_yaml(name: str, *args: object, **kwargs: object) -> object:
+        if name == "yaml":
+            raise ModuleNotFoundError("No module named 'yaml'")
+        return real_import(name, *args, **kwargs)  # type: ignore[arg-type]
+
+    solvers = tmp_path / "solvers.json"
+    solvers.write_text(json.dumps(yaml.safe_load((SEDML / "solvers.yaml").read_text())))
+    monkeypatch.setattr(builtins, "__import__", no_yaml)
+    out = tmp_path / "out"
+    assert main(["sedml", "translate", str(omex(SEDML / "Ciliberto2003", tmp_path)), "--solvers", str(solvers),
+                 "-o", str(out)]) == 0  # fmt: skip
+    assert (out / "task_1.tellurium.pblang").exists()
