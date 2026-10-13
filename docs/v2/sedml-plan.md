@@ -5,14 +5,14 @@ Status: agreed 2026-10-12. This is the language half of compose-api's
 decisions, the service side (runs, datasets, comparisons, sources, suites) and the phase table. Each PR here updates
 the status below.
 
-| Step | What                                                                                                       | State   |
-| ---- | ---------------------------------------------------------------------------------------------------------- | ------- |
-| 1a   | `sedml.py`: SED-ML read with the standard library into `pblang-sedml/0` JSON, with an `unsupported[]` list | planned |
-| 1b   | The role and adapter declarations (`TimeCourseSolver`, the SED-ML adapters' faces)                         | planned |
-| 1c   | The template printer: one `.pblang` composite per SED-ML task, the solver an open address site             | planned |
-| 1d   | One instance per solver, checked and compiled against that solver's environment manifest; refusal findings | planned |
-| 1e   | SED-ML plots as Plotly figures                                                                             | planned |
-| 1f   | CLI `sedml describe` and `sedml translate`; corpus and snapshots; release 0.3.0                            | planned |
+| Step | What                                                                                                       | State     |
+| ---- | ---------------------------------------------------------------------------------------------------------- | --------- |
+| 1a   | `sedml.py`: SED-ML read with the standard library into `pblang-sedml/0` JSON, with an `unsupported[]` list | in review |
+| 1b   | The role and adapter declarations (`TimeCourseSolver`, the SED-ML adapters' faces)                         | planned   |
+| 1c   | The template printer: one `.pblang` composite per SED-ML task, the solver an open address site             | planned   |
+| 1d   | One instance per solver, checked and compiled against that solver's environment manifest; refusal findings | planned   |
+| 1e   | SED-ML plots as Plotly figures                                                                             | planned   |
+| 1f   | CLI `sedml describe` and `sedml translate`; corpus and snapshots; release 0.3.0                            | planned   |
 
 ## Why here
 
@@ -38,6 +38,22 @@ the variable itself or the variable times a constant); **reports** (data set id,
 Reported, never dropped silently (an `unsupported[]` entry with the element's id and why): steady state and one-step
 simulations, repeated and nested tasks, other change kinds (`computeChange`, `addXML`, `removeXML`, `changeXML`),
 data generators with other math, models that are not SBML, references to remote models.
+
+### Settled in 1a
+
+- **Simple data generators are linear combinations**: `x`, `c * x`, `x / c`, `x + y`, `x - y`, with constants from
+  `<cn>` or the data generator's own parameters. The Ciliberto project needs the sum (`Swe1T` is four species added).
+  Each is `terms: [{variable, coefficient}]`.
+- **Steps, not points.** L1V1-3's `numberOfPoints` and L1V4's `numberOfSteps` both count intervals; the description
+  says `number_of_steps`, and a time course has `number_of_steps + 1` points.
+- **An archive's SED-ML** is what its `manifest.xml` declares with the SED-ML format (the master first), else every
+  `*.sedml` member.
+- **Targets** resolve to `{kind, id, attribute}` for species, parameters, compartments and reactions (a reaction's
+  variable is its rate). A data generator may name any of them: BIOMD0000000012's report asks for all four kinds,
+  so a solver that returns only species leaves the rest unfilled. Phase 2 (the adapters) must say which kinds each
+  solver provides, and the compile step reports the gap per solver.
+- **Algorithms are KiSAO terms, sometimes generic**: BIOMD0000000012 asks for `KISAO:0000694` ("ODE solver"), not a
+  specific integrator. Matching a solver to an algorithm (1d) uses the KiSAO hierarchy, not equality.
 
 ## What a task becomes
 

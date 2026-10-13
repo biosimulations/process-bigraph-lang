@@ -5,6 +5,7 @@ parse and check the text, then write the document (JSON) or the CompositeSpec (y
 `python -m process_bigraph_lang.v2 check <file.pblang | doc.json> [--interfaces m.json]...`: the checker's findings.
 `python -m process_bigraph_lang.v2 diff <a.json> <b.json>`: explain how two documents differ after normalization.
 `python -m process_bigraph_lang.v2 describe <module>...` / `describe-model <sbml>`: headers from code or SBML.
+`python -m process_bigraph_lang.v2 sedml describe <x.sedml | x.omex>`: what a SED-ML file asks for, as JSON.
 
 Documents are JSON (`bigraph_schema.json_codec` encoding, so numpy arrays survive) or CompositeSpec yaml.
 Sidecar assets of `decompile` are written next to the output when `--out` is given, else listed on stderr.
@@ -160,6 +161,17 @@ def _describe_model(args: argparse.Namespace) -> int:
     return 0
 
 
+def _sedml_describe(args: argparse.Namespace) -> int:
+    from process_bigraph_lang.v2.sedml import describe_sedml
+
+    text = describe_sedml(args.source).to_json()
+    if args.out:
+        Path(args.out).write_text(text, encoding="utf-8")
+    else:
+        sys.stdout.write(text)
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="python -m process_bigraph_lang.v2")
     commands = parser.add_subparsers(dest="command", required=True)
@@ -196,6 +208,14 @@ def main(argv: list[str] | None = None) -> int:
     model_cmd.add_argument("--manifest", help="write the JSON form here")
     model_cmd.add_argument("--out", help="write the .pblang model header here")
     model_cmd.set_defaults(run=_describe_model)
+    sedml_cmd = commands.add_parser("sedml", help="SED-ML: what a file asks for, and its translation")
+    sedml_commands = sedml_cmd.add_subparsers(dest="sedml_command", required=True)
+    sedml_describe = sedml_commands.add_parser(
+        "describe", help="what a .sedml file or a COMBINE/OMEX archive's SED-ML asks for, as JSON (pblang-sedml/0)"
+    )
+    sedml_describe.add_argument("source", help="a .sedml file or an .omex archive")
+    sedml_describe.add_argument("-o", "--out", help="write the JSON here (default: stdout)")
+    sedml_describe.set_defaults(run=_sedml_describe)
     check_cmd = commands.add_parser("check", help="statically check a .pblang file or a document against manifests")
     check_cmd.add_argument(
         "document", help="a .pblang file, or a document (.json) / CompositeSpec (.yaml) to decompile and check"

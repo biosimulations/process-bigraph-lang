@@ -126,7 +126,8 @@ store-not-declared`, `T121 config-missing`, `W220/W221/W223` writers, `W240/W241
   only, never imports this package, so it runs as a plain script inside any image): every module under some roots →
   one manifest per environment, with an `environment` block and `errors`. Keep it free of package imports; the
   per-class helpers are shared with `interfaces.py`. `sbml.py`: `describe_sbml` → JSON (`pblang-model/0`);
-  `print_model_header` via the CLI. `check.py`: `check_file` / `check_text`. `normalize.py`: `equivalent`,
+  `print_model_header` via the CLI. `sedml.py`: `describe_sedml` (a `.sedml` file or an archive's, standard library only)
+  → JSON (`pblang-sedml/0`), version 1 scope with everything else in `unsupported`; plan `docs/v2/sedml-plan.md`. `check.py`: `check_file` / `check_text`. `normalize.py`: `equivalent`,
   `diff_documents`, `deep_equal` (+ `types.py`, its parser). `langium.py`: `langium_cli`, `run_cli`.
 - Keep `process_bigraph` out of the shipped package (tests only); `bigraph_schema` and `numpy` are main deps.
 
