@@ -106,6 +106,8 @@ Decided while building it (2026-10-13):
 - **Plots are built at run time.** The `Plots` adapter takes each SED-ML plot's curves (data generator ids, names, log
   axes) in its config and writes the Plotly figure with the data; no template files and no `fill_plot`. The
   comparison page overlays the figures of several runs.
+- **The data store is `overwrite<map<string, list<float>>>`**: bigraph-schema 1.0's `map` apply keeps only keys the
+  store already has, so a `map` store would stay empty (found running the chain under `registry_env`'s versions).
 - **One archive per task and solver**: pbest runs the first top-level `.pbg`, so `instance_archive` holds one compiled
   document (`<task>.pbg`), its text and the model files.
 - **No browser translation.** The web app previews a translation through compose-api, which calls this package.

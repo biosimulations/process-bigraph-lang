@@ -10,7 +10,7 @@ step DataGenerators at "local:pbsim_sedml.DataGenerators" {
     skip: int;
   }
   inputs { result: numeric_result; }
-  outputs { data: map<string, list<float>>; }
+  outputs { data: overwrite<map<string, list<float>>>; }
 }
 
 step Report at "local:pbsim_sedml.Report" {
@@ -18,7 +18,7 @@ step Report at "local:pbsim_sedml.Report" {
     output_dir: string;
     reports: map<string, { file: string; name: string; data_sets: list<{ label: string; data_generator: string; }>; }>;
   }
-  inputs { data: map<string, list<float>>; }
+  inputs { data: overwrite<map<string, list<float>>>; }
 }
 
 step Plots at "local:pbsim_sedml.Plots" {
@@ -35,7 +35,7 @@ step Plots at "local:pbsim_sedml.Plots" {
       log_z: bool;
     }>;
   }
-  inputs { data: map<string, list<float>>; }
+  inputs { data: overwrite<map<string, list<float>>>; }
 }
 
 meta {
@@ -53,7 +53,7 @@ meta {
 
 composite task_1 {
   store result: numeric_result = {};
-  store data: map<string, list<float>> = {};
+  store data: overwrite<map<string, list<float>>> = {};
 
   step simulate : TelluriumUTCStep {
     config {

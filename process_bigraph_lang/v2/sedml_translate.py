@@ -373,7 +373,7 @@ step DataGenerators at "local:{ADAPTERS_MODULE}.DataGenerators" {{
     skip: int;
   }}
   inputs {{ result: numeric_result; }}
-  outputs {{ data: map<string, list<float>>; }}
+  outputs {{ data: overwrite<map<string, list<float>>>; }}
 }}
 
 step Report at "local:{ADAPTERS_MODULE}.Report" {{
@@ -381,7 +381,7 @@ step Report at "local:{ADAPTERS_MODULE}.Report" {{
     output_dir: string;
     reports: map<string, {{ file: string; name: string; data_sets: list<{{ label: string; data_generator: string; }}>; }}>;
   }}
-  inputs {{ data: map<string, list<float>>; }}
+  inputs {{ data: overwrite<map<string, list<float>>>; }}
 }}
 
 step Plots at "local:{ADAPTERS_MODULE}.Plots" {{
@@ -398,7 +398,7 @@ step Plots at "local:{ADAPTERS_MODULE}.Plots" {{
       log_z: bool;
     }}>;
   }}
-  inputs {{ data: map<string, list<float>>; }}
+  inputs {{ data: overwrite<map<string, list<float>>>; }}
 }}
 """
 
@@ -460,7 +460,8 @@ def _print(
     solver_type = solver.class_name if solver is not None else "TimeCourseSolver at ?"
     lines.append(f"composite {name} {{")
     lines.append("  store result: numeric_result = {};")
-    lines.append("  store data: map<string, list<float>> = {};")
+    # overwrite: bigraph-schema 1.0's map apply keeps only keys the store already has
+    lines.append("  store data: overwrite<map<string, list<float>>> = {};")
     lines.append("")
     lines.append(f"  step simulate : {solver_type} {{")
     lines.append("    config {")
