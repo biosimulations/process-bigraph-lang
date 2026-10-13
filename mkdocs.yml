@@ -17,6 +17,7 @@ nav:
       - Registry and authoring: v2/registry-and-authoring.md
       - Implementation plan: v2/plan.md
       - Stage two (authoring) plan: v2/authoring-plan.md
+      - SED-ML plan: v2/sedml-plan.md
 plugins:
   - search
   - mkdocstrings:
