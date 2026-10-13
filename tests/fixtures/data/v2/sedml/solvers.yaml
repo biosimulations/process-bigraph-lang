@@ -1,0 +1,9 @@
+# The generic COPASI and Tellurium steps of pbsim-common as fillers of the TimeCourseSolver role, as compose-api's
+# registry/solvers.yaml will list them: the KiSAO terms each implements (its default first).
+solvers:
+  - id: copasi
+    address: local:pbsim_common.simulators.copasi_process.CopasiUTCStep
+    algorithms: ["KISAO:0000560", "KISAO:0000088"]
+  - id: tellurium
+    address: local:pbsim_common.simulators.tellurium_process.TelluriumUTCStep
+    algorithms: ["KISAO:0000019"]

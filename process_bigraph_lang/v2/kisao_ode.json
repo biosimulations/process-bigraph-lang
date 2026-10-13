@@ -1,0 +1,286 @@
+{
+    "_comment": "KiSAO terms for ODE solvers (KISAO:0000694 and its descendants), each with its ancestors; from the KiSAO ontology (https://github.com/SED-ML/KiSAO, Artistic License 2.0). Used to match a SED-ML algorithm to a solver.",
+    "terms": {
+        "KISAO:0000019": {
+            "name": "CVODE",
+            "ancestors": ["KISAO:0000433", "KISAO:0000694"]
+        },
+        "KISAO:0000020": {
+            "name": "PVODE",
+            "ancestors": ["KISAO:0000433", "KISAO:0000694"]
+        },
+        "KISAO:0000030": {
+            "name": "Euler forward method",
+            "ancestors": ["KISAO:0000261", "KISAO:0000377", "KISAO:0000694"]
+        },
+        "KISAO:0000031": {
+            "name": "Euler backward method",
+            "ancestors": ["KISAO:0000261", "KISAO:0000377", "KISAO:0000694"]
+        },
+        "KISAO:0000032": {
+            "name": "explicit fourth-order Runge-Kutta method",
+            "ancestors": ["KISAO:0000064", "KISAO:0000377", "KISAO:0000694"]
+        },
+        "KISAO:0000033": {
+            "name": "Rosenbrock method",
+            "ancestors": ["KISAO:0000064", "KISAO:0000377", "KISAO:0000694"]
+        },
+        "KISAO:0000064": {
+            "name": "Runge-Kutta based method",
+            "ancestors": ["KISAO:0000377", "KISAO:0000694"]
+        },
+        "KISAO:0000071": {
+            "name": "LSODE",
+            "ancestors": ["KISAO:0000094", "KISAO:0000694"]
+        },
+        "KISAO:0000086": {
+            "name": "Fehlberg method",
+            "ancestors": [
+                "KISAO:0000064",
+                "KISAO:0000302",
+                "KISAO:0000377",
+                "KISAO:0000435",
+                "KISAO:0000694"
+            ]
+        },
+        "KISAO:0000087": {
+            "name": "Dormand-Prince method",
+            "ancestors": [
+                "KISAO:0000064",
+                "KISAO:0000302",
+                "KISAO:0000377",
+                "KISAO:0000435",
+                "KISAO:0000694"
+            ]
+        },
+        "KISAO:0000088": {
+            "name": "LSODA",
+            "ancestors": ["KISAO:0000094", "KISAO:0000694"]
+        },
+        "KISAO:0000089": {
+            "name": "LSODAR",
+            "ancestors": ["KISAO:0000094", "KISAO:0000694"]
+        },
+        "KISAO:0000090": {
+            "name": "LSODI",
+            "ancestors": ["KISAO:0000094", "KISAO:0000694"]
+        },
+        "KISAO:0000091": {
+            "name": "LSODIS",
+            "ancestors": ["KISAO:0000094", "KISAO:0000694"]
+        },
+        "KISAO:0000093": {
+            "name": "LSODPK",
+            "ancestors": ["KISAO:0000094", "KISAO:0000694"]
+        },
+        "KISAO:0000094": {
+            "name": "Livermore solver",
+            "ancestors": ["KISAO:0000694"]
+        },
+        "KISAO:0000232": {
+            "name": "LSOIBT",
+            "ancestors": ["KISAO:0000094", "KISAO:0000694"]
+        },
+        "KISAO:0000233": {
+            "name": "LSODES",
+            "ancestors": ["KISAO:0000094", "KISAO:0000694"]
+        },
+        "KISAO:0000234": {
+            "name": "LSODKR",
+            "ancestors": ["KISAO:0000094", "KISAO:0000694"]
+        },
+        "KISAO:0000261": {
+            "name": "Euler method",
+            "ancestors": ["KISAO:0000377", "KISAO:0000694"]
+        },
+        "KISAO:0000276": {
+            "name": "Gill method",
+            "ancestors": ["KISAO:0000064", "KISAO:0000377", "KISAO:0000694"]
+        },
+        "KISAO:0000290": {
+            "name": "Merson method",
+            "ancestors": [
+                "KISAO:0000064",
+                "KISAO:0000302",
+                "KISAO:0000377",
+                "KISAO:0000694"
+            ]
+        },
+        "KISAO:0000296": {
+            "name": "Hammer-Hollingsworth method",
+            "ancestors": ["KISAO:0000064", "KISAO:0000377", "KISAO:0000694"]
+        },
+        "KISAO:0000297": {
+            "name": "Lobatto method",
+            "ancestors": ["KISAO:0000064", "KISAO:0000377", "KISAO:0000694"]
+        },
+        "KISAO:0000299": {
+            "name": "Butcher-Kuntzmann method",
+            "ancestors": ["KISAO:0000064", "KISAO:0000377", "KISAO:0000694"]
+        },
+        "KISAO:0000301": {
+            "name": "Heun method",
+            "ancestors": ["KISAO:0000064", "KISAO:0000377", "KISAO:0000694"]
+        },
+        "KISAO:0000302": {
+            "name": "embedded Runge-Kutta method",
+            "ancestors": ["KISAO:0000064", "KISAO:0000377", "KISAO:0000694"]
+        },
+        "KISAO:0000303": {
+            "name": "Zonneveld method",
+            "ancestors": [
+                "KISAO:0000064",
+                "KISAO:0000302",
+                "KISAO:0000377",
+                "KISAO:0000694"
+            ]
+        },
+        "KISAO:0000304": {
+            "name": "Radau method",
+            "ancestors": ["KISAO:0000064", "KISAO:0000377", "KISAO:0000694"]
+        },
+        "KISAO:0000305": {
+            "name": "Verner method",
+            "ancestors": [
+                "KISAO:0000064",
+                "KISAO:0000302",
+                "KISAO:0000377",
+                "KISAO:0000694"
+            ]
+        },
+        "KISAO:0000318": {
+            "name": "Gauss-Legendre Runge-Kutta method",
+            "ancestors": ["KISAO:0000064", "KISAO:0000377", "KISAO:0000694"]
+        },
+        "KISAO:0000321": {
+            "name": "Cash-Karp method",
+            "ancestors": [
+                "KISAO:0000064",
+                "KISAO:0000302",
+                "KISAO:0000377",
+                "KISAO:0000435",
+                "KISAO:0000694"
+            ]
+        },
+        "KISAO:0000367": {
+            "name": "partitioned Runge-Kutta method",
+            "ancestors": ["KISAO:0000064", "KISAO:0000377", "KISAO:0000694"]
+        },
+        "KISAO:0000377": {
+            "name": "one-step method",
+            "ancestors": ["KISAO:0000694"]
+        },
+        "KISAO:0000378": {
+            "name": "implicit midpoint rule",
+            "ancestors": ["KISAO:0000064", "KISAO:0000377", "KISAO:0000694"]
+        },
+        "KISAO:0000379": {
+            "name": "Bulirsch-Stoer algorithm",
+            "ancestors": ["KISAO:0000377", "KISAO:0000380", "KISAO:0000694"]
+        },
+        "KISAO:0000380": {
+            "name": "Richardson extrapolation based method",
+            "ancestors": ["KISAO:0000377", "KISAO:0000694"]
+        },
+        "KISAO:0000381": {
+            "name": "midpoint method",
+            "ancestors": ["KISAO:0000064", "KISAO:0000377", "KISAO:0000694"]
+        },
+        "KISAO:0000382": {
+            "name": "modified midpoint method",
+            "ancestors": ["KISAO:0000064", "KISAO:0000377", "KISAO:0000694"]
+        },
+        "KISAO:0000383": {
+            "name": "Bader-Deuflhard method",
+            "ancestors": ["KISAO:0000377", "KISAO:0000380", "KISAO:0000694"]
+        },
+        "KISAO:0000384": {
+            "name": "semi-implicit midpoint rule",
+            "ancestors": ["KISAO:0000064", "KISAO:0000377", "KISAO:0000694"]
+        },
+        "KISAO:0000433": {
+            "name": "CVODE-like method",
+            "ancestors": ["KISAO:0000694"]
+        },
+        "KISAO:0000434": {
+            "name": "Higham-Hall method",
+            "ancestors": [
+                "KISAO:0000064",
+                "KISAO:0000302",
+                "KISAO:0000377",
+                "KISAO:0000435",
+                "KISAO:0000694"
+            ]
+        },
+        "KISAO:0000435": {
+            "name": "embedded Runge-Kutta 5(4) method",
+            "ancestors": [
+                "KISAO:0000064",
+                "KISAO:0000302",
+                "KISAO:0000377",
+                "KISAO:0000694"
+            ]
+        },
+        "KISAO:0000436": {
+            "name": "Dormand-Prince 8(5,3) method",
+            "ancestors": [
+                "KISAO:0000064",
+                "KISAO:0000302",
+                "KISAO:0000377",
+                "KISAO:0000694"
+            ]
+        },
+        "KISAO:0000496": {
+            "name": "CVODES",
+            "ancestors": ["KISAO:0000433", "KISAO:0000694"]
+        },
+        "KISAO:0000535": {
+            "name": "VODE",
+            "ancestors": ["KISAO:0000433", "KISAO:0000694"]
+        },
+        "KISAO:0000536": {
+            "name": "ZVODE",
+            "ancestors": ["KISAO:0000433", "KISAO:0000694"]
+        },
+        "KISAO:0000537": {
+            "name": "explicit Runge-Kutta method of order 3(2)",
+            "ancestors": ["KISAO:0000064", "KISAO:0000377", "KISAO:0000694"]
+        },
+        "KISAO:0000560": {
+            "name": "LSODA/LSODAR hybrid method",
+            "ancestors": ["KISAO:0000094", "KISAO:0000694"]
+        },
+        "KISAO:0000587": {
+            "name": "IMEX",
+            "ancestors": ["KISAO:0000064", "KISAO:0000377", "KISAO:0000694"]
+        },
+        "KISAO:0000607": {
+            "name": "hierarchical Fehlberg method",
+            "ancestors": [
+                "KISAO:0000064",
+                "KISAO:0000086",
+                "KISAO:0000302",
+                "KISAO:0000377",
+                "KISAO:0000435",
+                "KISAO:0000694"
+            ]
+        },
+        "KISAO:0000609": {
+            "name": "embedded Runge-Kutta Prince-Dormand (8,9) method",
+            "ancestors": [
+                "KISAO:0000064",
+                "KISAO:0000302",
+                "KISAO:0000377",
+                "KISAO:0000694"
+            ]
+        },
+        "KISAO:0000612": {
+            "name": "implicit 4th order Runge-Kutta method at Gaussian points",
+            "ancestors": ["KISAO:0000064", "KISAO:0000377", "KISAO:0000694"]
+        },
+        "KISAO:0000694": {
+            "name": "ODE solver",
+            "ancestors": []
+        }
+    }
+}

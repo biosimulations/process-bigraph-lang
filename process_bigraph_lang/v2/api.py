@@ -28,6 +28,9 @@ from process_bigraph_lang.v2.interfaces import InterfaceRegistry
 from process_bigraph_lang.v2.langium import run_cli
 
 Target = Literal["document", "spec"]
+# how a class is addressed: as declared (`local:!module.Class`, process-bigraph's import form) or registered
+# (`local:module.Class`, the name its discovery registers the class under)
+AddressForm = Literal["import", "registered"]
 
 
 @dataclass
@@ -68,6 +71,7 @@ def compile_text(
     strict: bool = False,
     force: bool = False,
     assets: dict[str, bytes] | None = None,
+    addresses: AddressForm = "import",
 ) -> Compiled:
     """Compile v2 text. `assets` holds the sidecar files `file(...)` references name, by path."""
     with tempfile.TemporaryDirectory() as tmp:
@@ -77,7 +81,9 @@ def compile_text(
             target = Path(tmp) / name
             target.parent.mkdir(parents=True, exist_ok=True)
             target.write_bytes(content)
-        return compile_file(source, registry=registry, manifests=manifests, to=to, strict=strict, force=force)
+        return compile_file(
+            source, registry=registry, manifests=manifests, to=to, strict=strict, force=force, addresses=addresses
+        )
 
 
 def compile_file(
@@ -88,6 +94,7 @@ def compile_file(
     to: Target = "document",
     strict: bool = False,
     force: bool = False,
+    addresses: AddressForm = "import",
 ) -> Compiled:
     """
     Compile a `.pblang` file; `file(...)` references resolve next to it. `force` compiles despite the checker's
@@ -101,7 +108,8 @@ def compile_file(
         if any(d.severity in fatal for d in diagnostics) or any(d.code == "P001" for d in diagnostics):
             raise CompileError(diagnostics)
         out = Path(tmp) / ("compiled.yaml" if to == "spec" else "compiled.json")
-        args = ["compile", str(source), "--to", to, "--out", str(out), *(["--force"] if force else [])]
+        args = ["compile", str(source), "--to", to, "--out", str(out), "--addresses", addresses]
+        args += ["--force"] if force else []
         if manifest_paths:
             args += ["--interfaces", *[str(Path(m).resolve()) for m in manifest_paths]]
         run_cli(*args)

@@ -127,7 +127,9 @@ store-not-declared`, `T121 config-missing`, `W220/W221/W223` writers, `W240/W241
   one manifest per environment, with an `environment` block and `errors`. Keep it free of package imports; the
   per-class helpers are shared with `interfaces.py`. `sbml.py`: `describe_sbml` → JSON (`pblang-model/0`);
   `print_model_header` via the CLI. `sedml.py`: `describe_sedml` (a `.sedml` file or an archive's, standard library only)
-  → JSON (`pblang-sedml/0`), version 1 scope with everything else in `unsupported`; plan `docs/v2/sedml-plan.md`. `check.py`: `check_file` / `check_text`. `normalize.py`: `equivalent`,
+  → JSON (`pblang-sedml/0`), version 1 scope with everything else in `unsupported`; `sedml_translate.py`: each task as a
+  `.pblang` template (`TimeCourseSolver at ?`) and one instance per solver (its class imported, so the checker is the face
+  check), changes applied to a model copy, `X4xx` findings; plan `docs/v2/sedml-plan.md`. `check.py`: `check_file` / `check_text`. `normalize.py`: `equivalent`,
   `diff_documents`, `deep_equal` (+ `types.py`, its parser). `langium.py`: `langium_cli`, `run_cli`.
 - Keep `process_bigraph` out of the shipped package (tests only); `bigraph_schema` and `numpy` are main deps.
 

@@ -39,14 +39,15 @@ def load_corpus_json(name: str) -> dict[str, Any]:
     return loaded
 
 
-def assert_snapshot(name: str, printed: Printed) -> None:
-    """Compare printed text and assets with the committed snapshot; `PBLANG_UPDATE_SNAPSHOTS=1` rewrites it."""
-    expected_text = SNAPSHOTS / f"{name}.pblang"
+def assert_snapshot(name: str, printed: Printed, directory: Path = SNAPSHOTS) -> None:
+    """Compare printed text and assets with the committed snapshot; `PBLANG_UPDATE_SNAPSHOTS=1` rewrites it.
+    `directory` holds snapshots that are not the printer's fixpoints (generated text, e.g. SED-ML translations)."""
+    expected_text = directory / f"{name}.pblang"
     if UPDATE:
-        SNAPSHOTS.mkdir(parents=True, exist_ok=True)
+        directory.mkdir(parents=True, exist_ok=True)
         expected_text.write_text(printed.text, encoding="utf-8")
         for asset_name, content in printed.assets.items():
-            target = SNAPSHOTS / asset_name
+            target = directory / asset_name
             target.parent.mkdir(parents=True, exist_ok=True)
             target.write_bytes(content)
     assert expected_text.exists(), f"no snapshot {expected_text}; run with PBLANG_UPDATE_SNAPSHOTS=1"
@@ -55,7 +56,7 @@ def assert_snapshot(name: str, printed: Printed) -> None:
     ), f"snapshot {name} differs (PBLANG_UPDATE_SNAPSHOTS=1 to update)"
     for asset_name, content in printed.assets.items():
         # pre-commit's end-of-file fixer appends a newline to committed assets; that is not a difference
-        committed = (SNAPSHOTS / asset_name).read_bytes().rstrip(b"\n")
+        committed = (directory / asset_name).read_bytes().rstrip(b"\n")
         assert committed == content.rstrip(b"\n"), f"asset {asset_name} differs"
 
 
