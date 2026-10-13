@@ -173,16 +173,27 @@ def _sedml_describe(args: argparse.Namespace) -> int:
     return 0
 
 
+def _structured(path: Path) -> Any:
+    """A JSON file, or a YAML one when PyYAML is installed (it is not a dependency of this package)."""
+    text = path.read_text(encoding="utf-8")
+    try:
+        return json.loads(text)
+    except json.JSONDecodeError:
+        try:
+            import yaml
+        except ModuleNotFoundError as e:
+            raise SystemExit(f"{path}: not JSON, and reading YAML needs PyYAML (pip install pyyaml)") from e
+        return yaml.safe_load(text)
+
+
 def _sedml_translate(args: argparse.Namespace) -> int:
     import dataclasses
     import json
 
-    import yaml
-
     from process_bigraph_lang.v2.api import CompileError
     from process_bigraph_lang.v2.sedml_translate import compile_instance, instance_archive, solvers_from, translate
 
-    data = yaml.safe_load(Path(args.solvers).read_text(encoding="utf-8")) if args.solvers else []
+    data = _structured(Path(args.solvers)) if args.solvers else []
     solvers = solvers_from(data.get("solvers", []) if isinstance(data, dict) else data)
     translation = translate(args.source, solvers, output_dir=args.output_dir)
     out = Path(args.out)
@@ -263,7 +274,8 @@ def main(argv: list[str] | None = None) -> int:
     )
     sedml_translate.add_argument("source", help="a .sedml file or an .omex archive")
     sedml_translate.add_argument(
-        "--solvers", help="YAML or JSON: [{id, address, algorithms, provides?}] (or a mapping with `solvers:`)"
+        "--solvers",
+        help="JSON (or YAML, with PyYAML): [{id, address, algorithms, provides?}], or a mapping with `solvers`",
     )
     sedml_translate.add_argument(
         "-i", "--interfaces", action="append", help="the solvers' environment manifest(s): compile each instance"
