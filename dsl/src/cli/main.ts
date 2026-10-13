@@ -12,7 +12,12 @@ import * as path from "node:path";
 import { type LangiumDocument, URI } from "langium";
 import * as ast from "../language/generated/ast.js";
 import type { PblangServices } from "../language/process-bigraph-language-module.js";
-import { type Diagnostic, isSpec, toDiagnostics } from "../api.js";
+import {
+  type Diagnostic,
+  isSpec,
+  registeredAddresses,
+  toDiagnostics,
+} from "../api.js";
 import { assetLoader } from "../language/v2/assets.js";
 import { bindModule } from "../language/v2/bind.js";
 import { documentGraph } from "../language/v2/graph.js";
@@ -175,6 +180,7 @@ export type CompileOptions = {
   out?: string;
   strict?: boolean;
   force?: boolean;
+  addresses?: "import" | "registered";
 };
 
 /**
@@ -210,10 +216,15 @@ export const compileAction = async (
   const loader = assetLoader((p) =>
     fsSync.readFileSync(path.join(directory, p), "utf-8"),
   );
-  const written =
+  const plain =
     opts.to === "spec"
       ? writeCompositeSpec(model, loader)
       : writeDocument(model, loader);
+  // `registered`: `local:module.Class`, the name process-bigraph's discovery registers a class under
+  const written =
+    opts.addresses === "registered"
+      ? (registeredAddresses(plain) as typeof plain)
+      : plain;
   const text =
     opts.to === "spec" ? dumpYaml(written) : stringifyJson(written, 2) + "\n";
   await emit(text, opts.out);
@@ -395,6 +406,11 @@ export default function (): void {
     .option(
       "--force",
       "compile despite the checker's errors (parse errors still stop it)",
+    )
+    .option(
+      "--addresses <form>",
+      "import (local:!module.Class, as declared) or registered (local:module.Class)",
+      "import",
     )
     .option("-o, --out <file>", "write the result here instead of stdout")
     .description(

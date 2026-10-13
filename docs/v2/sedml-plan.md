@@ -5,14 +5,14 @@ Status: agreed 2026-10-12. This is the language half of compose-api's
 decisions, the service side (runs, datasets, comparisons, sources, suites) and the phase table. Each PR here updates
 the status below.
 
-| Step | What                                                                                                       | State     |
-| ---- | ---------------------------------------------------------------------------------------------------------- | --------- |
-| 1a   | `sedml.py`: SED-ML read with the standard library into `pblang-sedml/0` JSON, with an `unsupported[]` list | in review |
-| 1b   | The role and adapter declarations (`TimeCourseSolver`, the SED-ML adapters' faces)                         | planned   |
-| 1c   | The template printer: one `.pblang` composite per SED-ML task, the solver an open address site             | planned   |
-| 1d   | One instance per solver, checked and compiled against that solver's environment manifest; refusal findings | planned   |
-| 1e   | SED-ML plots as Plotly figures                                                                             | planned   |
-| 1f   | CLI `sedml describe` and `sedml translate`; corpus and snapshots; release 0.3.0                            | planned   |
+| Step | What                                                                                                       | State                       |
+| ---- | ---------------------------------------------------------------------------------------------------------- | --------------------------- |
+| 1a   | `sedml.py`: SED-ML read with the standard library into `pblang-sedml/0` JSON, with an `unsupported[]` list | in review                   |
+| 1b   | The role and adapter declarations (`TimeCourseSolver`, the SED-ML adapters' faces)                         | in review                   |
+| 1c   | The template printer: one `.pblang` composite per SED-ML task, the solver an open address site             | in review                   |
+| 1d   | One instance per solver, checked and compiled against that solver's environment manifest; refusal findings | in review                   |
+| 1e   | SED-ML plots as Plotly figures                                                                             | in review                   |
+| 1f   | CLI `sedml describe` and `sedml translate`; corpus and snapshots; release 0.3.0                            | in review (release to come) |
 
 ## Why here
 
@@ -55,68 +55,91 @@ data generators with other math, models that are not SBML, references to remote 
 - **Algorithms are KiSAO terms, sometimes generic**: BIOMD0000000012 asks for `KISAO:0000694` ("ODE solver"), not a
   specific integrator. Matching a solver to an algorithm (1d) uses the KiSAO hierarchy, not equality.
 
-## What a task becomes
+## What a task becomes (as built in 1b to 1f)
 
-For `BIOMD0000000012` (the repressilator; its archive holds `BIOMD0000000012_url.xml` and
-`BIOMD0000000012_url.sedml`), the shape is (names indicative; settled in 1b and phase 2):
+`process_bigraph_lang/v2/sedml_translate.py`. Each task of each SED-ML file becomes a composite of four steps
+(see `tests/fixtures/data/v2/sedml/snapshots/` for the repressilator's template and COPASI instance, and the
+Ciliberto project's Tellurium instance):
 
 ```text
-// pblang v2 - generated from BIOMD0000000012_url.sedml, task "task1"
-import sedml.{TimeCourseSolver, SedmlModelChanges, SedmlDataGenerators, SedmlReport, SedmlPlots};
-import BIOMD0000000012_url.{Elowitz2000};          // the model header, from describe-model
+composite task_1 {
+  store result: numeric_result = {};
+  store data: map<string, list<float>> = {};
 
-composite task1 {
-  store model_file = "BIOMD0000000012_url.xml";
-  step changes : SedmlModelChanges {               // attribute changes, applied to a copy of the SBML
-    config  { changes = { "parameter:k1" = 2.0 } }
-    inputs  { source -> model_file }
-    outputs { model -> model }
+  step simulate : TelluriumUTCStep {                 // the template says `TimeCourseSolver at ?`
+    config { model_source = "BIOMD0000000297_url.changed.xml", time = 140.0, n_points = 201,
+             output_dir = "/experiment/output" }
+    outputs { result -> result }
   }
-  step simulate : TimeCourseSolver at ? {          // the solver: an open site, filled per solver
-    config  { start = 0.0, end = 1000.0, n_points = 1000, algorithm = "KISAO:0000019" }
-    inputs  { model -> model }
-    outputs { result -> raw }
-  }
-  step observe : SedmlDataGenerators {             // variables and scales -> data set labels; output start
-    config  { generators = { ... }, output_start = 0.0 }
-    inputs  { result -> raw }
-    outputs { data -> data }
-  }
-  step report : SedmlReport { config { reports = { ... } } inputs { data -> data } }
-  step plots : SedmlPlots { config { templates = [ file("plots/plot1.plotly.json") ] } inputs { data -> data } }
+  step observe : DataGenerators { config { generators = {...}, constants = {...}, skip = 0 } ... }
+  step report : Report { config { output_dir = ..., reports = {...} } inputs { data -> data } }
+  step plots : Plots { config { output_dir = ..., plots = {...} } inputs { data -> data } }
 }
 ```
 
-- The model's species and parameters named by changes and data generators are checked against the model header (a
-  change to a parameter the model lacks is a finding, `G301`-style).
-- `TimeCourseSolver` is a **role**: an interface with no `at`, declared in `sedml.pblang`. Filling `simulate`'s
-  address with a class is admitted when that class's interface (from the environment's manifest) fits the role's
-  face: the existing face check. Generic COPASI and Tellurium steps that do not share one face are fitted by thin
-  wrappers in the adapters package (compose-api phase 2), never by special cases here.
-- A requested algorithm the solver does not implement is a finding: a solver lists its KiSAO terms (compose-api's
-  `solvers.yaml`, passed in as data), and the check compares.
-- Steps run in dependency order; the composite sets what process-bigraph needs for steps to run (the
-  `run_steps_on_init` trap in CLAUDE.md).
+Decided while building it (2026-10-13):
 
-## Plots
+- **The role is the generic solvers' common face.** pbsim-common's `CopasiUTCStep` and `TelluriumUTCStep` declare the
+  same interface in `registry_env`'s manifest: config `model_source, time, n_points, output_dir`, the species inputs,
+  `result: numeric_result`. `TimeCourseSolver` is that face; no wrappers are needed.
+- **Filling a solver is printing it, and the checker is the face check.** Process-bigraph 1.0.5 (`registry_env`) has
+  no sites, so a run's document must be ground. The template keeps `simulate : TimeCourseSolver at ?` (it checks
+  with only `I300`); an instance imports the solver's own class and names it, so the existing checker verifies its
+  config and ports against the environment's manifest (`S021`, `S022`, `T121`, `W200`). A solver that does not fit
+  is refused by those findings, with no new language machinery.
+- **Model changes are applied at translation** (Jim, 2026-10-13): they are constants, and the generic solvers read the
+  model from config, which no step can change. The instance reads `<model>.changed.xml`, written with the change
+  applied (namespaces kept), and its `meta` lists each change.
+- **Adapters live in a new package we own** (Jim, 2026-10-13): biosim-toolkit (`biosim_toolkit.sedml`), a rollup of
+  trusted utilities (SED-ML, model and format adapters, reports, data, visualization). Each generated file
+  declares them inline at their addresses, so it is self-contained.
+- **The output grid.** The generic solvers start at 0 and take points, not steps: `time` is the output end,
+  `n_points` covers the initial time to the end on the output's step, and `observe` drops the `skip` points before
+  the output start. An initial time other than 0 (`X402`) or an output that is not on that grid (`X403`) refuses
+  the task.
+- **What a solver returns.** The generic steps return species columns and time. Data generators reading constant
+  parameters or compartments take their values (after changes) from the model header; those reading rule-defined
+  parameters or reaction rates are left out of that solver's reports and plots (`X404`, one finding per kind).
+- **Algorithms.** A solver lists the KiSAO terms it implements (default first). The generic `KISAO:0000694`, a
+  listed term, or an ancestor of the solver's default is accepted; another ODE algorithm is a substitution (`X405`,
+  a warning: COPASI runs LSODA/LSODAR where CVODE is asked for); anything else refuses (`X406`). The ODE terms and
+  their ancestors are `kisao_ode.json`, from the KiSAO ontology.
+- **Plots are built at run time.** The `Plots` adapter takes each SED-ML plot's curves (data generator ids, names, log
+  axes) in its config and writes the Plotly figure with the data; no template files and no `fill_plot`. The
+  comparison page overlays the figures of several runs.
+- **The data store is `overwrite<map<string, list<float>>>`**: bigraph-schema 1.0's `map` apply keeps only keys the
+  store already has, so a `map` store would stay empty (found running the chain under `registry_env`'s versions).
+- **One archive per task and solver**: pbest runs the first top-level `.pbg`, so `instance_archive` holds one compiled
+  document (`<task>.pbg`), its text and the model files.
+- **No browser translation.** The web app previews a translation through compose-api, which calls this package.
 
-Each SED-ML plot becomes `plots/<sedml>/<plot>.plotly.json`: a Plotly figure whose traces name data set labels in
-place of data (`{"x": {"$label": "time"}, "y": {"$label": "PX"}, "name": ...}`), with axis titles and scales.
-`fill_plot(template, csv_text)` replaces each `$label` with the column (Python for the job's `SedmlPlots` step and the
-service; TypeScript for the browser, which overlays several runs' traces on the comparison page).
+## Findings
+
+| Code | Severity | Meaning                                                                                           |
+| ---- | -------- | ------------------------------------------------------------------------------------------------- |
+| X400 | warning  | a SED-ML element version 1 does not translate (from `describe`'s `unsupported`)                   |
+| X401 | error    | a change or data generator names an element the model does not have, or the model file is missing |
+| X402 | error    | the time course does not start at 0, where the generic solvers start                              |
+| X403 | error    | the output is not on a grid from the initial time                                                 |
+| X404 | warning  | data generators read values the solver does not return; they are left out of its outputs          |
+| X405 | warning  | the solver runs a different ODE algorithm than the one asked for                                  |
+| X406 | error    | the solver implements no algorithm of the kind asked for                                          |
 
 ## Interfaces
 
-- Python: `describe_sedml(path_or_omex) -> SedmlDescription` (`to_dict()` is `pblang-sedml/0`);
-  `sedml_templates(description, model_headers) -> {task: (text, assets)}`;
-  `compile_sedml(text, solver_address, manifests, solver_algorithms) -> document | findings`.
-- CLI: `python -m process_bigraph_lang.v2 sedml describe x.omex`, `sedml template x.omex -o dir/`,
-  `sedml compile dir/task1.pblang --solver local:… -i manifest.json`.
-- TypeScript: `Pblang.sedml(description)` for the browser preview (tasks, reports, plots, findings), and
-  `fillPlot`.
+- Python: `describe_sedml(path) -> SedmlDescription` (`pblang-sedml/0`);
+  `translate(path, solvers, output_dir) -> Translation` (per task: the template, one instance per accepted solver,
+  the model files, the findings); `compile_instance(task, solver, manifests, addresses="registered")`;
+  `instance_archive(task, solver, document) -> bytes`; `solvers_from(data)` for compose-api's `solvers.yaml`.
+- CLI: `python -m process_bigraph_lang.v2 sedml describe x.omex [-o d.json]`;
+  `sedml translate x.omex --solvers solvers.yaml -i env.json -o dir/` (texts, models, one archive per task and
+  solver, `findings.json`). `compile --addresses registered` writes `local:module.Class` (the CLI now has the option
+  the TypeScript API had).
 
 ## Corpus
 
-`tests/fixtures/data/v2/sedml/`: BIOMD0000000012 (EBI's COMBINE archive), the Ciliberto 2003 morphogenesis project
-from biosimulations.org (with its `reports.h5`), and two more chosen for coverage (attribute changes; a log-scale
-plot). Each: describe snapshot, template snapshot per task, compiled document per solver, an out-of-scope case.
+`tests/fixtures/data/v2/sedml/`: BIOMD0000000012 (EBI), the Ciliberto 2003 project (biosimulations.org),
+`out_of_scope.sedml` (and edited copies of it for each refusing finding), `solvers.yaml` (the generic COPASI and
+Tellurium steps), and `snapshots/` (generated text: checked by `dsl/test/v2/sedml.test.ts`, not the printer's
+fixpoints). `interfaces/registry_env_pbsim.manifest.json` is the pbsim-common part of compose-api's generated
+`registry_env` manifest.

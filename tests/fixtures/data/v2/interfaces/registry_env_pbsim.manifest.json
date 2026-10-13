@@ -1,0 +1,132 @@
+{
+  "$schema": "https://biosimulations.github.io/process-bigraph-lang/schemas/pbg-interfaces-1.schema.json",
+  "schema_version": "pbg-interfaces/1",
+  "environment": {
+    "name": "registry_env",
+    "image": "ghcr.io/biosimulations/registry_env:c7e984d31f441805315590a4c53e7f9f",
+    "python": "3.12.15",
+    "process_bigraph": "1.0.5",
+    "bigraph_schema": "1.0.14",
+    "packages": {
+      "pb_multiscale_actin": "1.3.1",
+      "pbsim-common": "0.1.2"
+    },
+    "roots": [
+      "pb_multiscale_actin",
+      "pbsim_common"
+    ],
+    "generated_by": "process_bigraph_lang/v2/describe_env.py"
+  },
+  "errors": [],
+  "components": [
+    {
+      "name": "CopasiSteadyStateStep",
+      "kind": "step",
+      "address": "local:!pbsim_common.simulators.copasi_process.CopasiSteadyStateStep",
+      "module": "pbsim_common.simulators.copasi_process",
+      "config_schema": {
+        "model_source": "string",
+        "time": "float"
+      },
+      "inputs": {
+        "species_concentrations": "map[float]",
+        "counts": "map[float]"
+      },
+      "outputs": {
+        "results": "any"
+      },
+      "dynamic_ports": false
+    },
+    {
+      "name": "CopasiUTCProcess",
+      "kind": "process",
+      "address": "local:!pbsim_common.simulators.copasi_process.CopasiUTCProcess",
+      "module": "pbsim_common.simulators.copasi_process",
+      "config_schema": {
+        "model_source": "string",
+        "time": "float",
+        "intervals": "integer"
+      },
+      "inputs": {
+        "species_concentrations": "map[float]",
+        "species_counts": "map[float]"
+      },
+      "outputs": {
+        "species_concentrations": "map[float]",
+        "fluxes": "map[float]",
+        "time": "list[float]"
+      },
+      "dynamic_ports": false
+    },
+    {
+      "name": "CopasiUTCStep",
+      "kind": "step",
+      "address": "local:!pbsim_common.simulators.copasi_process.CopasiUTCStep",
+      "module": "pbsim_common.simulators.copasi_process",
+      "config_schema": {
+        "model_source": "string",
+        "time": "float",
+        "n_points": "integer",
+        "output_dir": "string"
+      },
+      "inputs": {
+        "species_concentrations": "map[float]",
+        "species_counts": "map[float]"
+      },
+      "outputs": {
+        "result": "numeric_result"
+      },
+      "dynamic_ports": false
+    },
+    {
+      "name": "TelluriumSteadyStateStep",
+      "kind": "step",
+      "address": "local:!pbsim_common.simulators.tellurium_process.TelluriumSteadyStateStep",
+      "module": "pbsim_common.simulators.tellurium_process",
+      "config_schema": {
+        "model_source": "string"
+      },
+      "inputs": {
+        "species_concentrations": "map[float]",
+        "species_counts": "map[float]"
+      },
+      "outputs": {
+        "result": "map[numeric_result]"
+      },
+      "dynamic_ports": false
+    },
+    {
+      "name": "TelluriumStep",
+      "kind": "step",
+      "address": "local:!pbsim_common.simulators.tellurium_process.TelluriumStep",
+      "module": "pbsim_common.simulators.tellurium_process",
+      "config_schema": {},
+      "inputs": {
+        "species_concentrations": "map[float]",
+        "species_counts": "map[float]"
+      },
+      "outputs": {},
+      "dynamic_ports": false
+    },
+    {
+      "name": "TelluriumUTCStep",
+      "kind": "step",
+      "address": "local:!pbsim_common.simulators.tellurium_process.TelluriumUTCStep",
+      "module": "pbsim_common.simulators.tellurium_process",
+      "config_schema": {
+        "model_source": "string",
+        "time": "float",
+        "n_points": "integer",
+        "output_dir": "string"
+      },
+      "inputs": {
+        "species_concentrations": "map[float]",
+        "species_counts": "map[float]"
+      },
+      "outputs": {
+        "result": "numeric_result"
+      },
+      "dynamic_ports": false
+    }
+  ]
+}

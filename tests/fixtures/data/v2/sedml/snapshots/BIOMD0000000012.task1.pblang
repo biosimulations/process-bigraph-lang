@@ -1,0 +1,202 @@
+// pblang v2 - generated from BIOMD0000000012_url.sedml, task 'task1' (template: the solver is an open site)
+
+// The role a solver fills: any step with this face. The generic COPASI and Tellurium steps have it.
+step TimeCourseSolver {
+  config { model_source: string; time: float; n_points: int; output_dir: string; }
+  inputs { species_concentrations: map<string, float>; species_counts: map<string, float>; }
+  outputs { result: numeric_result; }
+}
+
+param output_dir: string = ?;
+
+// The SED-ML adapters (docs/v2/sedml-plan.md): solver-agnostic steps around the solver.
+step DataGenerators at "local:biosim_toolkit.sedml.DataGenerators" {
+  config {
+    generators: map<string, list<{ variable: string; coefficient: float; }>>;
+    constants: map<string, float>;
+    skip: int;
+  }
+  inputs { result: numeric_result; }
+  outputs { data: overwrite<map<string, list<float>>>; }
+}
+
+step Report at "local:biosim_toolkit.sedml.Report" {
+  config {
+    output_dir: string;
+    reports: map<string, { file: string; name: string; data_sets: list<{ label: string; data_generator: string; }>; }>;
+  }
+  inputs { data: overwrite<map<string, list<float>>>; }
+}
+
+step Plots at "local:biosim_toolkit.sedml.Plots" {
+  config {
+    output_dir: string;
+    plots: map<string, {
+      file: string;
+      name: string;
+      kind: string;
+      curves: list<{ name: string; x: string; y: string; }>;
+      surfaces: list<{ name: string; x: string; y: string; z: string; }>;
+      log_x: bool;
+      log_y: bool;
+      log_z: bool;
+    }>;
+  }
+  inputs { data: overwrite<map<string, list<float>>>; }
+}
+
+meta {
+  "sedml" = "BIOMD0000000012_url.sedml",
+  "task" = "task1",
+  "model" = "BIOMD0000000012_url",
+  "simulation" = "auto_ten_seconds",
+  "algorithm" = "KISAO:0000694",
+  "output_start" = 0.0,
+  "output_end" = 10.0,
+  "number_of_steps" = 1000
+}
+
+composite task1 {
+  store result: numeric_result = {};
+  store data: overwrite<map<string, list<float>>> = {};
+
+  step simulate : TimeCourseSolver at ? {
+    config {
+      model_source = "BIOMD0000000012_url.xml",
+      time = 10.0,
+      n_points = 1001,
+      output_dir = ${output_dir}
+    }
+    outputs { result -> result }
+  }
+  step observe : DataGenerators {
+    config {
+      generators = {
+        "auto_time_for_task1" = [{ "variable" = "time", "coefficient" = 1.0 }],
+        "auto_dg_for_task1_PX" = [{ "variable" = "PX", "coefficient" = 1.0 }],
+        "auto_dg_for_task1_PY" = [{ "variable" = "PY", "coefficient" = 1.0 }],
+        "auto_dg_for_task1_PZ" = [{ "variable" = "PZ", "coefficient" = 1.0 }],
+        "auto_dg_for_task1_X" = [{ "variable" = "X", "coefficient" = 1.0 }],
+        "auto_dg_for_task1_Y" = [{ "variable" = "Y", "coefficient" = 1.0 }],
+        "auto_dg_for_task1_Z" = [{ "variable" = "Z", "coefficient" = 1.0 }],
+        "auto_dg_for_task1_beta" = [{ "variable" = "beta", "coefficient" = 1.0 }],
+        "auto_dg_for_task1_alpha0" = [{ "variable" = "alpha0", "coefficient" = 1.0 }],
+        "auto_dg_for_task1_alpha" = [{ "variable" = "alpha", "coefficient" = 1.0 }],
+        "auto_dg_for_task1_eff" = [{ "variable" = "eff", "coefficient" = 1.0 }],
+        "auto_dg_for_task1_n" = [{ "variable" = "n", "coefficient" = 1.0 }],
+        "auto_dg_for_task1_KM" = [{ "variable" = "KM", "coefficient" = 1.0 }],
+        "auto_dg_for_task1_tau_mRNA" = [{ "variable" = "tau_mRNA", "coefficient" = 1.0 }],
+        "auto_dg_for_task1_tau_prot" = [{ "variable" = "tau_prot", "coefficient" = 1.0 }],
+        "auto_dg_for_task1_t_ave" = [{ "variable" = "t_ave", "coefficient" = 1.0 }],
+        "auto_dg_for_task1_kd_mRNA" = [{ "variable" = "kd_mRNA", "coefficient" = 1.0 }],
+        "auto_dg_for_task1_kd_prot" = [{ "variable" = "kd_prot", "coefficient" = 1.0 }],
+        "auto_dg_for_task1_k_tl" = [{ "variable" = "k_tl", "coefficient" = 1.0 }],
+        "auto_dg_for_task1_a_tr" = [{ "variable" = "a_tr", "coefficient" = 1.0 }],
+        "auto_dg_for_task1_ps_a" = [{ "variable" = "ps_a", "coefficient" = 1.0 }],
+        "auto_dg_for_task1_ps_0" = [{ "variable" = "ps_0", "coefficient" = 1.0 }],
+        "auto_dg_for_task1_a0_tr" = [{ "variable" = "a0_tr", "coefficient" = 1.0 }],
+        "auto_dg_for_task1_cell" = [{ "variable" = "cell", "coefficient" = 1.0 }],
+        "auto_dg_for_task1_Reaction1" = [{ "variable" = "Reaction1", "coefficient" = 1.0 }],
+        "auto_dg_for_task1_Reaction2" = [{ "variable" = "Reaction2", "coefficient" = 1.0 }],
+        "auto_dg_for_task1_Reaction3" = [{ "variable" = "Reaction3", "coefficient" = 1.0 }],
+        "auto_dg_for_task1_Reaction4" = [{ "variable" = "Reaction4", "coefficient" = 1.0 }],
+        "auto_dg_for_task1_Reaction5" = [{ "variable" = "Reaction5", "coefficient" = 1.0 }],
+        "auto_dg_for_task1_Reaction6" = [{ "variable" = "Reaction6", "coefficient" = 1.0 }],
+        "auto_dg_for_task1_Reaction7" = [{ "variable" = "Reaction7", "coefficient" = 1.0 }],
+        "auto_dg_for_task1_Reaction8" = [{ "variable" = "Reaction8", "coefficient" = 1.0 }],
+        "auto_dg_for_task1_Reaction9" = [{ "variable" = "Reaction9", "coefficient" = 1.0 }],
+        "auto_dg_for_task1_Reaction10" = [{ "variable" = "Reaction10", "coefficient" = 1.0 }],
+        "auto_dg_for_task1_Reaction11" = [{ "variable" = "Reaction11", "coefficient" = 1.0 }],
+        "auto_dg_for_task1_Reaction12" = [{ "variable" = "Reaction12", "coefficient" = 1.0 }]
+      },
+      constants = {
+        "eff" = 20.0,
+        "n" = 2.0,
+        "KM" = 40.0,
+        "tau_mRNA" = 2.0,
+        "tau_prot" = 10.0,
+        "ps_a" = 0.5,
+        "ps_0" = 0.0005,
+        "cell" = 1.0
+      },
+      skip = 0
+    }
+    inputs { result -> result }
+    outputs { data -> data }
+  }
+  step report : Report {
+    config {
+      output_dir = ${output_dir},
+      reports = {
+        "autogen_report_for_task1" = {
+          "file" = "reports/BIOMD0000000012_url/autogen_report_for_task1.csv",
+          "name" = "Auto-generated report for task1, including all symbols in SBML with mathematical meaning, both constant and variable.",
+          "data_sets" = [
+            { "label" = "Time", "data_generator" = "auto_time_for_task1" },
+            { "label" = "PX", "data_generator" = "auto_dg_for_task1_PX" },
+            { "label" = "PY", "data_generator" = "auto_dg_for_task1_PY" },
+            { "label" = "PZ", "data_generator" = "auto_dg_for_task1_PZ" },
+            { "label" = "X", "data_generator" = "auto_dg_for_task1_X" },
+            { "label" = "Y", "data_generator" = "auto_dg_for_task1_Y" },
+            { "label" = "Z", "data_generator" = "auto_dg_for_task1_Z" },
+            { "label" = "beta", "data_generator" = "auto_dg_for_task1_beta" },
+            { "label" = "alpha0", "data_generator" = "auto_dg_for_task1_alpha0" },
+            { "label" = "alpha", "data_generator" = "auto_dg_for_task1_alpha" },
+            { "label" = "eff", "data_generator" = "auto_dg_for_task1_eff" },
+            { "label" = "n", "data_generator" = "auto_dg_for_task1_n" },
+            { "label" = "KM", "data_generator" = "auto_dg_for_task1_KM" },
+            { "label" = "tau_mRNA", "data_generator" = "auto_dg_for_task1_tau_mRNA" },
+            { "label" = "tau_prot", "data_generator" = "auto_dg_for_task1_tau_prot" },
+            { "label" = "t_ave", "data_generator" = "auto_dg_for_task1_t_ave" },
+            { "label" = "kd_mRNA", "data_generator" = "auto_dg_for_task1_kd_mRNA" },
+            { "label" = "kd_prot", "data_generator" = "auto_dg_for_task1_kd_prot" },
+            { "label" = "k_tl", "data_generator" = "auto_dg_for_task1_k_tl" },
+            { "label" = "a_tr", "data_generator" = "auto_dg_for_task1_a_tr" },
+            { "label" = "ps_a", "data_generator" = "auto_dg_for_task1_ps_a" },
+            { "label" = "ps_0", "data_generator" = "auto_dg_for_task1_ps_0" },
+            { "label" = "a0_tr", "data_generator" = "auto_dg_for_task1_a0_tr" },
+            { "label" = "cell", "data_generator" = "auto_dg_for_task1_cell" },
+            { "label" = "Reaction1", "data_generator" = "auto_dg_for_task1_Reaction1" },
+            { "label" = "Reaction2", "data_generator" = "auto_dg_for_task1_Reaction2" },
+            { "label" = "Reaction3", "data_generator" = "auto_dg_for_task1_Reaction3" },
+            { "label" = "Reaction4", "data_generator" = "auto_dg_for_task1_Reaction4" },
+            { "label" = "Reaction5", "data_generator" = "auto_dg_for_task1_Reaction5" },
+            { "label" = "Reaction6", "data_generator" = "auto_dg_for_task1_Reaction6" },
+            { "label" = "Reaction7", "data_generator" = "auto_dg_for_task1_Reaction7" },
+            { "label" = "Reaction8", "data_generator" = "auto_dg_for_task1_Reaction8" },
+            { "label" = "Reaction9", "data_generator" = "auto_dg_for_task1_Reaction9" },
+            { "label" = "Reaction10", "data_generator" = "auto_dg_for_task1_Reaction10" },
+            { "label" = "Reaction11", "data_generator" = "auto_dg_for_task1_Reaction11" },
+            { "label" = "Reaction12", "data_generator" = "auto_dg_for_task1_Reaction12" }
+          ]
+        }
+      }
+    }
+    inputs { data -> data }
+  }
+  step plots : Plots {
+    config {
+      output_dir = ${output_dir},
+      plots = {
+        "autogen_plot_for_task1" = {
+          "file" = "plots/BIOMD0000000012_url/autogen_plot_for_task1.plotly.json",
+          "name" = "Auto-generated plot for task1, including all species.",
+          "kind" = "plot2D",
+          "curves" = [
+            { "name" = "PX", "x" = "auto_time_for_task1", "y" = "auto_dg_for_task1_PX" },
+            { "name" = "PY", "x" = "auto_time_for_task1", "y" = "auto_dg_for_task1_PY" },
+            { "name" = "PZ", "x" = "auto_time_for_task1", "y" = "auto_dg_for_task1_PZ" },
+            { "name" = "X", "x" = "auto_time_for_task1", "y" = "auto_dg_for_task1_X" },
+            { "name" = "Y", "x" = "auto_time_for_task1", "y" = "auto_dg_for_task1_Y" },
+            { "name" = "Z", "x" = "auto_time_for_task1", "y" = "auto_dg_for_task1_Z" }
+          ],
+          "surfaces" = [],
+          "log_x" = false,
+          "log_y" = false,
+          "log_z" = false
+        }
+      }
+    }
+    inputs { data -> data }
+  }
+}

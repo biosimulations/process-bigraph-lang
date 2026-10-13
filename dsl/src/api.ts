@@ -341,7 +341,7 @@ export class Pblang {
 }
 
 /** Every `address: "local:!module.Class"` in a written document (nested composites and child edges too) as `local:module.Class`. */
-function registeredAddresses(value: unknown): unknown {
+export function registeredAddresses(value: unknown): unknown {
   if (value instanceof Map) {
     const out = new Map<unknown, unknown>();
     for (const [k, v] of value)

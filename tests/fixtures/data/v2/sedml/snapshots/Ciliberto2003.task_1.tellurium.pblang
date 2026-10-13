@@ -1,0 +1,201 @@
+// pblang v2 - generated from simulation_1.sedml, task 'task_1' (for tellurium)
+
+import pbsim_common.simulators.tellurium_process.{TelluriumUTCStep};
+
+// The SED-ML adapters (docs/v2/sedml-plan.md): solver-agnostic steps around the solver.
+step DataGenerators at "local:biosim_toolkit.sedml.DataGenerators" {
+  config {
+    generators: map<string, list<{ variable: string; coefficient: float; }>>;
+    constants: map<string, float>;
+    skip: int;
+  }
+  inputs { result: numeric_result; }
+  outputs { data: overwrite<map<string, list<float>>>; }
+}
+
+step Report at "local:biosim_toolkit.sedml.Report" {
+  config {
+    output_dir: string;
+    reports: map<string, { file: string; name: string; data_sets: list<{ label: string; data_generator: string; }>; }>;
+  }
+  inputs { data: overwrite<map<string, list<float>>>; }
+}
+
+step Plots at "local:biosim_toolkit.sedml.Plots" {
+  config {
+    output_dir: string;
+    plots: map<string, {
+      file: string;
+      name: string;
+      kind: string;
+      curves: list<{ name: string; x: string; y: string; }>;
+      surfaces: list<{ name: string; x: string; y: string; z: string; }>;
+      log_x: bool;
+      log_y: bool;
+      log_z: bool;
+    }>;
+  }
+  inputs { data: overwrite<map<string, list<float>>>; }
+}
+
+meta {
+  "sedml" = "simulation_1.sedml",
+  "task" = "task_1",
+  "model" = "Ciliberto2003_Morphogenesis",
+  "simulation" = "simulation_1",
+  "algorithm" = "KISAO:0000019",
+  "output_start" = 0.0,
+  "output_end" = 140.0,
+  "number_of_steps" = 200,
+  "solver" = "tellurium",
+  "changes" = { "parameter:kswe_prime/value" = 2.001 }
+}
+
+composite task_1 {
+  store result: numeric_result = {};
+  store data: overwrite<map<string, list<float>>> = {};
+
+  step simulate : TelluriumUTCStep {
+    config {
+      model_source = "BIOMD0000000297_url.changed.xml",
+      time = 140.0,
+      n_points = 201,
+      output_dir = "/experiment/output"
+    }
+    outputs { result -> result }
+  }
+  step observe : DataGenerators {
+    config {
+      generators = {
+        "data_gen_time" = [{ "variable" = "time", "coefficient" = 1.0 }],
+        "data_gen_Trim" = [{ "variable" = "Trim", "coefficient" = 1.0 }],
+        "data_gen_Clb" = [{ "variable" = "Clb", "coefficient" = 1.0 }],
+        "data_gen_Sic" = [{ "variable" = "Sic", "coefficient" = 1.0 }],
+        "data_gen_PTrim" = [{ "variable" = "PTrim", "coefficient" = 1.0 }],
+        "data_gen_PClb" = [{ "variable" = "PClb", "coefficient" = 1.0 }],
+        "data_gen_SBF" = [{ "variable" = "SBF", "coefficient" = 1.0 }],
+        "data_gen_IE" = [{ "variable" = "IE", "coefficient" = 1.0 }],
+        "data_gen_Cdc20a" = [{ "variable" = "Cdc20a", "coefficient" = 1.0 }],
+        "data_gen_Cdc20" = [{ "variable" = "Cdc20", "coefficient" = 1.0 }],
+        "data_gen_Cdh1" = [{ "variable" = "Cdh1", "coefficient" = 1.0 }],
+        "data_gen_Swe1" = [{ "variable" = "Swe1", "coefficient" = 1.0 }],
+        "data_gen_Swe1M" = [{ "variable" = "Swe1M", "coefficient" = 1.0 }],
+        "data_gen_PSwe1" = [{ "variable" = "PSwe1", "coefficient" = 1.0 }],
+        "data_gen_PSwe1M" = [{ "variable" = "PSwe1M", "coefficient" = 1.0 }],
+        "data_gen_Mih1a" = [{ "variable" = "Mih1a", "coefficient" = 1.0 }],
+        "data_gen_Mcm" = [{ "variable" = "Mcm", "coefficient" = 1.0 }],
+        "data_gen_BE" = [{ "variable" = "BE", "coefficient" = 1.0 }],
+        "data_gen_Cln" = [{ "variable" = "Cln", "coefficient" = 1.0 }],
+        "data_gen_mass" = [{ "variable" = "mass", "coefficient" = 1.0 }],
+        "data_gen_Swe1T" = [
+          { "variable" = "Swe1", "coefficient" = 1.0 },
+          { "variable" = "Swe1M", "coefficient" = 1.0 },
+          { "variable" = "PSwe1", "coefficient" = 1.0 },
+          { "variable" = "PSwe1M", "coefficient" = 1.0 }
+        ]
+      },
+      constants = {},
+      skip = 0
+    }
+    inputs { result -> result }
+    outputs { data -> data }
+  }
+  step report : Report {
+    config {
+      output_dir = "/experiment/output",
+      reports = {
+        "report" = {
+          "file" = "reports/simulation_1/report.csv",
+          "name" = "report",
+          "data_sets" = [
+            { "label" = "Time (min)", "data_generator" = "data_gen_time" },
+            { "label" = "Activated Cdc20", "data_generator" = "data_gen_Cdc20a" },
+            { "label" = "BE", "data_generator" = "data_gen_BE" },
+            { "label" = "Cdc20", "data_generator" = "data_gen_Cdc20" },
+            { "label" = "CDC28-Clb2-Sic1", "data_generator" = "data_gen_Trim" },
+            { "label" = "Cdh1", "data_generator" = "data_gen_Cdh1" },
+            { "label" = "Clb2", "data_generator" = "data_gen_Clb" },
+            { "label" = "Cln", "data_generator" = "data_gen_Cln" },
+            { "label" = "Intermediary enzyme", "data_generator" = "data_gen_IE" },
+            { "label" = "Mass", "data_generator" = "data_gen_mass" },
+            { "label" = "Mcm", "data_generator" = "data_gen_Mcm" },
+            { "label" = "Mih1a", "data_generator" = "data_gen_Mih1a" },
+            { "label" = "Modified Swe1", "data_generator" = "data_gen_Swe1M" },
+            { "label" = "Phosphorylated Cdc28-Clb2-Sic1", "data_generator" = "data_gen_PTrim" },
+            { "label" = "Phosphorylated Clb2", "data_generator" = "data_gen_PClb" },
+            { "label" = "Phosphorylated Swe1", "data_generator" = "data_gen_PSwe1" },
+            { "label" = "Phosphorylated, modified Swe1", "data_generator" = "data_gen_PSwe1M" },
+            { "label" = "SBF", "data_generator" = "data_gen_SBF" },
+            { "label" = "Sic1", "data_generator" = "data_gen_Sic" },
+            { "label" = "Swe1", "data_generator" = "data_gen_Swe1" },
+            { "label" = "Total Swe1", "data_generator" = "data_gen_Swe1T" }
+          ]
+        }
+      }
+    }
+    inputs { data -> data }
+  }
+  step plots : Plots {
+    config {
+      output_dir = "/experiment/output",
+      plots = {
+        "Figure_3a" = {
+          "file" = "plots/simulation_1/Figure_3a.plotly.json",
+          "name" = "Figure 3a",
+          "kind" = "plot2D",
+          "curves" = [
+            { "name" = "Sic1", "x" = "data_gen_time", "y" = "data_gen_Sic" },
+            { "name" = "SBF", "x" = "data_gen_time", "y" = "data_gen_SBF" },
+            { "name" = "Clb2", "x" = "data_gen_time", "y" = "data_gen_Clb" },
+            { "name" = "Cln", "x" = "data_gen_time", "y" = "data_gen_Cln" }
+          ],
+          "surfaces" = [],
+          "log_x" = false,
+          "log_y" = false,
+          "log_z" = false
+        },
+        "Figure_3b" = {
+          "file" = "plots/simulation_1/Figure_3b.plotly.json",
+          "name" = "Figure 3b",
+          "kind" = "plot2D",
+          "curves" = [
+            { "name" = "Activated Cdc20", "x" = "data_gen_time", "y" = "data_gen_Cdc20a" },
+            { "name" = "Cdh1", "x" = "data_gen_time", "y" = "data_gen_Cdh1" },
+            { "name" = "Clb2", "x" = "data_gen_time", "y" = "data_gen_Clb" },
+            { "name" = "Intermediary enzyme", "x" = "data_gen_time", "y" = "data_gen_IE" }
+          ],
+          "surfaces" = [],
+          "log_x" = false,
+          "log_y" = false,
+          "log_z" = false
+        },
+        "Figure_3c" = {
+          "file" = "plots/simulation_1/Figure_3c.plotly.json",
+          "name" = "Figure 3c",
+          "kind" = "plot2D",
+          "curves" = [
+            { "name" = "Swe1", "x" = "data_gen_time", "y" = "data_gen_Swe1" },
+            { "name" = "Modified Swe1", "x" = "data_gen_time", "y" = "data_gen_Swe1M" },
+            { "name" = "Total Swe1", "x" = "data_gen_time", "y" = "data_gen_Swe1T" },
+            { "name" = "Phosphorylated, modified Swe1", "x" = "data_gen_time", "y" = "data_gen_PSwe1M" }
+          ],
+          "surfaces" = [],
+          "log_x" = false,
+          "log_y" = false,
+          "log_z" = false
+        },
+        "Figure_3d" = {
+          "file" = "plots/simulation_1/Figure_3d.plotly.json",
+          "name" = "Figure 3d",
+          "kind" = "plot2D",
+          "curves" = [{ "name" = "Mass", "x" = "data_gen_time", "y" = "data_gen_mass" }],
+          "surfaces" = [],
+          "log_x" = false,
+          "log_y" = false,
+          "log_z" = false
+        }
+      }
+    }
+    inputs { data -> data }
+  }
+}

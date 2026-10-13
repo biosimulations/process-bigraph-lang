@@ -6,6 +6,7 @@ parse and check the text, then write the document (JSON) or the CompositeSpec (y
 `python -m process_bigraph_lang.v2 diff <a.json> <b.json>`: explain how two documents differ after normalization.
 `python -m process_bigraph_lang.v2 describe <module>...` / `describe-model <sbml>`: headers from code or SBML.
 `python -m process_bigraph_lang.v2 sedml describe <x.sedml | x.omex>`: what a SED-ML file asks for, as JSON.
+`python -m process_bigraph_lang.v2 sedml translate <x.omex> --solvers s.yaml -i env.json -o dir/`: per-solver composites.
 
 Documents are JSON (`bigraph_schema.json_codec` encoding, so numpy arrays survive) or CompositeSpec yaml.
 Sidecar assets of `decompile` are written next to the output when `--out` is given, else listed on stderr.
@@ -172,6 +173,46 @@ def _sedml_describe(args: argparse.Namespace) -> int:
     return 0
 
 
+def _sedml_translate(args: argparse.Namespace) -> int:
+    import dataclasses
+    import json
+
+    import yaml
+
+    from process_bigraph_lang.v2.api import CompileError
+    from process_bigraph_lang.v2.sedml_translate import compile_instance, instance_archive, solvers_from, translate
+
+    data = yaml.safe_load(Path(args.solvers).read_text(encoding="utf-8")) if args.solvers else []
+    solvers = solvers_from(data.get("solvers", []) if isinstance(data, dict) else data)
+    translation = translate(args.source, solvers, output_dir=args.output_dir)
+    out = Path(args.out)
+    out.mkdir(parents=True, exist_ok=True)
+    findings = [dataclasses.asdict(f) for f in translation.findings]
+    errors = 0
+    for task in translation.tasks:
+        (out / f"{task.name}.pblang").write_text(task.template, encoding="utf-8")
+        for path, content in task.models.items():
+            (out / path).write_bytes(content)
+        findings += [{**dataclasses.asdict(f), "task": task.task} for f in task.findings]
+        for solver, text in task.instances.items():
+            (out / f"{task.name}.{solver}.pblang").write_text(text, encoding="utf-8")
+            if not args.interfaces:
+                continue
+            try:
+                compiled = compile_instance(task, solver, [Path(m) for m in args.interfaces], addresses=args.addresses)
+            except CompileError as e:
+                errors += 1
+                findings += [{"severity": "error", "code": d.code, "message": d.message, "solver": solver,
+                              "task": task.task, "path": d.path} for d in e.diagnostics]  # fmt: skip
+                continue
+            (out / f"{task.name}.{solver}.omex").write_bytes(instance_archive(task, solver, compiled.document))
+    (out / "findings.json").write_text(json.dumps(findings, indent=2) + "\n", encoding="utf-8")
+    for f in findings:
+        who = f" [{f['solver']}]" if f.get("solver") else ""
+        print(f"{f['severity']:<8}{f['code']}{who} {f.get('task', '')}: {f['message']}", file=sys.stderr)
+    return 1 if errors or any(f["severity"] == "error" for f in findings) else 0
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="python -m process_bigraph_lang.v2")
     commands = parser.add_subparsers(dest="command", required=True)
@@ -216,6 +257,21 @@ def main(argv: list[str] | None = None) -> int:
     sedml_describe.add_argument("source", help="a .sedml file or an .omex archive")
     sedml_describe.add_argument("-o", "--out", help="write the JSON here (default: stdout)")
     sedml_describe.set_defaults(run=_sedml_describe)
+    sedml_translate = sedml_commands.add_parser(
+        "translate",
+        help="each SED-ML task as a .pblang template and one instance per solver; with --interfaces, compiled archives",
+    )
+    sedml_translate.add_argument("source", help="a .sedml file or an .omex archive")
+    sedml_translate.add_argument(
+        "--solvers", help="YAML or JSON: [{id, address, algorithms, provides?}] (or a mapping with `solvers:`)"
+    )
+    sedml_translate.add_argument(
+        "-i", "--interfaces", action="append", help="the solvers' environment manifest(s): compile each instance"
+    )
+    sedml_translate.add_argument("--addresses", choices=["import", "registered"], default="registered")
+    sedml_translate.add_argument("--output-dir", default="/experiment/output", help="where the job writes its files")
+    sedml_translate.add_argument("-o", "--out", required=True, help="a directory for the texts, models and archives")
+    sedml_translate.set_defaults(run=_sedml_translate)
     check_cmd = commands.add_parser("check", help="statically check a .pblang file or a document against manifests")
     check_cmd.add_argument(
         "document", help="a .pblang file, or a document (.json) / CompositeSpec (.yaml) to decompile and check"
