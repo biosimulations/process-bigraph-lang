@@ -90,7 +90,8 @@ Decided while building it (2026-10-13):
 - **Model changes are applied at translation** (Jim, 2026-10-13): they are constants, and the generic solvers read the
   model from config, which no step can change. The instance reads `<model>.changed.xml`, written with the change
   applied (namespaces kept), and its `meta` lists each change.
-- **Adapters live in a new package we own** (Jim, 2026-10-13), `pbsim_sedml` until it is named. Each generated file
+- **Adapters live in a new package we own** (Jim, 2026-10-13): biosim-toolkit (`biosim_toolkit.sedml`), a rollup of
+  trusted utilities (SED-ML, model and format adapters, reports, data, visualization). Each generated file
   declares them inline at their addresses, so it is self-contained.
 - **The output grid.** The generic solvers start at 0 and take points, not steps: `time` is the output end,
   `n_points` covers the initial time to the end on the output's step, and `observe` drops the `skip` points before

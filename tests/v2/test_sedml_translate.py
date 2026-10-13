@@ -75,7 +75,7 @@ def test_instances_compile_against_the_environment_with_registered_addresses(tmp
         state = compiled.document["state"]
         assert compiled.diagnostics == []
         assert state["simulate"]["address"].startswith("local:pbsim_common.simulators.")
-        assert state["observe"]["address"] == "local:pbsim_sedml.DataGenerators"
+        assert state["observe"]["address"] == "local:biosim_toolkit.sedml.DataGenerators"
         config = state["simulate"]["config"]
         assert (config["model_source"], config["time"], config["n_points"]) == (
             "BIOMD0000000297_url.changed.xml",

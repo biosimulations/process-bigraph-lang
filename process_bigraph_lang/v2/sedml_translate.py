@@ -43,8 +43,8 @@ from process_bigraph_lang.v2.sedml import (
     sedml_members,
 )
 
-#: The package the SED-ML adapter steps are in (compose-api docs/plan-sedml.md, phase 2).
-ADAPTERS_MODULE = "pbsim_sedml"
+#: Where the SED-ML adapter steps are: biosim-toolkit (compose-api docs/plan-sedml.md, D11).
+ADAPTERS_MODULE = "biosim_toolkit.sedml"
 ODE_SOLVER = "KISAO:0000694"
 
 Severity = Literal["error", "warning", "info"]

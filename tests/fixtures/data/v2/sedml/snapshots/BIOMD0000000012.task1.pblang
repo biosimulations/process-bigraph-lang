@@ -10,7 +10,7 @@ step TimeCourseSolver {
 param output_dir: string = ?;
 
 // The SED-ML adapters (docs/v2/sedml-plan.md): solver-agnostic steps around the solver.
-step DataGenerators at "local:pbsim_sedml.DataGenerators" {
+step DataGenerators at "local:biosim_toolkit.sedml.DataGenerators" {
   config {
     generators: map<string, list<{ variable: string; coefficient: float; }>>;
     constants: map<string, float>;
@@ -20,7 +20,7 @@ step DataGenerators at "local:pbsim_sedml.DataGenerators" {
   outputs { data: overwrite<map<string, list<float>>>; }
 }
 
-step Report at "local:pbsim_sedml.Report" {
+step Report at "local:biosim_toolkit.sedml.Report" {
   config {
     output_dir: string;
     reports: map<string, { file: string; name: string; data_sets: list<{ label: string; data_generator: string; }>; }>;
@@ -28,7 +28,7 @@ step Report at "local:pbsim_sedml.Report" {
   inputs { data: overwrite<map<string, list<float>>>; }
 }
 
-step Plots at "local:pbsim_sedml.Plots" {
+step Plots at "local:biosim_toolkit.sedml.Plots" {
   config {
     output_dir: string;
     plots: map<string, {
