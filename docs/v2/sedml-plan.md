@@ -1,18 +1,19 @@
 # SED-ML plan: models described in SED-ML, run as checked `.pblang` templates on several solvers
 
-Status: agreed 2026-10-12. This is the language half of compose-api's
+Status: agreed 2026-10-12; every step merged (#58, #59, #60) and released in 0.3.0 and 0.3.1 (PyPI; npm 0.3.0
+awaits a maintainer's approval). The runs on the cluster are tracked in that plan's "Verification". This is the language half of compose-api's
 [`docs/plan-sedml.md`](https://github.com/biosimulations/compose-api/blob/main/docs/plan-sedml.md), which holds the
 decisions, the service side (runs, datasets, comparisons, sources, suites) and the phase table. Each PR here updates
 the status below.
 
-| Step | What                                                                                                       | State                       |
-| ---- | ---------------------------------------------------------------------------------------------------------- | --------------------------- |
-| 1a   | `sedml.py`: SED-ML read with the standard library into `pblang-sedml/0` JSON, with an `unsupported[]` list | in review                   |
-| 1b   | The role and adapter declarations (`TimeCourseSolver`, the SED-ML adapters' faces)                         | in review                   |
-| 1c   | The template printer: one `.pblang` composite per SED-ML task, the solver an open address site             | in review                   |
-| 1d   | One instance per solver, checked and compiled against that solver's environment manifest; refusal findings | in review                   |
-| 1e   | SED-ML plots as Plotly figures                                                                             | in review                   |
-| 1f   | CLI `sedml describe` and `sedml translate`; corpus and snapshots; release 0.3.0                            | in review (release to come) |
+| Step | What                                                                                                       | State                         |
+| ---- | ---------------------------------------------------------------------------------------------------------- | ----------------------------- |
+| 1a   | `sedml.py`: SED-ML read with the standard library into `pblang-sedml/0` JSON, with an `unsupported[]` list | merged                        |
+| 1b   | The role and adapter declarations (`TimeCourseSolver`, the SED-ML adapters' faces)                         | merged                        |
+| 1c   | The template printer: one `.pblang` composite per SED-ML task, the solver an open address site             | merged                        |
+| 1d   | One instance per solver, checked and compiled against that solver's environment manifest; refusal findings | merged                        |
+| 1e   | SED-ML plots as Plotly figures                                                                             | merged                        |
+| 1f   | CLI `sedml describe` and `sedml translate`; corpus and snapshots; release 0.3.0                            | merged; released 0.3.0, 0.3.1 |
 
 ## Why here
 
