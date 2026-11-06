@@ -24,6 +24,7 @@ from __future__ import annotations
 import io
 import json
 import math
+import posixpath
 import re
 import xml.etree.ElementTree as ET
 import zipfile
@@ -204,6 +205,9 @@ def _task(
         out.models[model_file] = _apply_changes(sbml, changed)
     else:
         out.models[model_file] = sbml
+    # files the model's `comp` external model definitions name, at the same paths relative to the model
+    for path, content in _external_models(model_path, sbml, files, where, out.findings).items():
+        out.models.setdefault(path, content)
 
     # the time course on the solvers' grid: from 0, every step, the output from its start
     grid = _grid(simulation, where, out.findings)
@@ -625,6 +629,43 @@ def _apply_changes(sbml: bytes, changed: dict[tuple[str, str], tuple[str, float]
                 break
     written: bytes = ET.tostring(root, encoding="utf-8", xml_declaration=True)
     return written
+
+
+_COMP_NAMESPACE = "http://www.sbml.org/sbml/level3/version1/comp/version1"
+
+
+def _external_models(
+    model_path: str, sbml: bytes, files: dict[str, bytes], where: str, findings: list[Finding]
+) -> dict[str, bytes]:
+    """The files `comp:externalModelDefinition` elements name, and theirs in turn, by path relative to the model's
+    directory: the instance reads the model at the archive's top level, where the solver resolves them from."""
+    base = posixpath.dirname(model_path)
+    found: dict[str, bytes] = {}
+    pending = [(model_path, sbml)]
+    while pending:
+        path, content = pending.pop()
+        try:
+            root = ET.fromstring(content)
+        except ET.ParseError:
+            continue  # not XML: the solver reports it
+        here = posixpath.dirname(path)
+        for element in root.iter(f"{{{_COMP_NAMESPACE}}}externalModelDefinition"):
+            source = element.get(f"{{{_COMP_NAMESPACE}}}source") or element.get("source")
+            if not source or re.match(r"^[A-Za-z][A-Za-z0-9+.-]*:", source):
+                continue  # a URN or URL: not a file of the archive
+            target = posixpath.normpath(posixpath.join(here, source))
+            relative = posixpath.relpath(target, base or ".")
+            if relative in found or target == model_path:
+                continue
+            external = files.get(target)
+            if external is None or relative.startswith("../"):
+                findings.append(
+                    Finding("error", "X401", f"external model file {target!r} is not in the archive", where)
+                )
+                continue
+            found[relative] = external
+            pending.append((target, external))
+    return found
 
 
 def _read_files(source: Path) -> dict[str, bytes]:

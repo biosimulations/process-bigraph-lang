@@ -112,19 +112,23 @@ Decided while building it (2026-10-13):
   store already has, so a `map` store would stay empty (found running the chain under `registry_env`'s versions).
 - **One archive per task and solver**: pbest runs the first top-level `.pbg`, so `instance_archive` holds one compiled
   document (`<task>.pbg`), its text and the model files.
+- **External model files ride along** (`comp`): the files a model's `comp:externalModelDefinition`s name (and theirs
+  in turn) are model files too, kept at the paths the model names them by, relative to it, so the solver resolves
+  them beside the model. A URN or URL source is not a file; a file missing from the archive, or outside the model's
+  folder, is `X401`. (SBML Test Suite cases 01475 to 01477, found by compose-api's sample suite.)
 - **No browser translation.** The web app previews a translation through compose-api, which calls this package.
 
 ## Findings
 
-| Code | Severity | Meaning                                                                                           |
-| ---- | -------- | ------------------------------------------------------------------------------------------------- |
-| X400 | warning  | a SED-ML element version 1 does not translate (from `describe`'s `unsupported`)                   |
-| X401 | error    | a change or data generator names an element the model does not have, or the model file is missing |
-| X402 | error    | the time course does not start at 0, where the generic solvers start                              |
-| X403 | error    | the output is not on a grid from the initial time                                                 |
-| X404 | warning  | data generators read values the solver does not return; they are left out of its outputs          |
-| X405 | warning  | the solver runs a different ODE algorithm than the one asked for                                  |
-| X406 | error    | the solver implements no algorithm of the kind asked for                                          |
+| Code | Severity | Meaning                                                                                         |
+| ---- | -------- | ----------------------------------------------------------------------------------------------- |
+| X400 | warning  | a SED-ML element version 1 does not translate (from `describe`'s `unsupported`)                 |
+| X401 | error    | a change or data generator names an element the model does not have, or a model file is missing |
+| X402 | error    | the time course does not start at 0, where the generic solvers start                            |
+| X403 | error    | the output is not on a grid from the initial time                                               |
+| X404 | warning  | data generators read values the solver does not return; they are left out of its outputs        |
+| X405 | warning  | the solver runs a different ODE algorithm than the one asked for                                |
+| X406 | error    | the solver implements no algorithm of the kind asked for                                        |
 
 ## Interfaces
 

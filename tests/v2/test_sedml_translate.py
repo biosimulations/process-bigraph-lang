@@ -141,6 +141,55 @@ def test_findings_that_refuse_a_solver(tmp_path: Path, replace: dict[str, str], 
     assert (task.instances == {}) is refused
 
 
+COMP = "http://www.sbml.org/sbml/level3/version1/comp/version1"
+
+
+def _comp_model(*sources: str) -> str:
+    """A `comp` model whose external model definitions name `sources`."""
+    definitions = "".join(
+        f'<comp:externalModelDefinition comp:id="e{i}" comp:source="{source}" comp:modelRef="m"/>'
+        for i, source in enumerate(sources)
+    )
+    return (
+        f'<?xml version="1.0"?><sbml xmlns="http://www.sbml.org/sbml/level3/version1/core" xmlns:comp="{COMP}" '
+        'level="3" version="1" comp:required="true">'
+        f"<comp:listOfExternalModelDefinitions>{definitions}</comp:listOfExternalModelDefinitions>"
+        '<model id="m"><listOfCompartments><compartment id="c" size="1" constant="true"/></listOfCompartments>'
+        '<listOfSpecies><species id="A" compartment="c" initialConcentration="1" hasOnlySubstanceUnits="false" '
+        'boundaryCondition="false" constant="false"/><species id="B" compartment="c" initialConcentration="0" '
+        'hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/></listOfSpecies>'
+        '<listOfParameters><parameter id="k" value="0.1" constant="true"/></listOfParameters></model></sbml>'
+    )
+
+
+def test_external_model_files_ride_along_at_their_paths(tmp_path: Path) -> None:
+    """A `comp` model's external model files (and theirs) go into the archive beside the model, at the paths the
+    model names them by, so the solver resolves them; a URN is not a file."""
+    source = tmp_path / "comp.omex"
+    with zipfile.ZipFile(source, "w") as archive:
+        archive.writestr("s.sedml", _scenario(tmp_path).read_text())
+        archive.writestr("model.xml", _comp_model("parts/inner.xml", "urn:miriam:biomodels.db:BIOMD0000000012"))
+        archive.writestr("parts/inner.xml", _comp_model("deeper.xml"))
+        archive.writestr("parts/deeper.xml", _comp_model())
+        archive.writestr("unrelated.xml", _comp_model())
+    (task,) = translate(source, SOLVERS).tasks
+    assert sorted(task.models) == ["model.changed.xml", "parts/deeper.xml", "parts/inner.xml"]
+    assert not [f for f in task.findings if f.code == "X401"]
+    compiled = compile_instance(task, "tellurium", [MANIFEST])
+    names = zipfile.ZipFile(io.BytesIO(instance_archive(task, "tellurium", compiled.document))).namelist()
+    assert {"model.changed.xml", "parts/inner.xml", "parts/deeper.xml"} <= set(names)
+
+
+def test_a_missing_external_model_file_refuses_the_task(tmp_path: Path) -> None:
+    source = tmp_path / "comp.omex"
+    with zipfile.ZipFile(source, "w") as archive:
+        archive.writestr("s.sedml", _scenario(tmp_path).read_text())
+        archive.writestr("model.xml", _comp_model("missing.xml"))
+    (task,) = translate(source, SOLVERS).tasks
+    (x401,) = [f for f in task.findings if f.code == "X401"]
+    assert "missing.xml" in x401.message and task.instances == {}
+
+
 def test_the_cli_writes_texts_models_archives_and_findings(tmp_path: Path) -> None:
     out = tmp_path / "out"
     code = main([
