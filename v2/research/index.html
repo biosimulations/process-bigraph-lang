@@ -1,0 +1,1241 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="This is a LSP, CLI and Python package for a domain specific language for process bigraphs.">
+      
+      
+        <meta name="author" content="Jim Schaff">
+      
+      
+        <link rel="canonical" href="https://biosimulations.github.io/process-bigraph-lang/v2/research/">
+      
+      
+        <link rel="prev" href="../../modules/">
+      
+      
+        <link rel="next" href="../design/">
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.14">
+    
+    
+      
+        <title>Research notes - process-bigraph-lang</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.342714a4.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="white" data-md-color-accent="deep-orange">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#v2-background-research-notes-2026-10-11" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="process-bigraph-lang" class="md-header__button md-logo" aria-label="process-bigraph-lang" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            process-bigraph-lang
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Research notes
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="white" data-md-color-accent="deep-orange"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="black" data-md-color-accent="deep-orange"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/biosimulations/process-bigraph-lang" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    biosimulations/process-bigraph-lang
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="process-bigraph-lang" class="md-nav__button md-logo" aria-label="process-bigraph-lang" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    process-bigraph-lang
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/biosimulations/process-bigraph-lang" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    biosimulations/process-bigraph-lang
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Architecture
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../modules/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Modules
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    v2 (design)
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            v2 (design)
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    Research notes
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    Research notes
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-what-motivated-the-second-look" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. What motivated the second look
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-process-bigraph-18-and-bigraph-schema-1617" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. process-bigraph 1.8 and bigraph-schema 1.6–1.7
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. process-bigraph 1.8 and bigraph-schema 1.6–1.7">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#21-composite-document" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.1 Composite document
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#22-serialized-documents-differ-from-authored-ones" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.2 Serialized documents differ from authored ones
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#23-templates-and-sites" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.3 Templates and sites
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#24-type-system" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.4 Type system
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#25-interfaces-and-discovery" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.5 Interfaces and discovery
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-the-viva-ecosystem" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. The viva ecosystem
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. The viva ecosystem">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#31-viva-pde-particle" class="md-nav__link">
+    <span class="md-ellipsis">
+      3.1 viva-pde-particle
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#32-other-packages" class="md-nav__link">
+    <span class="md-ellipsis">
+      3.2 Other packages
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#33-vivarium-workbench-and-loom" class="md-nav__link">
+    <span class="md-ellipsis">
+      3.3 vivarium-workbench and loom
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#34-viva-catalog" class="md-nav__link">
+    <span class="md-ellipsis">
+      3.4 viva-catalog
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#35-pain-points-collected" class="md-nav__link">
+    <span class="md-ellipsis">
+      3.5 Pain points collected
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-this-repository-before-v2" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. This repository before v2
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../design/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Language design
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../registry-and-authoring/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Registry and authoring
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../plan/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Implementation plan
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../authoring-plan/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Stage two (authoring) plan
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sedml-plan/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    SED-ML plan
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-what-motivated-the-second-look" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. What motivated the second look
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-process-bigraph-18-and-bigraph-schema-1617" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. process-bigraph 1.8 and bigraph-schema 1.6–1.7
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. process-bigraph 1.8 and bigraph-schema 1.6–1.7">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#21-composite-document" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.1 Composite document
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#22-serialized-documents-differ-from-authored-ones" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.2 Serialized documents differ from authored ones
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#23-templates-and-sites" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.3 Templates and sites
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#24-type-system" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.4 Type system
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#25-interfaces-and-discovery" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.5 Interfaces and discovery
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-the-viva-ecosystem" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. The viva ecosystem
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. The viva ecosystem">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#31-viva-pde-particle" class="md-nav__link">
+    <span class="md-ellipsis">
+      3.1 viva-pde-particle
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#32-other-packages" class="md-nav__link">
+    <span class="md-ellipsis">
+      3.2 Other packages
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#33-vivarium-workbench-and-loom" class="md-nav__link">
+    <span class="md-ellipsis">
+      3.3 vivarium-workbench and loom
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#34-viva-catalog" class="md-nav__link">
+    <span class="md-ellipsis">
+      3.4 viva-catalog
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#35-pain-points-collected" class="md-nav__link">
+    <span class="md-ellipsis">
+      3.5 Pain points collected
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-this-repository-before-v2" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. This repository before v2
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="v2-background-research-notes-2026-10-11">v2 background: research notes (2026-10-11)<a class="headerlink" href="#v2-background-research-notes-2026-10-11" title="Permanent link">&para;</a></h1>
+<p>This page records what was learned while taking a second look at the language, a year after its first design.
+It is the evidence behind the <a href="../design/">v2 language design</a>, the
+<a href="../registry-and-authoring/">registry and authoring design</a> and the <a href="../plan/">implementation plan</a>.</p>
+<p>Sources were the local clones of <code>process-bigraph</code> (1.8.5, commit e5325c1), <code>bigraph-schema</code> (1.6.0, commit 8268aa1;
+origin is at 1.7.0), the <code>viva-*</code> and <code>pbg-*</code> packages, <code>vivarium-workbench</code>, <code>viva-catalog</code> (read through the GitHub
+API), and this repository. The Python environment of this repository has process-bigraph 1.8.4 and bigraph-schema 1.6.0.</p>
+<h2 id="1-what-motivated-the-second-look">1. What motivated the second look<a class="headerlink" href="#1-what-motivated-the-second-look" title="Permanent link">&para;</a></h2>
+<ul>
+<li>process-bigraph grew <strong>templates and sites</strong> (open holes in a document, filled later), <strong>contracts</strong> and
+  <strong>contract audits</strong>, and a declarative <strong>CompositeSpec</strong> (<code>*.composite.yaml</code>).</li>
+<li>The ecosystem grew to about fifty <code>viva-*</code> packages, a browser workbench, a nascent registry and prompt-driven
+  authoring tools.</li>
+<li><code>viva-pde-particle</code>, a co-simulation of a PDE solver and a Brownian-dynamics particle solver, shows what real
+  composites need and what today's language cannot say.</li>
+<li>The current DSL is one-directional, lossy, and was designed as the document a person writes by hand. The new framing
+  is different: the DSL is a <strong>verifiable target layer</strong>. End users author with prompt-guided tools against a
+  <strong>declared registry of components</strong>; the DSL is where the result is type-checked, audited, documented and
+  explained, and from which the runnable document is generated.</li>
+</ul>
+<h2 id="2-process-bigraph-18-and-bigraph-schema-1617">2. process-bigraph 1.8 and bigraph-schema 1.6–1.7<a class="headerlink" href="#2-process-bigraph-18-and-bigraph-schema-1617" title="Permanent link">&para;</a></h2>
+<h3 id="21-composite-document">2.1 Composite document<a class="headerlink" href="#21-composite-document" title="Permanent link">&para;</a></h3>
+<p>A document is <code>{"schema": …, "state": …}</code> plus optional top-level options. <code>Composite.config_schema</code> declares
+<code>schema</code>, <code>state</code>, <code>interface{inputs,outputs}</code>, <code>bridge{inputs,outputs}</code> (and an undeclared <code>bridge.conduits</code>),
+<code>global_time_precision</code>, <code>run_steps_on_init</code>, <code>parallel_steps</code>, <code>parallel_processes</code>, <code>parallel_workers</code>,
+<code>skip_process_state</code> and (clone only) <code>contract_strict</code>. <code>initialize</code> injects <code>global_time</code> at the root.</p>
+<p>An edge node in <code>state</code> may carry:</p>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>_type</code></td>
+<td><code>process</code>, <code>step</code> or <code>link</code>; may be omitted in <code>state</code> when <code>schema</code> declares it</td>
+</tr>
+<tr>
+<td><code>address</code></td>
+<td><code>"protocol:data"</code> string or <code>{"protocol","data"}</code> dict; no protocol means <code>local</code></td>
+</tr>
+<tr>
+<td><code>config</code></td>
+<td>realized against the class <code>config_schema</code></td>
+</tr>
+<tr>
+<td><code>inputs</code> / <code>outputs</code></td>
+<td>wires: list paths <strong>relative to the edge's parent</strong>; a string is a one-element path; nested dicts wire</td>
+</tr>
+<tr>
+<td></td>
+<td>sub-ports; <code>..</code> goes up; <code>*</code> is a star jump</td>
+</tr>
+<tr>
+<td><code>_inputs</code> / <code>_outputs</code></td>
+<td>port-schema overrides merged with <code>interface()</code></td>
+</tr>
+<tr>
+<td><code>interval</code></td>
+<td>process only, must be &gt; 0, default 1.0</td>
+</tr>
+<tr>
+<td><code>priority</code>, <code>_triggers</code></td>
+<td>step only</td>
+</tr>
+<tr>
+<td>any other non-<code>_</code> key</td>
+<td>realized as extra data</td>
+</tr>
+</tbody>
+</table>
+<p>Address protocols: <code>local:Name</code> (registry lookup; discovery registers both <code>module.Class</code> and a short alias, first one
+wins), <code>local:!module.Class</code> (import by dotted path, portable), <code>parallel:</code>, <code>ray:</code>, <code>rest:</code> and <code>git:</code> (allow-listed
+repo at a SHA, per-SHA venv, subprocess RPC, face-conformance check). <code>registry_dependent_addresses</code> and
+<code>assert_portable_addresses</code> in <code>bigraph_schema/protocols.py</code> lint for the non-portable form.</p>
+<p>Nested composites are a process at <code>local:Composite</code> whose <code>config</code> holds <code>state</code>, <code>schema</code>, <code>bridge</code> and
+<code>interface</code>; the outer ports derive from <code>bridge</code>. <strong>Saving such a document is lossy</strong>: the inner state comes back
+empty (observed on 1.8.4 and the clone). Shared processes use <code>shared_process</code> plus <code>shared_process_ref</code>.</p>
+<p>Emitters are steps whose config has <code>emit: &lt;schema&gt;</code>; viva-emitters provides RAM, sqlite, parquet and xarray. CompositeSpec
+has <code>emitters: [{address, paths}]</code> sugar, materialized by <code>process_bigraph.emitter.emitter_node_from_declaration</code>.</p>
+<h3 id="22-serialized-documents-differ-from-authored-ones">2.2 Serialized documents differ from authored ones<a class="headerlink" href="#22-serialized-documents-differ-from-authored-ones" title="Permanent link">&para;</a></h3>
+<p><code>Composite.save()</code> writes <code>{"state": serialize_state(), "schema": serialize_schema()}</code>. Compared with the authoring
+document:</p>
+<ul>
+<li><code>_type</code> appears only in the schema half; the state half has dict addresses <code>{"protocol","data"}</code>.</li>
+<li><code>config</code> is fully defaulted; <code>_inputs</code>/<code>_outputs</code> are always present, often in compact string form
+  (<code>"level:float"</code>); a <code>_contract</code> block is added.</li>
+<li><code>global_time</code> and process-contributed stores (an emitter's <code>results</code>) are added.</li>
+<li>The schema half is rendered <strong>without</strong> defaults, so a dict schema collapses to a string (<code>"pt": "x:float|y:float"</code>)
+  and store defaults are lost (<code>float{3.5}</code> becomes <code>float</code>).</li>
+<li>Rendering quirks: <code>map[string,float]</code> becomes <code>map[float]</code>; <code>array[float]</code> becomes <code>array[1,float]</code>.</li>
+<li>Reloading <code>{"state": saved_state}</code> alone silently loses every process; both halves are needed.</li>
+</ul>
+<h3 id="23-templates-and-sites">2.3 Templates and sites<a class="headerlink" href="#23-templates-and-sites" title="Permanent link">&para;</a></h3>
+<p>The vocabulary is <strong>site, sort, admits, face, fill, compose, ground, template</strong>. "Slot" was an earlier draft name
+and was dropped deliberately. There is one <code>Site</code> type (<code>bigraph_schema/schema.py</code>, <code>class Site(Empty)</code> with <code>_sort</code>
+and the inherited <code>_default</code>); its kind is decided by its sort and position:</p>
+<table>
+<thead>
+<tr>
+<th>Kind</th>
+<th>Written as</th>
+<th>Admits</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>value site</td>
+<td><code>{"_type":"site","_sort":"float"}</code></td>
+<td><code>core.check(sort, filler)</code></td>
+</tr>
+<tr>
+<td>face site</td>
+<td><code>_sort</code> is <code>link[in,out]</code> or <code>{"_type":"link","_inputs","_outputs"}</code></td>
+<td><code>face_conforms</code>: every required port, resolvable types; extras ok</td>
+</tr>
+<tr>
+<td>address site</td>
+<td><code>"address": {"_type":"site","_sort": FACE}</code> inside an edge node</td>
+<td>filler is an address; face from the registered class</td>
+</tr>
+<tr>
+<td>config site</td>
+<td>a site anywhere under an edge's <code>config</code></td>
+<td>as a value site</td>
+</tr>
+<tr>
+<td>named sort</td>
+<td><code>_sort: "results"</code> via <code>core.register_sort</code> or a contract name</td>
+<td>custom admits function</td>
+</tr>
+<tr>
+<td>unsorted</td>
+<td><code>"site"</code></td>
+<td>anything</td>
+</tr>
+</tbody>
+</table>
+<p><code>{"_control":"replicate","_count":N}</code> expands a region N times (<code>assembly.build</code> only). The algebra is in
+<code>bigraph_schema/assembly.py</code> (<code>interfaces</code>, <code>is_ground</code>, <code>admits_why</code>, <code>face_conforms</code>, <code>fill_sites</code>, <code>replicate</code>,
+<code>build</code>); the process-bigraph layer is <code>process_bigraph/templates.py</code> (<code>open_sites</code>, <code>required_open_sites</code>,
+<code>is_ground_document</code>, <code>fill_template</code>, <code>template_document</code>, <code>load_template</code>, <code>save_template</code>). bigraph-schema 1.7 adds
+<code>bigraph_schema.matching.find_candidates(core, site)</code>.</p>
+<p>Fill semantics: bindings are keyed by bare site key (when unique) or by <code>/</code>-joined path; an unbound site with a
+<code>_default</code> is filled from it; a value filler becomes the sort with <code>_default=value</code>; <code>template_document</code> renders with
+<code>defaults=True</code> (without it, values are lost). <code>Composite.initialize</code> checks groundness before realization (clone) and
+raises <code>composite document is not ground — required site(s) left unfilled: '…'</code>. Two upstream traps remain: a
+<code>schema</code> entry used to swallow a <code>state</code> site (process-bigraph#213), and address sites can only be filled with names
+registered through <code>core.register_link</code> (bigraph-schema#188).</p>
+<h3 id="24-type-system">2.4 Type system<a class="headerlink" href="#24-type-system" title="Permanent link">&para;</a></h3>
+<p>String grammar (<code>bigraph_schema/parse.py</code>): <code>name[params]{default}</code>, struct <code>a:T|b:U</code>, union <code>A~B</code>, parentheses.
+Builtins: node, atom, empty, union, tuple, boolean, integer, float, float64, nonnegative, complex, range, string, enum,
+maybe, overwrite, const, quote, list, set, map, tree, array, dataframe, path, wires, protocol, schema, link, object,
+function, quantity, site, inner_name, outer_name, face; process-bigraph adds step, process, composite, interface,
+bridge, shared_process, interval. Dict forms use <code>_element</code>, <code>_key</code>, <code>_value</code>, <code>_values</code>, <code>_options</code>, <code>_shape</code>,
+<code>_data</code>, <code>_units</code>, <code>_bits</code>, <code>_min</code>, <code>_max</code>, <code>_sort</code>, <code>_inputs</code>, <code>_outputs</code>, <code>_class</code>, <code>_default</code>, <code>_inherit</code>.</p>
+<p>Two traps: <strong><code>any</code> is not a type</strong> and an unknown string name passes through <code>core.access</code> silently, so typos are
+not caught; and a plain <code>map[array[float]]</code> output is <strong>additive</strong> unless wrapped in <code>overwrite[...]</code>, which silently
+changes update semantics. Custom types are registered via a <code>register_types(core)</code> hook and get behaviour from plum
+dispatch methods, not from <code>_apply</code> keys (those no longer exist).</p>
+<h3 id="25-interfaces-and-discovery">2.5 Interfaces and discovery<a class="headerlink" href="#25-interfaces-and-discovery" title="Permanent link">&para;</a></h3>
+<p><code>Edge</code> (<code>bigraph_schema/edge.py</code>) has class attributes <code>config_schema</code>, <code>description</code>, <code>contract</code> and instance
+methods <code>inputs()</code>, <code>outputs()</code>, <code>interface()</code>, <code>describe()</code>. <code>ProcessContract</code> (<code>bigraph_schema/contract.py</code>) is a
+structured face with <code>_units</code>, <code>_min</code>, <code>_max</code>, description, assumptions and references; <code>audit_contract</code> and
+<code>completeness</code> (1.7) grade it. <code>DraftProcess</code> declares ports and a contract with no dynamics.</p>
+<p>Discovery is import-based everywhere: <code>allocate_core()</code> scans every installed distribution that depends on
+bigraph-schema and imports it (with a lazy on-disk name→module index); import errors in submodules are swallowed.
+There is no static interface manifest and no entry-point mechanism. The REST server exposes <code>/list-processes</code> and
+<code>/process/{p}/config-schema</code>.</p>
+<h2 id="3-the-viva-ecosystem">3. The viva ecosystem<a class="headerlink" href="#3-the-viva-ecosystem" title="Permanent link">&para;</a></h2>
+<h3 id="31-viva-pde-particle">3.1 viva-pde-particle<a class="headerlink" href="#31-viva-pde-particle" title="Permanent link">&para;</a></h3>
+<p>Pipeline: model input (Python <code>HybridModel</code> dataclasses or SBML Spatial via libvcell) → <code>partition()</code> into PDE and
+particle halves → Smoldyn config text → geometry (vcell-fenics <code>GeometryDescription</code> realized by Netgen or libvcell;
+derived mesh, membrane triangles, volume samples, fold maps) → engines (FV, FEniCSx Q1/P1, <code>SmoldynHybrid</code>) → coupling
+(adapter steps both ways; timing by Jacobi scheduling, <code>Stepper</code> with <code>every</code>/<code>phase</code>, or <code>SplittingCoordinator</code>) →
+output (<code>HybridTrajectory</code> from a Python run loop, or <code>SpatialRecorder</code> writing a zarr bundle; <code>SpatialExport</code> after the
+run because there is no end-of-run hook) → visualization (<code>viz3d</code>).</p>
+<p>Declarations: config schemas are mostly untyped <code>"map"</code> blobs (<code>grid</code>, <code>pde</code> partition, mesh spec, <code>domain</code> arrays,
+generated <code>config_text</code>); ports are always <code>map[array[float]]</code> in and <code>map[overwrite[array[float]]]</code> out; no custom
+types, shapes or units (these live in prose in <code>docs/DESIGN.md</code> §13). Ports depend on config (<code>SmoldynHybrid</code> adds
+<code>particle_positions</code> only if <code>emit_positions</code>; <code>SpatialRecorder.inputs()</code> depends on <code>layout.kind</code>) or on children
+(<code>Stepper.inputs()</code> returns its child's; <code>SplittingCoordinator</code> unions its children's ports). Adapters are steps in
+<code>steps/transfer.py</code> with <code>config {grid: map, mesh: map, species: list[string]}</code>.</p>
+<p>Composites are built only by Python functions in <code>composites/hybrid.py</code>, wrapped by <code>@composite_generator</code> in
+<code>composites/examples.py</code>; there are no <code>*.composite.yaml</code> files. Builder logic that is not declarative today: engine
+choice by name, adapter choice, conditional wiring, option-combination validation, pre-computing initial arrays by
+instantiating steps (steps don't run at init), a probe process to learn the DOF count, seeded particle placement,
+generating the Smoldyn text, and keeping grid/mesh/species consistent across components. Addresses are bare
+<code>local:Name</code> registered by a hand-written <code>build_core()</code> because editable installs are not discovered. The package
+runs in a single pixi environment (dolfinx, gmsh, a patched Smoldyn submodule, pyvcell) on linux-64 and osx-arm64,
+with a compose-api Docker image.</p>
+<h3 id="32-other-packages">3.2 Other packages<a class="headerlink" href="#32-other-packages" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Package</th>
+<th>Declarations and authoring</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>viva-smoldyn, viva-vcell-fvsolver</td>
+<td>declarative <code>*.composite.yaml</code> (CompositeSpec: <code>requires</code>, <code>parameters</code> with <code>${}</code> substitution, <code>emitters</code>)</td>
+</tr>
+<tr>
+<td>viva-fenics</td>
+<td><code>@composite_generator</code> dict literals that compute initial mesh arrays in Python; one custom type <code>fem_field</code></td>
+</tr>
+<tr>
+<td>viva-emitters</td>
+<td>emitters as steps with <code>emit: schema</code>; the only self-describing contract (<code>EmitterContract(output_kind, output_uri_config_key)</code>)</td>
+</tr>
+<tr>
+<td>viva-uq</td>
+<td>injects parameters at <code>"a/b/c"</code> paths; builds an emitter class at runtime to dodge type checking</td>
+</tr>
+<tr>
+<td>spatio-flux (older)</td>
+<td>richest custom types (<code>positive_float</code> with custom apply, <code>enum</code>, <code>maybe</code>, <code>map[reaction]</code>); one <code>DynamicFBA</code> per grid cell with array-indexed wires <code>["..","fields",mol,i,j]</code>; port shapes computed from config</td>
+</tr>
+<tr>
+<td>pbg-ptools</td>
+<td>workbench viewer plugin, no processes</td>
+</tr>
+</tbody>
+</table>
+<p>Nothing publishes process interfaces as data. The only entry-point group is <code>process_bigraph.spec_generators</code> for
+composite generators. The <code>catalog/modules.json</code> in viva-superpowers lists repo pointers, not interfaces. pbg-template
+scaffolds a workspace (JSON Schemas for <code>workspace.yaml</code>, study and investigation; a <code>core.py</code> stub).</p>
+<h3 id="33-vivarium-workbench-and-loom">3.3 vivarium-workbench and loom<a class="headerlink" href="#33-vivarium-workbench-and-loom" title="Permanent link">&para;</a></h3>
+<p>The workbench is a local FastAPI server that turns a workspace directory (<code>workspace.yaml</code>, <code>composites/*.composite.yaml</code>,
+studies, investigations; every mutation committed to git) into an interactive notebook. It never imports workspace
+code in the HTTP process; a stdlib-only <code>env_worker.py</code> runs in the workspace interpreter, imports
+<code>&lt;package&gt;.core.build_core()</code>, walks <code>core.link_registry</code>, reads <code>config_schema</code> and calls <code>inputs()</code>/<code>outputs()</code> with
+the class standing in for <code>self</code> (ports are <code>None</code> when that fails). The record sent to the frontend is
+<code>RegistryProcess {name, address, kind, schema_preview, aliases, source, description, config_schema, inputs, outputs}</code>
+plus, on GitHub, <code>contract_audit</code>. Composites are authored as yaml with parameter forms (<code>ParameterDecl {type, default,
+description, choices}</code>), dotted-path "perturb" overrides, per-process "try it", and the viva-superpowers skills.
+Validation: JSON Schema at save time, <code>{error}</code> envelopes, build errors as a warning chip with the stringified
+exception, a preflight that aggregates silent failures, and (on GitHub) a composite-level contract audit with codes
+<code>wire-type-mismatch</code>, <code>wire-unit-mismatch</code>, <code>unknown_port</code>. Runs are local (SQLite results) or remote via viva-api.</p>
+<p><code>bigraph-loom</code> is archived and vendored at <code>vivarium_workbench/loom/</code>: a read-only React Flow viewer and inspector with
+many layout engines, drill-down into composite processes, a contract panel and a raw JSON panel. It has no text
+pretty-printer, no diffs, no templates and no validation. Its process node model is <code>{processType, address, config,
+configSchema, interval, inputPorts, outputPorts, inputSchema, outputSchema, contract, isCompositeProcess}</code> with wires
+resolved to absolute store paths in <code>convert.ts</code>.</p>
+<h3 id="34-viva-catalog">3.4 viva-catalog<a class="headerlink" href="#34-viva-catalog" title="Permanent link">&para;</a></h3>
+<p>"Ledger for the vivarium ecosystem": <code>modules.json</code> lists repos tagged with the GitHub topic <code>viva-marketplace</code>
+(<code>{name, source, ref, package, homepage, description, tags}</code>); a nightly workflow shallow-clones each one and AST-scans
+class names into <code>ecosystem-index.json</code> (<code>processes: [{name, description}]</code>, steps, composites, studies,
+investigations). There are no ports, config schemas or addresses in the index. A PR proposing AST-extracted ports, JSON
+Schemas and a <code>marketplace_info.get_info()</code> hook was closed unmerged on 2026-07-30. Published at
+<code>vivarium-collective.github.io/viva-catalog/*.json</code> and consumed by the workbench marketplace tab.</p>
+<h3 id="35-pain-points-collected">3.5 Pain points collected<a class="headerlink" href="#35-pain-points-collected" title="Permanent link">&para;</a></h3>
+<ol>
+<li>A missing address fails late and cryptically: <code>no link found at address: {'protocol': 'local', 'data': 'X'}</code>.</li>
+<li>Unknown type names (<code>int</code>, <code>any</code>) are accepted silently.</li>
+<li>Additive vs <code>overwrite[...]</code> update semantics are silently wrong; an empty-array initial store is replaced rather
+   than added to.</li>
+<li>Remote failures succeed silently: dropped process swaps, typo'd emit paths that materialize empty dicts, empty
+   variant grids.</li>
+<li><code>${param}</code> substitution leaves malformed references as-is; values may arrive as strings.</li>
+<li>Discovery swallows <code>ImportError</code>s; a registry cache can be stale and show none of the workspace's own processes.</li>
+<li>Float-sum interval drift defers updates.</li>
+<li>Validation lives in <code>initialize()</code>/<code>update()</code> as <code>ValueError</code>s, not in schemas.</li>
+<li>Schemas for emitters, studies and investigations are hand-mirrored across repos and unversioned.</li>
+<li>Missing observables are returned as <code>0.0</code>.</li>
+<li>Saved nested composites lose their inner state.</li>
+</ol>
+<h2 id="4-this-repository-before-v2">4. This repository before v2<a class="headerlink" href="#4-this-repository-before-v2" title="Permanent link">&para;</a></h2>
+<ul>
+<li>One direction only: DSL → document. No printer, formatter, decompiler, hover or completion provider.
+  <code>dsl/src/language/sbml.ts</code> is a narrow precedent for generating DSL from external data.</li>
+<li>Lossy compile: aliases erased, struct-typed stores split per field, references inlined, remote type names dropped,
+  units and comments dropped, <code>interval</code> never set.</li>
+<li>Missing constructs compared with the 1.x document: emitters, <code>interval</code>, nested composites and <code>bridge</code>, maps of
+  edges, custom types with apply behaviour, enum/union/maybe/optional, array dtype and shape, imports across files, doc
+  comments, protocol-aware addresses, units on types, nested or per-key wiring, <code>..</code> paths, remote-typed config values,
+  expressions.</li>
+<li>The old ANTLR grammar (<code>antlr/pblang.g4</code>) had different ideas worth remembering: parameters with units, update
+  expressions, <code>maybe[T]</code>, store hierarchies, <code>composite_def</code>, an <code>sbml</code> block.</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Maintained by <a href="https://biosimulations.com">Florian</a>.
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        <div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/biosimulations/process-bigraph-lang" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://pypi.org/project/process-bigraph-lang" target="_blank" rel="noopener" title="pypi.org" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.8 200.5c-7.7-30.9-22.3-54.2-53.4-54.2h-40.1v47.4c0 36.8-31.2 67.8-66.8 67.8H172.7c-29.2 0-53.4 25-53.4 54.3v101.8c0 29 25.2 46 53.4 54.3 33.8 9.9 66.3 11.7 106.8 0 26.9-7.8 53.4-23.5 53.4-54.3v-40.7H226.2v-13.6h160.2c31.1 0 42.6-21.7 53.4-54.2 11.2-33.5 10.7-65.7 0-108.6M286.2 404c11.1 0 20.1 9.1 20.1 20.3 0 11.3-9 20.4-20.1 20.4-11 0-20.1-9.2-20.1-20.4.1-11.3 9.1-20.3 20.1-20.3M167.8 248.1h106.8c29.7 0 53.4-24.5 53.4-54.3V91.9c0-29-24.4-50.7-53.4-55.6-35.8-5.9-74.7-5.6-106.8.1-45.2 8-53.4 24.7-53.4 55.6v40.7h106.9v13.6h-147c-31.1 0-58.3 18.7-66.8 54.2-9.8 40.7-10.2 66.1 0 108.6 7.6 31.6 25.7 54.2 56.8 54.2H101v-48.8c0-35.3 30.5-66.4 66.8-66.4m-6.7-142.6c-11.1 0-20.1-9.1-20.1-20.3.1-11.3 9-20.4 20.1-20.4 11 0 20.1 9.2 20.1 20.4s-9 20.3-20.1 20.3"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "../..", "features": [], "search": "../../assets/javascripts/workers/search.d50fe291.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.13a4f30d.min.js"></script>
+      
+    
+  </body>
+</html>

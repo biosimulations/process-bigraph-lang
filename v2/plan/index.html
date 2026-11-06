@@ -1,0 +1,1310 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="This is a LSP, CLI and Python package for a domain specific language for process bigraphs.">
+      
+      
+        <meta name="author" content="Jim Schaff">
+      
+      
+        <link rel="canonical" href="https://biosimulations.github.io/process-bigraph-lang/v2/plan/">
+      
+      
+        <link rel="prev" href="../registry-and-authoring/">
+      
+      
+        <link rel="next" href="../authoring-plan/">
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.14">
+    
+    
+      
+        <title>Implementation plan - process-bigraph-lang</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.342714a4.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="white" data-md-color-accent="deep-orange">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#v2-implementation-plan" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="process-bigraph-lang" class="md-header__button md-logo" aria-label="process-bigraph-lang" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            process-bigraph-lang
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Implementation plan
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="white" data-md-color-accent="deep-orange"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="black" data-md-color-accent="deep-orange"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/biosimulations/process-bigraph-lang" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    biosimulations/process-bigraph-lang
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="process-bigraph-lang" class="md-nav__button md-logo" aria-label="process-bigraph-lang" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    process-bigraph-lang
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/biosimulations/process-bigraph-lang" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    biosimulations/process-bigraph-lang
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Architecture
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../modules/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Modules
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    v2 (design)
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            v2 (design)
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../research/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Research notes
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../design/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Language design
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../registry-and-authoring/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Registry and authoring
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    Implementation plan
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    Implementation plan
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#decisions" class="md-nav__link">
+    <span class="md-ellipsis">
+      Decisions
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#layout" class="md-nav__link">
+    <span class="md-ellipsis">
+      Layout
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#reader-rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      Reader rules
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#printer-rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      Printer rules
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#writer-rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      Writer rules
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#normalizer-behaviour-verified-against-the-installed-versions" class="md-nav__link">
+    <span class="md-ellipsis">
+      Normalizer (behaviour verified against the installed versions)
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#corpus-and-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      Corpus and tests
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#order-of-work" class="md-nav__link">
+    <span class="md-ellipsis">
+      Order of work
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#status-2026-10-11" class="md-nav__link">
+    <span class="md-ellipsis">
+      Status (2026-10-11)
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#verification" class="md-nav__link">
+    <span class="md-ellipsis">
+      Verification
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#risks" class="md-nav__link">
+    <span class="md-ellipsis">
+      Risks
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#out-of-scope-this-round" class="md-nav__link">
+    <span class="md-ellipsis">
+      Out of scope this round
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../authoring-plan/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Stage two (authoring) plan
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sedml-plan/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    SED-ML plan
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#decisions" class="md-nav__link">
+    <span class="md-ellipsis">
+      Decisions
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#layout" class="md-nav__link">
+    <span class="md-ellipsis">
+      Layout
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#reader-rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      Reader rules
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#printer-rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      Printer rules
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#writer-rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      Writer rules
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#normalizer-behaviour-verified-against-the-installed-versions" class="md-nav__link">
+    <span class="md-ellipsis">
+      Normalizer (behaviour verified against the installed versions)
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#corpus-and-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      Corpus and tests
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#order-of-work" class="md-nav__link">
+    <span class="md-ellipsis">
+      Order of work
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#status-2026-10-11" class="md-nav__link">
+    <span class="md-ellipsis">
+      Status (2026-10-11)
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#verification" class="md-nav__link">
+    <span class="md-ellipsis">
+      Verification
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#risks" class="md-nav__link">
+    <span class="md-ellipsis">
+      Risks
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#out-of-scope-this-round" class="md-nav__link">
+    <span class="md-ellipsis">
+      Out of scope this round
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="v2-implementation-plan">v2 implementation plan<a class="headerlink" href="#v2-implementation-plan" title="Permanent link">&para;</a></h1>
+<p>Status: approved scope for the first round, 2026-10-11. See the <a href="../research/">research notes</a>, the
+<a href="../design/">language design</a> and the <a href="../registry-and-authoring/">registry and authoring design</a>.</p>
+<h2 id="decisions">Decisions<a class="headerlink" href="#decisions" title="Permanent link">&para;</a></h2>
+<ol>
+<li>This round delivers the <strong>design documents</strong> (done: this directory) and a <strong>round-trip prototype</strong> that reads real
+   documents and <code>*.composite.yaml</code> files into a v2 model, prints canonical <code>.pblang</code> v2 text for review, writes an
+   equivalent document back, and proves equivalence. The Langium v2 grammar and the <code>pblang</code> CLI come in later rounds.</li>
+<li>The v2 syntax is tree-shaped and mirrors the document.</li>
+<li>Interfaces come from generated <code>.pblang</code> interface files (manifest JSON canonical).</li>
+<li>The DSL interoperates both ways with CompositeSpec yaml.</li>
+<li>The DSL is a verifiable target layer; end users author with registry- and prompt-driven tools.</li>
+<li>The language core stays one-to-one with the document. The higher-level semantics it adds are static and compile
+   away: named and imported interfaces, faces as sorts, <code>param</code>, <code>let</code>, edge literals, adapters, units, and
+   referential-integrity checks. There is no pattern or macro layer this round; coupling schemes and engine selection
+   stay in Python builders or composite generators, and the DSL records their result.</li>
+</ol>
+<p>Reconciled details:</p>
+<ul>
+<li><strong>Type spelling</strong> in the DSL: <code>int</code>, <code>bool</code>, <code>float</code>, <code>string</code>, <code>map&lt;string, V&gt;</code>, <code>list&lt;T&gt;</code>, <code>maybe&lt;T&gt;</code>,
+  <code>overwrite&lt;T&gt;</code>, <code>enum&lt;a, b&gt;</code>, <code>array&lt;float&gt;[3,3] @ "uM"</code>, <code>{ a: T; b: U }</code>, <code>A | B</code>, raw <code>"…"</code>. The compiler maps
+  <code>int</code> → <code>integer</code>, <code>bool</code> → <code>boolean</code>, <code>map&lt;string, V&gt;</code> → <code>map[V]</code>; unknown names are errors.</li>
+<li><strong>Error codes</strong>: family-prefixed numeric codes with a stable slug (<code>W200 wire-type-mismatch</code>); the mnemonic names in
+  the language design are the slugs.</li>
+<li><strong><code>emit</code></strong>: <code>emit parquet { … } with { … };</code> or <code>emit "local:ParquetEmitter" { … };</code>.</li>
+<li><strong>Interfaces in decompiled text</strong>: resolved addresses print <code>import pkg.{Name}</code>; unresolved ones print an inline
+  declaration from <code>_inputs</code>/<code>_outputs</code> and <code>at "…"</code>.</li>
+<li><strong>Parsing this round</strong>: the model is the pivot; text is printed and snapshotted. A Lark parser is a stretch step; the
+  Langium grammar remains the long-term source of truth and binds to the same model.</li>
+<li><strong>Dependencies</strong>: no version bump of process-bigraph or bigraph-schema (nothing needed is 1.7-only). <code>bigraph-schema</code>
+  moves to the main dependencies; <code>process-bigraph</code> stays dev-only (the package returns plain dicts); <code>pyyaml</code> and
+  <code>types-PyYAML</code> join the dev group.</li>
+</ul>
+<h2 id="layout">Layout<a class="headerlink" href="#layout" title="Permanent link">&para;</a></h2>
+<p><code>process_bigraph_lang/v2/</code> (shipped; mypy strict and ruff apply; it outlives the prototype as the target of the later
+Langium v2 AST binder):</p>
+<table>
+<thead>
+<tr>
+<th>Module</th>
+<th>Responsibility</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>model.py</code></td>
+<td>dataclasses <code>Document, Composite, Store, Node, Edge, Site, Face, Param, Emitter, Import, InterfaceDecl, Address, ParamRef, ExternalRef, Path</code>; <code>MISSING</code> sentinel; no bigraph imports</td>
+</tr>
+<tr>
+<td><code>types.py</code></td>
+<td><code>TypeExpr</code> tree (<code>Named, Struct, Union, Group, Raw</code>); <code>parse_type(str \| dict)</code> via <code>bigraph_schema.parse.parse_expression</code>; <code>to_bigraph()</code>; <code>to_surface()</code></td>
+</tr>
+<tr>
+<td><code>values.py</code></td>
+<td>predicates, tuple and ndarray handling, externalization thresholds</td>
+</tr>
+<tr>
+<td><code>paths.py</code></td>
+<td><code>Path.from_wire</code> / <code>to_wire</code>; reuses <code>compiler.generator.compute_relative_path</code></td>
+</tr>
+<tr>
+<td><code>reader.py</code></td>
+<td><code>read_document({schema, state})</code> for authoring and saved forms; <code>read_composite_spec(dict)</code></td>
+</tr>
+<tr>
+<td><code>writer.py</code></td>
+<td><code>write_document(Document, assets=…)</code> → <code>{schema, state, **options}</code>; <code>write_composite_spec(Document)</code></td>
+</tr>
+<tr>
+<td><code>printer.py</code></td>
+<td><code>print_document(Document)</code> → <code>(text, assets)</code></td>
+</tr>
+<tr>
+<td><code>normalize.py</code></td>
+<td><code>normalize_document</code>, <code>equivalent</code>, <code>diff_documents</code></td>
+</tr>
+<tr>
+<td><code>__main__.py</code></td>
+<td><code>python -m process_bigraph_lang.v2 compile \| decompile \| check \| diff \| describe …</code></td>
+</tr>
+</tbody>
+</table>
+<p>Reused from v1 without copying: <code>compiler/converter.py</code> (<code>edge_address</code>, <code>site</code>, <code>set_value_at_path</code>,
+<code>get_value_at_path</code>) and <code>compiler/generator.py</code> (<code>compute_relative_path</code>; <code>type_schema</code> as the reference for string vs
+dict type emission). v1 stays untouched and green.</p>
+<h2 id="reader-rules">Reader rules<a class="headerlink" href="#reader-rules" title="Permanent link">&para;</a></h2>
+<p>Walk <code>state</code> and <code>schema</code> in parallel, state key order first. Classify each key in order:</p>
+<ol>
+<li><strong>Site</strong>: <code>_type == "site"</code> → <code>Store(site=Site(sort, default))</code>.</li>
+<li><strong>Edge</strong>: <code>_type</code> in process/step, or <code>address</code> present, or the schema entry says edge. Kind from state <code>_type</code> →
+   schema <code>_type</code> → <code>interval</code> present → process → <code>priority</code>/<code>_triggers</code> → step → else <code>ValueError</code> naming the path.
+   <code>address</code> from <code>"proto:data"</code>, dict, <code>${x}</code> or site. Consume <code>config, inputs, outputs, interval, priority,
+_triggers, _inputs/_outputs (→ ports)</code>; drop <code>instance</code> and <code>_contract</code>; everything else → <code>extras</code> verbatim.
+   Short name <code>Composite</code> → <code>inner</code> from <code>config.state</code>/<code>config.schema</code>, <code>bridge</code>, <code>interface</code>. A Stepper-style child
+   <code>{address, config}</code> inside config stays a plain struct value (lossless).</li>
+<li><strong>Node</strong>: a dict with an edge or site descendant, or a struct schema, or a <code>map</code> schema of edges (<code>Node(type=…)</code>).</li>
+<li><strong>Store</strong>: everything else; typed from the schema when present; schema-only → <code>value=MISSING</code>.</li>
+</ol>
+<p>Saved form is auto-detected (root <code>global_time</code>, dict addresses, <code>_contract</code>): also drop root <code>global_time</code>, take edge
+<code>_type</code> from the schema entry, ignore the schema's <code>inputs: "wires"</code> entries, parse string <code>_inputs</code>/<code>_outputs</code>, keep
+fully defaulted config verbatim. Params come only from CompositeSpec <code>parameters</code>; <code>^\$\{(\w+)\}$</code> strings become
+<code>ParamRef</code>, embedded ones <code>ParamRef(template=…)</code>, undeclared ones are errors. Imports come from <code>local:!a.b.C</code> addresses
+(collisions print fully qualified); <code>local:Name</code> prints as <code>Name</code> with no import. Interface declarations are emitted
+only for edges that carry ports. CompositeSpec metadata (<code>name, description, tags, requires, emitters,
+global_time_precision</code>) is read; other keys go to <code>extras</code>.</p>
+<h2 id="printer-rules">Printer rules<a class="headerlink" href="#printer-rules" title="Permanent link">&para;</a></h2>
+<p>Order: a header comment naming the source; sorted imports; params; interface declarations in first-use order;
+<code>composite name "description" { requires {…} options {…} stores and sites, then nodes, then edges, each in source order
+}</code>; <code>emit …</code>. Two-space indent; a block prints inline when it fits in 100 columns and no nested block broke. Values:
+ints as ints, floats via <code>repr</code>, <code>true</code>/<code>false</code>/<code>null</code>, JSON-escaped double-quoted strings, lists <code>[…]</code>, tuples <code>(…)</code>
+(preserved so v1 parity holds), struct literals when all keys are identifiers else map literals, <code>${dt}</code>, <code>?</code> and
+<code>?(default)</code>. Arrays and nested lists with more than 100 elements and strings longer than 1000 characters are
+externalized to <code>&lt;snapshot&gt;.assets/&lt;path-slug&gt;.json|txt</code> (JSON <code>{dtype, shape, data}</code> for diffability; <code>ExternalRef</code>
+keeps a <code>$bundle_ref</code>-compatible key) and printed as <code>array(file("…"), dtype = "float64", shape = [11, 11, 3])</code> or
+<code>file("…")</code>; small arrays print inline with an <code>array(…)</code> wrapper. Port overrides print as <code>ports { … }</code>; unknown keys
+print as <code>extra { … }</code> or <code>schema { … }</code> as explicit "not understood" markers. A saved nested composite with empty inner
+state prints a <code>// WARNING: inner state lost by Composite.save</code> comment.</p>
+<h2 id="writer-rules">Writer rules<a class="headerlink" href="#writer-rules" title="Permanent link">&para;</a></h2>
+<p>Schema half: <code>Store.type</code> → <code>to_bigraph</code> with the default folded as <code>{"_type": T, "_default": d}</code> (v1's exact shape);
+untyped stores → no entry; <strong>sites → no schema entry</strong> (process-bigraph#213); <code>Node</code> → nested dict or
+<code>{"_type":"map","_value":…}</code>; edges → no schema entry; <code>schema_extras</code> merged back. State half: values; sites via
+<code>converter.site</code>; edges <code>{"_type", "_inputs"/"_outputs", "address", "config" (omit empty), "inputs"/"outputs" (omit
+empty), "interval"/"priority"/"_triggers", **extras}</code>; a nested composite → <code>config = {state, schema?, bridge,
+interface, …}</code>. <code>ParamRef</code> → <code>"${name}"</code>; <code>ExternalRef</code> → loaded through the <code>assets</code> callback.
+<code>write_composite_spec</code> → <code>{name, description, tags, requires, parameters {type (normalized by</code>composite_spec.normalize_type<code>), default, description, choices}, emitters [{address, paths ["a/b"], config?}],
+schema?, state, global_time_precision?, **extras}</code>; tests dump it with <code>yaml.safe_dump(sort_keys=False)</code> and feed
+<code>CompositeSpec.from_dict(...).to_document(emit=False)</code>.</p>
+<p>Parity target: <code>write_document(read_document(doc)) == doc</code> <strong>exactly</strong> for every v1 expected template in
+<code>tests/compiler/generator/</code> (toy add-floats, <code>test_collections</code> flat/list/map, spatio-flux I/II/III,
+<code>test_open_values_compile_to_template_sites</code>).</p>
+<h2 id="normalizer-behaviour-verified-against-the-installed-versions">Normalizer (behaviour verified against the installed versions)<a class="headerlink" href="#normalizer-behaviour-verified-against-the-installed-versions" title="Permanent link">&para;</a></h2>
+<p><code>normalize_document(doc, core)</code>: in the schema half drop <code>global_time</code>, move edge entries to a side table
+(<code>{path: {_type, _inputs, _outputs}}</code>), and render other entries with <code>core.render(core.access(entry), defaults=True)</code>,
+falling back to a canonical sorted dict when <code>access</code> raises on an unknown dict-form type (string names pass through); a
+rendered string containing a top-level <code>|</code> or <code>:</code> is re-accessed to dict form so <code>"x:float|y:float"</code> and
+<code>{"x":"float","y":"float"}</code> collide. In the state half drop root <code>global_time</code>; render sites with <code>_sort</code>
+canonicalized; edges become <code>{_type (state or side table), address as "proto:data", _inputs/_outputs canonical (omitted
+if absent on both), config canonical (omit {}), inputs/outputs canonical wires (str → [str]; omit empty),
+interval/priority as float, _triggers}</code>; drop <code>instance</code> and <code>_contract</code>; recurse into nested <code>local:Composite</code>
+config. Values: tuple → list, ndarray → <code>tolist()</code>, numpy scalars → Python, floats compared with
+<code>math.isclose(rel_tol=1e-9)</code>. <code>diff_documents</code> flattens to <code>state/smoldyn/config/dt</code>-style paths and prints <code>-</code>, <code>+</code>,
+<code>~</code> lines (capped at 200), falling back to a unified JSON diff.</p>
+<p>Ignored: key order, tuple vs list, dtype, runtime keys, string vs structured forms of addresses, wires and types,
+absent vs <code>{}</code> config, default-in-schema vs <code>float{…}</code>, schema edge entries. Not ignored: config values. A stronger
+<code>realized_equivalent(a, b, core)</code> (tests only) builds <code>Composite</code> from both and compares <code>serialize_state()</code> and
+<code>serialize_schema()</code> through the same normalizer.</p>
+<h2 id="corpus-and-tests">Corpus and tests<a class="headerlink" href="#corpus-and-tests" title="Permanent link">&para;</a></h2>
+<pre><code class="language-text">tests/v2/
+  conftest.py, helpers.py            core and spatio_core fixtures, corpus loader, assets loader, realized_equivalent,
+                                     assert_snapshot (PBLANG_UPDATE_SNAPSHOTS=1 regenerates)
+  test_types.py                      table-driven parse / to_bigraph / to_surface including the render quirks
+  test_reader.py                     classification rules, saved form, extras, params, imports, nested composite
+  test_writer_v1_parity.py           exact equality for every v1 expected template
+  test_printer.py                    inline/multiline, quoting, float repr, tuples, externalization, ordering, naming
+  test_normalize.py                  quirk pairs collide; saved toy ≡ authoring toy; diff shape
+  test_roundtrip_corpus.py           parametrized over the corpus: equivalent(original, write(read(original))) with a
+                                     diff on failure; printed snapshot == committed .pblang (+ assets);
+                                     realized_equivalent where runnable
+tests/fixtures/data/v2/
+  corpus/README.md                   provenance and regeneration commands
+  corpus/reversible-dimerization.composite.yaml   verbatim copy from viva-smoldyn (prettier reformats it; noted)
+  corpus/hybrid_two_way_exchange.json             generated once in viva-pde-particle's pixi env by
+                                     corpus/make_hybrid_fixture.py (examples.two_way_exchange(core=None) on the
+                                     11×11×3 slab; SpatialRecorder attached with viz3d.record.attach_recorder;
+                                     dumped with bigraph_schema.json_codec); not collected by pytest
+  corpus/template_sites.json         the expected dict from test_open_values_compile_to_template_sites
+  snapshots/&lt;name&gt;.pblang (+ &lt;name&gt;.assets/*)     printed text, committed, reviewed by hand
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Corpus entry</th>
+<th>Source</th>
+<th>Checks</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>viva-smoldyn reversible dimerization</td>
+<td>yaml copy</td>
+<td>spec-level equivalence; <code>CompositeSpec.from_dict(written).to_document(emit=False)</code> ≡ <code>from_file(...)</code>; snapshot. No run (Smoldyn not installed here).</td>
+</tr>
+<tr>
+<td>2</td>
+<td>viva-pde-particle hybrid two-way exchange + recorder</td>
+<td>generated JSON</td>
+<td>Stepper child and recorder config preserved; large config text and arrays externalized; snapshot. No run.</td>
+</tr>
+<tr>
+<td>3</td>
+<td>growth-division nested composite</td>
+<td>built at test time from <code>process_bigraph.processes.growth_division.grow_divide_agent(path=["agent"])</code></td>
+<td>equivalence and realized equivalence; a negative test documenting the save-loss trap and the printer warning</td>
+</tr>
+<tr>
+<td>4</td>
+<td>spatio-flux I/II/III</td>
+<td>imported from the existing test modules</td>
+<td>indexed wires, ndarray state, dict-form <code>positive_array</code>; <code>spatio_core</code>; realized equivalence</td>
+</tr>
+<tr>
+<td>5</td>
+<td>template sites</td>
+<td>JSON copy</td>
+<td>equivalence; <code>template_document</code> fill with the bindings from <code>test_filled_template_runs_in_process_bigraph</code> runs</td>
+</tr>
+<tr>
+<td>6</td>
+<td>saved toy add-floats</td>
+<td>built in the test from <code>Composite(...).serialize_state()/serialize_schema()</code> without the file-writing step</td>
+<td>saved ≡ write(read(saved)); ≡ the authoring document after normalization</td>
+</tr>
+</tbody>
+</table>
+<h2 id="order-of-work">Order of work<a class="headerlink" href="#order-of-work" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Step</th>
+<th>Work</th>
+<th>Checkpoint</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>design docs under <code>docs/v2/</code> and the mkdocs nav (done); <code>pyproject.toml</code> dependency moves; <code>poetry lock --no-update</code>; empty <code>v2/</code> and <code>tests/v2/</code>; <code>git add</code></td>
+<td><code>make check</code> green</td>
+</tr>
+<tr>
+<td>1</td>
+<td><code>types.py</code> + <code>test_types.py</code></td>
+<td>every table row round-trips; render quirks covered</td>
+</tr>
+<tr>
+<td>2</td>
+<td><code>model.py</code>, <code>values.py</code>, <code>paths.py</code></td>
+<td>mypy strict clean; path tests incl. ints, <code>..</code>, <code>*</code></td>
+</tr>
+<tr>
+<td>3</td>
+<td><code>normalize.py</code> + <code>test_normalize.py</code></td>
+<td>quirk pairs collide; saved vs authoring toy collide; diff readable</td>
+</tr>
+<tr>
+<td>4</td>
+<td><code>reader.py</code> + <code>writer.py</code> (authoring form) + reader tests + v1 parity test</td>
+<td>exact parity for all v1 templates</td>
+</tr>
+<tr>
+<td>5</td>
+<td><code>printer.py</code> + snapshot harness + printer tests; snapshots for corpus 4 and 5</td>
+<td>first <code>.pblang</code> snapshots committed; <strong>read them for readability before continuing</strong></td>
+</tr>
+<tr>
+<td>6</td>
+<td>CompositeSpec read/write, params, emitters, metadata; corpus 1</td>
+<td>spec round-trip; snapshot</td>
+</tr>
+<tr>
+<td>7</td>
+<td>saved form + nested composite/bridge; corpora 3 and 6; <code>realized_equivalent</code></td>
+<td>equivalence and realized equivalence; save-loss negative test</td>
+</tr>
+<tr>
+<td>8</td>
+<td>externalization + <code>make_hybrid_fixture.py</code>; generate corpus 2 in the pixi env; snapshot</td>
+<td>the hybrid round-trips with Stepper and SpatialRecorder intact; assets diffable</td>
+</tr>
+<tr>
+<td>9</td>
+<td><code>__main__.py</code> (<code>print</code>, <code>diff</code>); update the design pages with the real snapshots; <code>docs/architecture.md</code> v2 section; CLAUDE.md pointer</td>
+<td><code>python -m process_bigraph_lang.v2 print …</code> works on all six; <code>make docs</code> builds</td>
+</tr>
+<tr>
+<td>10 (stretch)</td>
+<td>minimal stage A <code>describe</code> over <code>tests/fixtures/test_registry</code> → <code>interfaces.pblang</code> for toy_library and spatio_flux; the decompiler resolves <code>local:!…</code> against them</td>
+<td>corpus 4/5/6 snapshots use <code>import</code>s instead of inline declarations</td>
+</tr>
+<tr>
+<td>11 (stretch)</td>
+<td>Lark text parser for the printed subset bound to <code>model.Document</code>; <code>read_text(print(model)) == model</code> on all snapshots</td>
+<td>true text-level round trip; the grammar file becomes the Langium v2 acceptance spec</td>
+</tr>
+</tbody>
+</table>
+<h2 id="status-2026-10-11">Status (2026-10-11)<a class="headerlink" href="#status-2026-10-11" title="Permanent link">&para;</a></h2>
+<p>Steps 0–9 are implemented on the <code>v2-design</code> branch: the package, the tests, the corpus (all six entries, the
+hybrid fixture generated in the viva-pde-particle environment), the snapshots and the <code>print</code>/<code>diff</code> entry point.
+The snapshots in <code>tests/fixtures/data/v2/snapshots/</code> are the material for the design review. Observations from
+printing the corpus that feed back into the design:</p>
+<ul>
+<li>The hybrid repeats the same <code>grid</code> literal in four places; the <code>let</code> hoisting in the design (section 2.3) is
+  worth doing early, and the Stepper child prints as a plain <code>{ address, config }</code> struct until edge literals exist.</li>
+<li>Multi-line strings (the generated Smoldyn config) must be externalized at a much lower threshold than other text.</li>
+<li>Reading from a CompositeSpec alone leaves stores untyped (<code>store molecule_counts = {};</code>), which is exactly the
+  <code>W-STORE-UNTYPED</code> case; types will come from interface files (stretch step 10).</li>
+<li>The saved form of a nested composite reads back with an empty inner composite; the printer flags it.</li>
+</ul>
+<p>Stretch step 10 is also done in a minimal form: <code>process_bigraph_lang/v2/interfaces.py</code> has <code>describe_module</code>
+(stage A over a Python module: portable address, <code>config_schema</code>, ports obtained with the class standing in for
+<code>self</code>, <code>dynamic_ports</code> when that fails, the docstring), an <code>InterfaceRegistry</code> with a JSON manifest
+(<code>pblang-manifest/0</code>), and <code>python -m process_bigraph_lang.v2 describe &lt;module&gt; --manifest m.json --out m.pblang</code>.
+The printer resolves edge addresses against a registry and prints <code>import module.{Name};</code> instead of an inline
+declaration; the spatio-flux and saved-toy snapshots show it, and <code>toy_library.interfaces.pblang</code> is the first
+generated interface file.</p>
+<p>Stretch step 11 is done too: <code>process_bigraph_lang/v2/parser.py</code> is a Lark LALR grammar for the printed subset
+(imports, params, meta/options, inline interface declarations, stores, nodes, edges, nested composites with bridges,
+sites, <code>ports</code>, <code>extra</code>, <code>schema</code>, <code>emit</code>, the <code>array(...)</code>/<code>file(...)</code> value forms, and the type spelling). Every
+committed snapshot parses back into a model that prints to the same text and writes a document equivalent to the
+corpus original (<code>tests/v2/test_parser.py</code>), so the round trip now runs from text. The grammar is the executable form
+of the sketch in the design and the acceptance spec for the Langium v2 grammar. Not covered yet: expressions,
+<code>replicate</code>, <code>{default}</code> suffixes on types, <code>when</code> / <code>of config.x</code> faces, and hand-written override files for
+dynamic ports.</p>
+<p>Headers for a real package exist too: <code>tests/fixtures/data/v2/interfaces/</code> holds the interface files and manifest
+that <code>python -m process_bigraph_lang.v2 describe</code> generated from viva-pde-particle's classes inside its own
+environment (the publish-time step). Against them, the hybrid prints with <code>import</code>s, and
+<code>process_bigraph_lang/v2/check.py</code> (<code>python -m process_bigraph_lang.v2 check doc.json --interfaces m.json</code>)
+verifies a document statically, with no process code imported: unknown ports (<code>S021</code>), missing or unknown config
+keys (<code>T121</code>, <code>S022</code>), wires that name no declared store (<code>W211</code>), wire type mismatches against declared store
+types (<code>W200</code>), paths escaping the root (<code>E110</code>), an interval on a step (<code>T130</code>), unknown components (<code>S020</code>),
+dynamic ports (<code>I210</code>) and untyped stores (<code>I220</code>). On the hybrid it finds the <code>particle_positions</code> store that
+nothing declares and the three components whose ports only an instance can tell.</p>
+<p>The checker also does the writer analysis of the registry design: per store, who writes it and with which apply
+semantics (from the port type, or the store's own <code>overwrite&lt;T&gt;</code>); <code>W220</code> (info) lists additive writers whose
+contributions superpose, <code>W221</code> warns when an overwriting writer sits next to any other writer (order-dependent),
+and <code>W223</code> warns when a step publishes an array-typed value with accumulate semantics. <code>emit</code> declarations are
+checked too: <code>W240</code> when a path names no declared store (the emitter would record an empty value) and <code>W241</code>
+(info) when an emitted store is written by nothing. Units are checked with pint: port units may contain unit
+variables (<code>?U</code>, <code>?U/?T</code>) bound per instance from the wired stores, so a solver that works in any consistent unit
+system is still checked; <code>W201</code> reports a mismatch with the conversion factor or as incompatible.</p>
+<p>Making the headers static was a change to the wrapped package, not to the tooling: on viva-pde-particle's
+<code>static-interfaces</code> branch, <code>SmoldynHybrid</code> always declares <code>particle_positions</code> (the <code>emit_positions</code> flag only
+decides whether the value is produced) and <code>SpatialRecorder</code> became <code>GridRecorder</code> and <code>MeshRecorder</code> with one
+fixed face each. The regenerated headers have no <code>...</code> except on <code>Stepper</code> and <code>SplittingCoordinator</code>, the
+scheduling wrappers whose face is their child's. <code>process_bigraph_lang/v2/graph.py</code> then produces a viewer's
+wiring graph (nodes with typed ports, stores, edges, nested children) from a document and the headers alone,
+which is what a loom-style viewer needs to run without a Python environment that has the processes installed.</p>
+<p>Two decisions made while building the parser: the normalizer canonicalizes types from the parsed type tree rather
+than through bigraph-schema's renderer (the renderer drops custom type names such as <code>positive_float</code> and fails on
+unknown dict-form types, so the two spellings of one type no longer collided), and <code>///</code> doc comments are joined with
+spaces when parsed because the printer wraps them.</p>
+<p><code>describe-model</code> (<code>process_bigraph_lang/v2/sbml.py</code>, <code>python -m process_bigraph_lang.v2 describe-model x.xml</code>)
+is the model-side twin of <code>describe</code>: it reads an SBML file with the standard library and writes a model header
+(time unit, compartments, species as concentrations or amounts, parameters, each with pint-readable units composed
+from the model's unit definitions, plus reaction/event/rule counts and the SBML level, version and packages). The
+Caravagna header is snapshotted; see the design's section 5.6 for how per-document composites and per-class
+templates use it.</p>
+<p>The grammar has <code>model</code> declarations (headers and sorts), <code>store m : Sort = Header | ?;</code> model sites, and the
+checker admits a header against a sort (<code>G301</code>, units bound across the header) and checks config values that
+reference a <code>param</code> against the header's config units; the writer expands a filled model site into the model's
+typed blocks. The Caravagna header parses back and prints the same declaration.</p>
+<p>The Langium v2 grammar exists (<code>dsl/src/language/pblang-v2.langium</code>, language id <code>pblang-v2</code>, files <code>.pbl</code>),
+coexisting with v1 in the same language server, VS Code extension and CLI. It parses every snapshot with no
+parse or linking errors (<code>dsl/test/v2/</code>), and <code>process_bigraph_lang/v2/langium.py</code> binds its JSON AST to the same
+model the Lark grammar builds; <code>tests/v2/test_langium.py</code> requires identical prints from both. Not yet in the
+Langium side at that point: validators beyond parsing and name resolution, hover and completion, and the cutover of
+<code>.pblang</code> to v2.</p>
+<p>The checker was then ported to TypeScript (<code>dsl/src/language/v2/{types,headers,units,check,validator}.ts</code>) and
+registered as a Langium validation of <code>V2Module</code>, so the editor, the browser and the CLI (<code>check --json</code>) share one
+implementation; the Lark parser and the Python checker were retired, and <code>process_bigraph_lang/v2/langium.py</code> and
+<code>check.py</code> call <code>cli-native</code>. The compliance suite moved to <code>dsl/test/v2/check.test.ts</code> case for case; the Python
+tests keep the same expectations through the CLI. <code>lark</code> and <code>pint</code> are no longer dependencies. One semantic
+change surfaced by the shipped growth-division example: a wire to <code>..</code> from a root edge is the idiom for "the
+parent store", which process-bigraph resolves by clamping at the root, so going above the root is <code>W110</code>, a
+warning, rather than an error.</p>
+<p>Hover and completion followed (<code>dsl/src/language/v2/{resolve,hover,completion}.ts</code>, see the design's section
+5.3, "Editor services"), and header files open in the workspace now answer imports in the editor
+(<code>V2Registry</code> falls back to the index of <code>V2Interface</code> declarations by module).</p>
+<p>Decided 2026-10-12: the Python datamodel is not a public target. First <code>process_bigraph_lang.v2</code> exposed
+<code>compile_text</code> / <code>compile_file</code> (text -&gt; parse -&gt; check -&gt; document or CompositeSpec, <code>CompileError</code> on
+errors) and <code>decompile</code> (document or CompositeSpec -&gt; text) over an internal model; then the model moved:
+reader, writer, printer and binder are TypeScript (<code>dsl/src/language/v2/{model,json,paths,reader,writer,
+printer,bind,graph,modelheader,yaml}.ts</code>) behind <code>cli-native compile | decompile | headers | model-header |
+graph</code>, and the Python package keeps only the wrappers (<code>api.py</code>), <code>describe</code> (introspection), <code>describe-model</code>
+(SBML as JSON) and the normalizer. <code>model.py</code>, <code>reader.py</code>, <code>writer.py</code>, <code>printer.py</code>, <code>paths.py</code>, <code>values.py</code>
+and <code>graph.py</code> are gone; <code>types.py</code> stays as the normalizer's and <code>describe</code>'s type parser. The snapshot and
+round-trip tests under <code>tests/v2/</code> run through the CLI; <code>dsl/test/v2/{roundtrip,model}.test.ts</code> check the
+same snapshots byte for byte on the TypeScript side (every corpus document prints to its snapshot; every
+snapshot is a fixpoint; the v1 expected documents write back exactly). The cutover followed: <code>.pblang</code> is the v2 language (<code>.pbl</code> is still accepted), and v1 is gone, the grammar,
+its validators, the SBML stub command, the Python compiler and parser bridge, the ANTLR grammar and its
+generated parsers, and their tests. The v1 expected documents live on as <code>tests/fixtures/data/v2/corpus/v1/</code>.
+The language id <code>pblang-v2</code> and the <code>V2</code> rule prefix were then renamed: the language id is <code>pblang</code>, the grammar is
+<code>pblang.langium</code> (<code>grammar Pblang</code>), its rules are <code>Module</code>, <code>Store</code>, ... and consumers import the generated AST as a
+namespace (<code>ast.Store</code>) because its names coincide with the object model's.</p>
+<h2 id="verification">Verification<a class="headerlink" href="#verification" title="Permanent link">&para;</a></h2>
+<ol>
+<li><code>make check</code> (ruff, prettier, mypy strict, deptry, <code>poetry check --lock</code>) green after <code>git add</code> of new files.</li>
+<li><code>make test</code>: all v1 tests pass; <code>tests/v2/</code> passes, including the exact parity test and the corpus round trips with
+   matching snapshots.</li>
+<li>Manual review of every <code>tests/fixtures/data/v2/snapshots/*.pblang</code> against the examples in the language design; the
+   hybrid snapshot must show the Stepper child, the recorder, <code>file()</code> and <code>array(file())</code> sidecars, and no <code>extra {}</code>
+   blocks for keys that should have been understood.</li>
+<li><code>python -m process_bigraph_lang.v2 print tests/fixtures/data/v2/corpus/reversible-dimerization.composite.yaml</code>
+   prints the snapshot text; <code>… diff a.json b.json</code> prints nothing for equivalent documents and a readable diff
+   otherwise.</li>
+<li><code>make docs</code> builds with the four v2 pages in the nav.</li>
+<li>If the stretch steps are reached: snapshots regenerate with <code>import</code> lines; <code>read_text(print(m)) == m</code> passes.</li>
+</ol>
+<h2 id="risks">Risks<a class="headerlink" href="#risks" title="Permanent link">&para;</a></h2>
+<p>Render quirks (handled by re-render and re-access; covered by tests); <code>local:Name</code> vs <code>local:!path</code> (kept verbatim;
+the printer only imports <code>!</code> forms; the writer never rewrites); nested-composite save loss (authoring documents only;
+negative test); numpy in config and state (<code>tolist</code> plus isclose; <code>array(…)</code> wrapper or sidecar); saved-form config
+bloat (equality only claimed after normalization); deptry and mypy (no <code>process_bigraph</code> import in the package;
+<code>yaml</code> test-only); snapshot churn (fixed ordering and <code>repr</code> floats; explicit regeneration flag); prettier reformatting
+the copied yaml (accepted; noted in the corpus README).</p>
+<h2 id="out-of-scope-this-round">Out of scope this round<a class="headerlink" href="#out-of-scope-this-round" title="Permanent link">&para;</a></h2>
+<p>The Langium v2 grammar and <code>ast_model.py</code> changes; the <code>pblang check/compile/decompile/doc/registry</code> CLI beyond the
+<code>v2 print | diff</code> entry point; manifests for real viva packages; viva-catalog, workbench, viva-superpowers and
+pbg-template changes; execution-environment work (<code>rest:</code>, <code>git:</code>); upstream asks to process-bigraph and
+bigraph-schema. These are sequenced in the roadmap of the <a href="../registry-and-authoring/#7-roadmap">registry and authoring design</a>.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Maintained by <a href="https://biosimulations.com">Florian</a>.
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        <div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/biosimulations/process-bigraph-lang" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://pypi.org/project/process-bigraph-lang" target="_blank" rel="noopener" title="pypi.org" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.8 200.5c-7.7-30.9-22.3-54.2-53.4-54.2h-40.1v47.4c0 36.8-31.2 67.8-66.8 67.8H172.7c-29.2 0-53.4 25-53.4 54.3v101.8c0 29 25.2 46 53.4 54.3 33.8 9.9 66.3 11.7 106.8 0 26.9-7.8 53.4-23.5 53.4-54.3v-40.7H226.2v-13.6h160.2c31.1 0 42.6-21.7 53.4-54.2 11.2-33.5 10.7-65.7 0-108.6M286.2 404c11.1 0 20.1 9.1 20.1 20.3 0 11.3-9 20.4-20.1 20.4-11 0-20.1-9.2-20.1-20.4.1-11.3 9.1-20.3 20.1-20.3M167.8 248.1h106.8c29.7 0 53.4-24.5 53.4-54.3V91.9c0-29-24.4-50.7-53.4-55.6-35.8-5.9-74.7-5.6-106.8.1-45.2 8-53.4 24.7-53.4 55.6v40.7h106.9v13.6h-147c-31.1 0-58.3 18.7-66.8 54.2-9.8 40.7-10.2 66.1 0 108.6 7.6 31.6 25.7 54.2 56.8 54.2H101v-48.8c0-35.3 30.5-66.4 66.8-66.4m-6.7-142.6c-11.1 0-20.1-9.1-20.1-20.3.1-11.3 9-20.4 20.1-20.4 11 0 20.1 9.2 20.1 20.4s-9 20.3-20.1 20.3"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "../..", "features": [], "search": "../../assets/javascripts/workers/search.d50fe291.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.13a4f30d.min.js"></script>
+      
+    
+  </body>
+</html>

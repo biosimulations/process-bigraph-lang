@@ -1,0 +1,131 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://biosimulations.github.io/process-bigraph-lang/schemas/pbg-interfaces-1.schema.json",
+    "title": "process-bigraph interface manifest, version 1",
+    "description": "The step and process classes an environment (an image, a conda or pixi env, a virtualenv) provides, with their configuration schemas and ports, as data. Types are bigraph-schema type expressions in their own string or dict forms, and addresses are process-bigraph addresses, exactly as the classes declare them, so any tool that reads bigraph-schema types can use a manifest: an editor or checker, a workbench, a registry, a prompt-driven authoring tool. Produced by running describe_env.py (process-bigraph-lang) inside the environment. Readers ignore keys they do not know, so producers may add more.",
+    "type": "object",
+    "required": ["schema_version", "components"],
+    "properties": {
+        "$schema": {
+            "type": "string",
+            "description": "This schema's URL."
+        },
+        "schema_version": { "const": "pbg-interfaces/1" },
+        "environment": {
+            "type": "object",
+            "description": "Where the manifest was read: the environment, and the versions that shaped what was found.",
+            "properties": {
+                "name": {
+                    "type": ["string", "null"],
+                    "description": "The environment's name for whoever runs documents in it (a simulator name, a bundle)."
+                },
+                "image": {
+                    "type": ["string", "null"],
+                    "description": "The image reference it was read from, ideally pinned by digest."
+                },
+                "python": { "type": ["string", "null"] },
+                "process_bigraph": {
+                    "type": ["string", "null"],
+                    "description": "The installed process-bigraph version."
+                },
+                "bigraph_schema": {
+                    "type": ["string", "null"],
+                    "description": "The installed bigraph-schema version."
+                },
+                "packages": {
+                    "type": "object",
+                    "description": "Distribution name to version, for the distributions providing the roots.",
+                    "additionalProperties": { "type": ["string", "null"] }
+                },
+                "roots": {
+                    "type": "array",
+                    "items": { "type": "string" },
+                    "description": "The module roots whose submodules were imported."
+                },
+                "generated_by": { "type": "string" }
+            }
+        },
+        "components": {
+            "type": "array",
+            "items": { "$ref": "#/$defs/component" }
+        },
+        "errors": {
+            "type": "array",
+            "description": "Modules or classes that could not be read; their components are missing.",
+            "items": {
+                "type": "object",
+                "required": ["module", "error"],
+                "properties": {
+                    "module": { "type": "string" },
+                    "error": { "type": "string" }
+                }
+            }
+        }
+    },
+    "$defs": {
+        "type": {
+            "description": "A bigraph-schema type expression: the string form ('float', 'map[array[float]]', 'float{0.5}') or the dict form ({\"_type\": \"float\", \"_default\": 0.5}).",
+            "type": ["string", "object"]
+        },
+        "ports": {
+            "description": "Port name to type, as inputs() or outputs() returns them; null when they depend on an instance (see dynamic_ports).",
+            "oneOf": [
+                { "type": "null" },
+                {
+                    "type": "object",
+                    "additionalProperties": { "$ref": "#/$defs/type" }
+                }
+            ]
+        },
+        "component": {
+            "type": "object",
+            "required": [
+                "name",
+                "kind",
+                "address",
+                "config_schema",
+                "inputs",
+                "outputs",
+                "dynamic_ports"
+            ],
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "description": "The class name."
+                },
+                "kind": {
+                    "enum": ["process", "step", "adapter"],
+                    "description": "process (has an interval) or step; adapter is a step that converts between faces."
+                },
+                "address": {
+                    "type": "string",
+                    "description": "The process-bigraph address that instantiates it, e.g. local:!package.module.Class."
+                },
+                "module": {
+                    "type": ["string", "null"],
+                    "description": "The module that defines the class."
+                },
+                "description": {
+                    "type": "string",
+                    "description": "The first paragraph of the class docstring."
+                },
+                "config_schema": {
+                    "type": "object",
+                    "description": "The class's config_schema as authored, key by key. A default is part of the type. A value that is not a type expression is null.",
+                    "additionalProperties": {
+                        "oneOf": [
+                            { "$ref": "#/$defs/type" },
+                            { "type": "null" }
+                        ]
+                    }
+                },
+                "inputs": { "$ref": "#/$defs/ports" },
+                "outputs": { "$ref": "#/$defs/ports" },
+                "dynamic_ports": {
+                    "type": "boolean",
+                    "description": "True when the ports depend on an instance (its config or its children), so inputs and outputs may be null or partial."
+                }
+            }
+        }
+    }
+}

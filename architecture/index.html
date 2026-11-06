@@ -1,0 +1,1057 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="This is a LSP, CLI and Python package for a domain specific language for process bigraphs.">
+      
+      
+        <meta name="author" content="Jim Schaff">
+      
+      
+        <link rel="canonical" href="https://biosimulations.github.io/process-bigraph-lang/architecture/">
+      
+      
+        <link rel="prev" href="..">
+      
+      
+        <link rel="next" href="../modules/">
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.14">
+    
+    
+      
+        <title>Architecture - process-bigraph-lang</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.342714a4.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="white" data-md-color-accent="deep-orange">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#architecture" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="process-bigraph-lang" class="md-header__button md-logo" aria-label="process-bigraph-lang" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            process-bigraph-lang
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Architecture
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="white" data-md-color-accent="deep-orange"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="black" data-md-color-accent="deep-orange"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/biosimulations/process-bigraph-lang" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    biosimulations/process-bigraph-lang
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="process-bigraph-lang" class="md-nav__button md-logo" aria-label="process-bigraph-lang" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    process-bigraph-lang
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/biosimulations/process-bigraph-lang" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    biosimulations/process-bigraph-lang
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    Architecture
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    Architecture
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#end-to-end-data-flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      End-to-end data flow
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-dsl-project-dsl" class="md-nav__link">
+    <span class="md-ellipsis">
+      The DSL project (dsl/)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="The DSL project (dsl/)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#grammar-and-language-services-dslsrclanguage" class="md-nav__link">
+    <span class="md-ellipsis">
+      Grammar and language services (dsl/src/language/)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#entry-points" class="md-nav__link">
+    <span class="md-ellipsis">
+      Entry points
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#embedding-in-another-application" class="md-nav__link">
+    <span class="md-ellipsis">
+      Embedding in another application
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-python-package-process_bigraph_langv2" class="md-nav__link">
+    <span class="md-ellipsis">
+      The Python package (process_bigraph_lang/v2/)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="The Python package (process_bigraph_lang/v2/)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#native-binary-process_bigraph_langbin" class="md-nav__link">
+    <span class="md-ellipsis">
+      Native binary: process_bigraph_lang/bin/
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      Tests
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../modules/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Modules
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    v2 (design)
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            v2 (design)
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../v2/research/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Research notes
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../v2/design/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Language design
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../v2/registry-and-authoring/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Registry and authoring
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../v2/plan/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Implementation plan
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../v2/authoring-plan/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Stage two (authoring) plan
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../v2/sedml-plan/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    SED-ML plan
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#end-to-end-data-flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      End-to-end data flow
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-dsl-project-dsl" class="md-nav__link">
+    <span class="md-ellipsis">
+      The DSL project (dsl/)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="The DSL project (dsl/)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#grammar-and-language-services-dslsrclanguage" class="md-nav__link">
+    <span class="md-ellipsis">
+      Grammar and language services (dsl/src/language/)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#entry-points" class="md-nav__link">
+    <span class="md-ellipsis">
+      Entry points
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#embedding-in-another-application" class="md-nav__link">
+    <span class="md-ellipsis">
+      Embedding in another application
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-python-package-process_bigraph_langv2" class="md-nav__link">
+    <span class="md-ellipsis">
+      The Python package (process_bigraph_lang/v2/)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="The Python package (process_bigraph_lang/v2/)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#native-binary-process_bigraph_langbin" class="md-nav__link">
+    <span class="md-ellipsis">
+      Native binary: process_bigraph_lang/bin/
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      Tests
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="architecture">Architecture<a class="headerlink" href="#architecture" title="Permanent link">&para;</a></h1>
+<p><code>process-bigraph-lang</code> defines a domain-specific language (files ending in <code>.pblang</code>) for describing
+<a href="https://github.com/vivarium-collective/process-bigraph">process bigraph</a> composites. A <code>.pblang</code> file is a
+tree-shaped, verifiable projection of the composite document that <code>process-bigraph</code> (≥ 1.8, with
+<code>bigraph-schema</code> ≥ 1.6) runs: stores, nodes and edges with their wires, plus the static semantics that compile
+away (imported or inline interface declarations, parameters, open sites, units, model headers). The design is
+in <a href="../v2/design/">the v2 design</a>, its <a href="../v2/research/">background</a>, the
+<a href="../v2/registry-and-authoring/">registry and authoring design</a> and the <a href="../v2/plan/">plan</a>.</p>
+<p>The repository holds two cooperating projects:</p>
+<table>
+<thead>
+<tr>
+<th>Component</th>
+<th>Location</th>
+<th>Language</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Langium DSL</td>
+<td><code>dsl/</code></td>
+<td>TypeScript</td>
+<td>The grammar, the checker, the compiler and the decompiler; the language server, the VS Code extension, the browser editor demo and the CLI.</td>
+</tr>
+<tr>
+<td>Python package</td>
+<td><code>process_bigraph_lang/</code></td>
+<td>Python</td>
+<td>Calls the CLI (compile, decompile, check); describes Python packages and SBML models as headers; compares documents.</td>
+</tr>
+</tbody>
+</table>
+<p>Everything the language does is TypeScript. The Python package has no model of a composite: it is the entry
+to the CLI from Python plus the pieces that have to run in Python.</p>
+<h2 id="end-to-end-data-flow">End-to-end data flow<a class="headerlink" href="#end-to-end-data-flow" title="Permanent link">&para;</a></h2>
+<pre><code class="language-text">                         dsl/ (TypeScript, Langium)                              process_bigraph_lang/ (Python)
+ ┌──────────────────────────────────────────────────────────────────┐   ┌─────────────────────────────────────────┐
+ │ .pblang ──► parser ──► AST ──► checker (check.ts) ──► diagnostics │   │ v2/api.py                               │
+ │                         │                                        │   │   compile_text / compile_file           │
+ │                         ▼ bind.ts                                │   │     runs cli-native check, then compile │
+ │                       model (model.ts) ──► writer.ts ──► document│◄──┤   decompile                             │
+ │                         ▲                               or spec  │   │     runs cli-native decompile           │
+ │ document / spec ──► reader.ts ──┘                                │   │                                         │
+ │                       model ──► printer.ts ──► .pblang + assets  │   │ v2/interfaces.py  describe_module       │
+ │                                                                  │   │   (imports classes) ──► manifest JSON ──┼──► headers
+ │ bundled with deno compile ──► dist/cli-native (copied by build.py)│   │ v2/sbml.py        describe_sbml ──► JSON┼──► model-header
+ └──────────────────────────────────────────────────────────────────┘   │ v2/normalize.py   equivalent / diff     │
+                                                                        └─────────────────────────────────────────┘
+</code></pre>
+<p>Documents cross the CLI boundary as JSON in <code>bigraph_schema.json_codec</code>'s encoding (numpy arrays tagged), with
+tuples tagged as <code>{"__tuple__": true, "data": [...]}</code> by the Python side.</p>
+<h2 id="the-dsl-project-dsl">The DSL project (<code>dsl/</code>)<a class="headerlink" href="#the-dsl-project-dsl" title="Permanent link">&para;</a></h2>
+<p><code>dsl/</code> is a <a href="https://langium.org/">Langium</a> project. Langium generates a parser, AST types and language server
+infrastructure from the grammar; the project adds its own services and reuses them in every entry point.</p>
+<h3 id="grammar-and-language-services-dslsrclanguage">Grammar and language services (<code>dsl/src/language/</code>)<a class="headerlink" href="#grammar-and-language-services-dslsrclanguage" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong><code>pblang.langium</code></strong> is the grammar (language id <code>pblang</code>, files <code>.pblang</code> and <code>.pbl</code>). A module is a flat list of
+  statements:
+  imports, params, meta and options blocks, interface declarations (headers), model declarations (headers and
+  sorts), the composite tree (<code>store</code>, <code>node</code>, <code>process</code>/<code>step</code> edges with <code>config</code>, <code>inputs</code>, <code>outputs</code>,
+  <code>ports</code>, nested <code>composite</code>s, <code>shared</code> processes) and <code>emit</code> declarations. See the design's section 2 for the
+  syntax and section 3 for the mapping to the document.</li>
+<li><strong><code>generated/</code></strong> holds the AST types, grammar and module produced by <code>npm run langium:generate</code>. It is
+  gitignored and must be regenerated after every grammar change.</li>
+<li><strong><code>process-bigraph-language-module.ts</code></strong> is the dependency-injection module;
+  <code>createProcessBigraphLanguageServices()</code> is the factory every entry point calls.</li>
+<li><strong><code>pblang-scope.ts</code></strong> exports every named node (interface and model declarations, imported names), so
+  edges resolve interfaces and model sites resolve headers.</li>
+<li><strong><code>v2/</code></strong> is the language:</li>
+<li><code>check.ts</code> is the static checker, registered as a Langium validation (<code>validator.ts</code>): unknown ports,
+    config keys, wires to undeclared stores, wire type mismatches, paths above the root, intervals on steps,
+    unknown components, dynamic ports, untyped stores; writer analysis (additive, overwrite, step arrays);
+    emit paths; units with unit variables (<code>units.ts</code>, mathjs); model sites admitted against sorts. Codes follow
+    the registry design's section 4.</li>
+<li><code>headers.ts</code> reads interface and model declarations from manifests and from the text; <code>types.ts</code> is the
+    type expression language (bigraph-schema's string and dict forms, the DSL spelling, a canonical form).</li>
+<li><code>model.ts</code> is the object model of a composite, the pivot of compile and decompile: ints are <code>bigint</code>,
+    floats <code>number</code>, dicts <code>Map</code>s in source order; numpy arrays, tuples, params, sidecar references and sites
+    are tagged objects. <code>json.ts</code> is the lossless document codec; <code>yaml.ts</code> the CompositeSpec form.</li>
+<li><code>reader.ts</code> classifies a document (or CompositeSpec) into the model; <code>writer.ts</code> writes the model back;
+    <code>printer.ts</code> prints canonical text with sidecar assets for large values, byte-identical to the Python
+    printer it replaced (<code>format.ts</code> reproduces Python's float and <code>json.dumps</code> spellings); <code>bind.ts</code> binds the
+    Langium AST to the model; <code>resolve.ts</code> is what the checker, hover and completion share (which header an
+    edge is declared by, how a path walks the tree).</li>
+<li><code>hover.ts</code> and <code>completion.ts</code> are the editor services; <code>graph.ts</code> the wiring graph for viewers;
+    <code>modelheader.ts</code> renders <code>describe-model</code>'s JSON.</li>
+</ul>
+<h3 id="entry-points">Entry points<a class="headerlink" href="#entry-points" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Entry point</th>
+<th>File</th>
+<th>Used by</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Language server (Node)</td>
+<td><code>src/language/main.ts</code></td>
+<td>The VS Code extension</td>
+</tr>
+<tr>
+<td>Language server (web worker)</td>
+<td><code>src/language/main-browser.ts</code></td>
+<td>The Monaco-based browser demo (<code>npm run dev</code>, <code>static/</code>, <code>setup*.ts</code>)</td>
+</tr>
+<tr>
+<td>VS Code extension client</td>
+<td><code>src/extension/main.ts</code></td>
+<td>VS Code. Starts the language server.</td>
+</tr>
+<tr>
+<td>Embeddable API</td>
+<td><code>src/api.ts</code></td>
+<td>Other applications (web apps, scripts, workers): a <code>Pblang</code> session that checks, compiles, decompiles and graphs from strings and plain values. See "Embedding" below.</td>
+</tr>
+<tr>
+<td>CLI</td>
+<td><code>src/cli/main.ts</code>, <code>bin/cli.js</code></td>
+<td>Humans and the Python package: <code>check [--json]</code>, <code>compile [--to document\|spec] [--strict] [--force]</code>, <code>decompile</code>, <code>headers</code>, <code>model-header</code>, <code>graph</code>, <code>generate</code> (the AST as JSON).</td>
+</tr>
+</tbody>
+</table>
+<p><code>npm run build</code> compiles TypeScript (with declarations) and bundles with esbuild: the extension and the language
+server into <code>out/</code>, the CLI into one self-contained file <code>dist/cli.mjs</code>. <code>npm run build:native</code> also runs
+<code>deno compile --node-modules-dir=none</code> on that bundle to produce a standalone <code>dist/cli-native</code> executable (about 75 MB,
+the Deno runtime plus the bundle) that does not need Node at runtime.</p>
+<h3 id="embedding-in-another-application">Embedding in another application<a class="headerlink" href="#embedding-in-another-application" title="Permanent link">&para;</a></h3>
+<p><code>dsl/</code> is also the npm package <code>process-bigraph-lang</code>, staged on npm by every GitHub release at the release's version by
+<code>.github/workflows/publish-npm.yml</code> through npm's trusted publishing (OIDC, no token) and approved by a maintainer
+(see <code>dsl/README.md</code>, "Releasing"); <code>npm run pack</code> writes an unreleased build's tarball to <code>dist/</code>. Nothing in
+<code>src/language/</code> or <code>src/api.ts</code> touches the file system, so the whole language runs in a browser. The package exports:</p>
+<table>
+<thead>
+<tr>
+<th>Export</th>
+<th>What it is</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>process-bigraph-lang</code></td>
+<td><code>Pblang</code>: <code>addManifest</code>, <code>addHeader</code>, <code>check</code>, <code>compile</code> (<code>to: "document" \| "spec"</code>, <code>strict</code>, <code>force</code>, <code>assets</code>), <code>decompile</code> (text + sidecar assets by path), <code>graph</code>.</td>
+</tr>
+<tr>
+<td><code>process-bigraph-lang/worker</code></td>
+<td>The language server as a web worker entry (<code>main-browser.ts</code>): diagnostics as you type, hover and completion for an editor such as Monaco through <code>monaco-languageclient</code>.</td>
+</tr>
+<tr>
+<td><code>process-bigraph-lang/monarch</code></td>
+<td>The Monarch tokenizer (Monaco's "classic" highlighting).</td>
+</tr>
+<tr>
+<td><code>process-bigraph-lang/textmate</code></td>
+<td>The TextMate grammar (<code>source.pblang</code>), for VS Code-style highlighting.</td>
+</tr>
+<tr>
+<td><code>process-bigraph-lang/language-configuration</code></td>
+<td>Comments, brackets and auto-closing pairs.</td>
+</tr>
+</tbody>
+</table>
+<p>A viewer decompiles a run's document on the main thread with a <code>Pblang</code> session, shows the text in an editor fed by
+the worker, and draws <code>graph(...)</code>. An authoring tool adds the manifests of the environment the document will run in to both: the session
+through <code>addManifest</code> or <code>setManifests</code>, the worker through the <code>pblang/setManifests</code> notification
+(<code>SET_MANIFESTS_NOTIFICATION</code>, <code>{ manifests }</code>), after which it re-checks every open document. It then compiles the
+text and submits the document. Manifests come from <code>describe_env.py</code> run inside that environment
+(<a href="../v2/registry-and-authoring/">registry and authoring</a>, section 1.7). <code>static/</code> and
+<code>src/setup*.ts</code> are the reference wiring of Monaco to the worker (<code>npm run dev</code>).</p>
+<h2 id="the-python-package-process_bigraph_langv2">The Python package (<code>process_bigraph_lang/v2/</code>)<a class="headerlink" href="#the-python-package-process_bigraph_langv2" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong><code>api.py</code></strong> is the public API. <code>compile_text</code> / <code>compile_file</code> run <code>cli-native check</code> and then
+  <code>cli-native compile</code>, returning a <code>{"schema", "state"}</code> document or a CompositeSpec mapping (<code>CompileError</code>
+  on errors; <code>strict=True</code> makes warnings fatal; <code>force=True</code> compiles an existing document that relies on
+  defaults the checker flags). <code>decompile</code> runs <code>cli-native decompile</code> and returns canonical <code>.pblang</code> text with
+  its sidecar assets. There is no Python model of a composite and no way to a runnable document that skips the
+  checker: a Python tool that builds composites targets the DSL text.</li>
+<li><strong><code>interfaces.py</code></strong> generates interface declarations from a module's step/process classes (<code>describe_module</code>,
+  the publish-time step that imports the classes) as the JSON interface manifest (<code>pbg-interfaces/1</code>, a format shared with other tools; JSON Schema in <code>docs/schemas/</code>) the CLI reads;
+  <code>render_interfaces</code> has the CLI print the <code>.pblang</code> header file. <strong><code>sbml.py</code></strong> describes an SBML model as
+  JSON (<code>pblang-model/0</code>); the CLI renders the model header.</li>
+<li><strong><code>check.py</code></strong> wraps <code>cli-native check --json</code>; <strong><code>normalize.py</code></strong> defines document equivalence (<code>equivalent</code>,
+  <code>diff_documents</code>), with <code>types.py</code> as its type parser; <strong><code>langium.py</code></strong> locates and runs the CLI
+  (<code>cli-native</code>, or <code>node dsl/bin/cli.js</code> in a checkout).</li>
+<li><code>python -m process_bigraph_lang.v2 compile | decompile | check | diff | describe | describe-model</code>.</li>
+</ul>
+<h3 id="native-binary-process_bigraph_langbin">Native binary: <code>process_bigraph_lang/bin/</code><a class="headerlink" href="#native-binary-process_bigraph_langbin" title="Permanent link">&para;</a></h3>
+<p>This directory holds the <code>cli-native</code> executable the package runs. <code>build.py</code> (also Poetry's build script) runs
+<code>npm install</code>, <code>npm run langium:generate</code> and <code>npm run build:native</code> in <code>dsl/</code>, then copies <code>dsl/dist/cli-native*</code>
+here. The wheel includes the binary, so installed users do not need Node or Deno. The wheel is therefore
+platform-specific: a release builds one per platform (Linux x86_64 and arm64, macOS arm64 and Intel, Windows),
+re-tagged <code>py3-none-&lt;platform&gt;</code> since the Python is pure, and publishes them to PyPI by trusted publishing
+(<code>.github/workflows/on-release-main.yml</code>).</p>
+<p><strong>Any change to the grammar or TypeScript code only reaches Python after the binary is rebuilt</strong>
+(<code>python build.py</code>, or <code>cd dsl &amp;&amp; npm run build:native &amp;&amp; cp dist/cli-native ../process_bigraph_lang/bin/</code>).</p>
+<h2 id="tests">Tests<a class="headerlink" href="#tests" title="Permanent link">&para;</a></h2>
+<ul>
+<li><code>dsl/test/v2/</code>: the checker's compliance suite (<code>check.test.ts</code>), hover and completion, the grammar over
+  every snapshot, the model's unit tests (<code>model.test.ts</code>) and the round trip (<code>roundtrip.test.ts</code>): every corpus
+  document prints to its committed snapshot byte for byte, every snapshot is a fixpoint through parse → bind →
+  print, the v1 expected documents write back exactly.</li>
+<li><code>tests/v2/</code>: the same round trips, equivalence under the normalizer and realized equivalence under
+  <code>process_bigraph.Composite</code>, all through the CLI; <code>describe</code> of the test registry; the SBML header.</li>
+<li><code>tests/fixtures/data/v2/</code>: <code>corpus/</code> (see its README for provenance; <code>v1/*.json</code> are the expected documents of
+  the former v1 compiler), <code>snapshots/</code> (the printed text, regenerated with <code>PBLANG_UPDATE_SNAPSHOTS=1 pytest
+tests/v2</code>), <code>interfaces/</code> (manifests and headers, those of viva-pde-particle generated in its own
+  environment), <code>models/</code> (SBML). <code>tests/fixtures/test_registry/</code> holds the processes the composites run.</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Maintained by <a href="https://biosimulations.com">Florian</a>.
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        <div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/biosimulations/process-bigraph-lang" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://pypi.org/project/process-bigraph-lang" target="_blank" rel="noopener" title="pypi.org" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.8 200.5c-7.7-30.9-22.3-54.2-53.4-54.2h-40.1v47.4c0 36.8-31.2 67.8-66.8 67.8H172.7c-29.2 0-53.4 25-53.4 54.3v101.8c0 29 25.2 46 53.4 54.3 33.8 9.9 66.3 11.7 106.8 0 26.9-7.8 53.4-23.5 53.4-54.3v-40.7H226.2v-13.6h160.2c31.1 0 42.6-21.7 53.4-54.2 11.2-33.5 10.7-65.7 0-108.6M286.2 404c11.1 0 20.1 9.1 20.1 20.3 0 11.3-9 20.4-20.1 20.4-11 0-20.1-9.2-20.1-20.4.1-11.3 9.1-20.3 20.1-20.3M167.8 248.1h106.8c29.7 0 53.4-24.5 53.4-54.3V91.9c0-29-24.4-50.7-53.4-55.6-35.8-5.9-74.7-5.6-106.8.1-45.2 8-53.4 24.7-53.4 55.6v40.7h106.9v13.6h-147c-31.1 0-58.3 18.7-66.8 54.2-9.8 40.7-10.2 66.1 0 108.6 7.6 31.6 25.7 54.2 56.8 54.2H101v-48.8c0-35.3 30.5-66.4 66.8-66.4m-6.7-142.6c-11.1 0-20.1-9.1-20.1-20.3.1-11.3 9-20.4 20.1-20.4 11 0 20.1 9.2 20.1 20.4s-9 20.3-20.1 20.3"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "..", "features": [], "search": "../assets/javascripts/workers/search.d50fe291.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.13a4f30d.min.js"></script>
+      
+    
+  </body>
+</html>
